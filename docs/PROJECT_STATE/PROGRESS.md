@@ -2,6 +2,16 @@
 
 Reverse-chronological. Each entry: what happened, evidence.
 
+## 2026-08-27 — Layer 1: Foundation
+
+Authorized explicitly per the implementation bootstrap after the Layer 0 audit. Confirmed no Layer 0 blocker (`BLOCKERS.md` B1–B8) applies to Layer 1 before starting.
+
+Implemented the runtime skeleton: `USER REQUEST → API ENTRY → REQUEST CONTEXT → EXECUTION STATE → TRACEABLE RUNTIME → STRUCTURED RESPONSE`, per §5 of the bootstrap. Stack: Python 3.11, FastAPI, Pydantic v2 (the only concrete stack recommendation in the docs — `SCALE_ARCHITECTURE_UPDATED.md`'s "Prototype stack"). `Runtime.handle()` is a deterministic echo with no intelligence, matching Rule 1 ("no premature intelligence"). Structured logging uses stdlib `logging` + `contextvars` (no new dependency) so `request_id`/`trace_id`/`trajectory_id` appear automatically in every log line for a request's duration without threading them through every function call.
+
+19 tests written and passing (`pytest`). Manually verified end-to-end: started the app with `uvicorn`, exercised `/health/live`, `/health/ready`, `POST /v1/requests` (happy path and validation-error path) with `curl`, and inspected the structured JSON logs to confirm ID consistency across a request's lifecycle. Confirmed by grep that no Layer 2+ concept (Query Profiler, Risk Profiler, Model Router, Capability Router, Evaluator, Intervention Engine, Replanner, Behavioral Drift, MCP routing) was accidentally implemented.
+
+Files: see `docs/PROJECT_STATE/CURRENT_STATE.md` for the full list, and `controlplane/README.md` for the module's interface/limitations/extension points. Design decisions recorded in `DECISIONS.md`.
+
 ## 2026-08-27 — Layer 0 Repository Audit
 
 Per the implementation bootstrap's mandatory first task: full repository inspection (structure, code, dependencies, environment, docs). Findings written to `CURRENT_STATE.md`, `BLOCKERS.md`, `FUTURE_WORK.md`, `DECISIONS.md`. Reviewed the original competition brief screenshots in `Problem_Statement/` (Accenture Innovation Challenge 2026, Round 2, Problem Track 1 — "ControlPlane.ai" / "Responsible AI Checker"). Confirmed: zero application code exists; no `AGENTS.md` or `docs/ARCHITECTURE.md` at the paths several docs reference; no `docs/ALGORITHMS/` directory yet.

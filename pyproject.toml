@@ -1,0 +1,26 @@
+[project]
+name = "controlplane"
+version = "0.1.0"
+description = "ControlPlane.ai - adaptive control plane for AI execution (Layer 1: Foundation)"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "httpx>=0.27",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["controlplane*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
