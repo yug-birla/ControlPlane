@@ -2,6 +2,20 @@
 
 Reverse-chronological. Each entry: what happened, evidence.
 
+## 2026-08-27 — Milestone 1: Runtime Backbone + Trajectory + Ledger + Events + Real Model Provider
+
+Authorized explicitly, moving from strict layer-by-layer development to milestone-based development per new instruction ("do NOT create artificial barriers between every architectural layer... implement tightly coupled architecture components together"). Built, together: Trajectory Store, Execution Ledger, Event Model + in-process transport, Model Provider abstraction, Groq provider, and full runtime integration, backed by a real PostgreSQL instance.
+
+**Infrastructure:** Docker Desktop was not running; started it and discovered pre-existing containers from an unrelated project (`lead-intelligence`) already using port 5432 -- left those untouched and stood up an isolated `controlplane_postgres` container on port 5433 via `docker-compose.yml`. Alembic initialized and configured to read `DATABASE_URL` from `controlplane.config` (never from `alembic.ini`, so migrations and the app can never target different databases); initial migration creates `requests`, `trajectories`, `trajectory_steps`, `execution_ledger`, `event_index`, `model_invocations`.
+
+**Code:** `controlplane/db/` (SQLAlchemy models + engine), `controlplane/trajectory/store.py`, `controlplane/ledger/ledger.py`, `controlplane/events/{schema,transport,store}.py`, `controlplane/models/{provider,groq_provider,registry}.py`, `controlplane/runtime.py` rewritten to orchestrate: create request/trajectory -> `QUERY_RECEIVED` -> invoke the configured model provider -> persist the model invocation -> append a ledger entry -> `MODEL_CALLED`/`MODEL_FAILURE` -> `FINAL_RESPONSE_GENERATED` -> update trajectory. Fixed a real bug found via a failing integration test: the `model_invocation` trajectory step never transitioned out of `RUNNING` on the success path (added `TrajectoryStore.update_step_status`). Fixed a second real bug: error responses claimed to carry `request_id`/`trace_id` but those contextvars were always reset (by `RequestContext.bind()`'s cleanup) before the global exception handler read them, so they were always `null` -- fixed by attaching the ids to the exception instance at the point of catching it, while the context is still live.
+
+**Tests:** grew from 19 to 45 (trajectory store, ledger, events, model provider abstraction, Groq provider normalization/error-mapping with a fully mocked SDK client, integration tests exercising the full API-to-Postgres flow with a fake model provider). No automated test calls the live Groq API.
+
+**Live Groq validation:** executed. `tests/manual_groq_live_check.py` asked Groq for its live model list (never hard-coded a model name), selected `allam-2-7b`, and completed a real chat completion (latency 405ms, 18 input / 33 output tokens). Then re-ran the full HTTP pipeline (`POST /v1/requests`) against the same live model and confirmed correct persistence in `trajectories`, `trajectory_steps`, `execution_ledger`, `event_index`, and `model_invocations`. Confirmed by grep across logs and repository files that the API key (pasted into chat by the user) was never written to any file or log. Confirmed restart-persistence by killing the running `uvicorn` process, starting a fresh one, and reading the pre-restart trajectory from a completely independent Python process.
+
+**Documentation:** `docs/architecture/TRAJECTORY_AND_LEDGER.md` and `EVENT_MODEL.md` got "Implementation status" notes distinguishing what's built from what remains a contract; `docs/DATA/POSTGRES_SCHEMA.md` documents the new `model_invocations` table and the TEXT-vs-UUID decision; `docs/ALGORITHMS/MODEL_PROVIDER_ABSTRACTION.md` and `MODEL_INVOCATION_BASELINE.md` created; `controlplane/README.md` and five new subfolder READMEs written; root `README.md` now explains how to run the application.
+
 ## 2026-08-27 — Layer 1: Foundation
 
 Authorized explicitly per the implementation bootstrap after the Layer 0 audit. Confirmed no Layer 0 blocker (`BLOCKERS.md` B1–B8) applies to Layer 1 before starting.

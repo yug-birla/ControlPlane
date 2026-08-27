@@ -9,7 +9,6 @@ from fastapi.responses import JSONResponse
 from controlplane.api.health import router as health_router
 from controlplane.api.routes import router as requests_router
 from controlplane.config import get_settings
-from controlplane.context import current_request_id, current_trace_id
 from controlplane.errors import ControlPlaneError, InternalError
 from controlplane.logging_config import configure_logging, get_logger
 
@@ -24,8 +23,8 @@ app.include_router(requests_router)
 
 def _error_response(error: ControlPlaneError) -> JSONResponse:
     body = error.to_dict()
-    body["request_id"] = current_request_id()
-    body["trace_id"] = current_trace_id()
+    body["request_id"] = error.request_id
+    body["trace_id"] = error.trace_id
     return JSONResponse(status_code=error.http_status, content=body)
 
 

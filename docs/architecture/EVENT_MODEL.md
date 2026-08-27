@@ -1,8 +1,10 @@
 # ControlPlane.ai - Event Model
 
-**Status:** Architecture Contract  
+**Status:** PARTIAL — a 4-event subset implemented (Milestone 1, 2026-08-27); the full ~29-event canonical taxonomy below remains an architecture contract, not an implementation claim
 **Scope:** Runtime event semantics for ControlPlane.ai  
 **Audience:** ControlPlane core, route/capability implementers, evaluators, intervention/replanner, observability, audit, and future infrastructure adapters
+
+> **Implementation status:** `controlplane/events/` implements `QUERY_RECEIVED`, `MODEL_CALLED`, `MODEL_FAILURE`, `FINAL_RESPONSE_GENERATED` (of the ~29 canonical events in §14 below) with the required envelope fields (`event_id`, `event_type`, `timestamp`, `source`, `severity`, `request_id`, `trace_id`, `trajectory_id`, `payload`, `event_version`). Transport is in-process and synchronous (`controlplane/events/transport.py::InProcessEventTransport`) behind an `EventTransport` interface, replacing this document's "lightweight in-process or Redis-backed" option with the simpler choice for current scale (see `docs/PROJECT_STATE/DECISIONS.md`); a Redis Streams-backed transport can implement the same interface later without changing any publisher or consumer. Events are durably persisted to `event_index` (`controlplane/events/store.py`, `docs/DATA/POSTGRES_SCHEMA.md` §8.1). The severity scale used here (`info/notice/warning/high/critical`) is confirmed as the transport-level scale, distinct from `FAILURE_AND_RECOVERY.md`'s `S0-S4` governance scale — see `docs/architecture/CONTROLPLANE_FINAL_ARCHITECTURE_IMPLEMENTATION_MASTER_SPEC.md` §64.3. Not yet implemented: every other event in §14, replan-triggering semantics (§17), event versioning/backward-compatibility handling (§20), and dead-letter behavior (§SS on retries).
 
 ## 1. Purpose
 

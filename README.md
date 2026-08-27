@@ -16,7 +16,14 @@ ControlPlane/
 ├── docs/
 │   ├── architecture/                  ← System design, runtime flow, event model
 │   ├── specs/                         ← Component implementation specifications
-│   └── DATA/                          ← Data strategy, schemas, annotation guidelines
+│   ├── DATA/                          ← Data strategy, schemas, annotation guidelines
+│   ├── ALGORITHMS/                    ← Per-algorithm implementation notes
+│   └── PROJECT_STATE/                 ← Current state, progress, decisions, blockers, future work
+│
+├── controlplane/                      ← Application code (see controlplane/README.md)
+├── tests/                             ← pytest suite (+ one manual live-provider check)
+├── alembic/                           ← Database migrations
+├── docker-compose.yml                 ← Local PostgreSQL for development/tests
 │
 └── data/
     ├── raw/generated/                 ← Bulk generated datasets
@@ -27,6 +34,18 @@ ControlPlane/
     ├── scripts/                       ← Data generation and validation scripts
     └── reports/                       ← Dataset quality scorecards
 ```
+
+## Running the Application
+
+```
+docker compose up -d postgres        # isolated ControlPlane Postgres on localhost:5433
+python -m venv .venv && .venv/Scripts/pip install -e ".[dev]"
+.venv/Scripts/python -m alembic upgrade head
+.venv/Scripts/python -m pytest       # 45 tests, no live external API required
+GROQ_API_KEY=... GROQ_MODEL=... .venv/Scripts/python -m uvicorn controlplane.main:app
+```
+
+See `controlplane/README.md` for the interface and current scope, and `docs/PROJECT_STATE/CURRENT_STATE.md` for exactly what is and isn't implemented.
 
 ---
 

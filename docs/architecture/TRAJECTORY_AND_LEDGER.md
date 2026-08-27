@@ -1,9 +1,11 @@
 # ControlPlane.ai — Trajectory Store + Execution Ledger
 
 **Document:** `docs/ARCHITECTURE/TRAJECTORY_AND_LEDGER.md`  
-**Status:** PLANNED — architecture/contract specification; not an implementation claim  
+**Status:** PARTIAL — baseline implemented (Milestone 1, 2026-08-27); the rest of this document remains a forward-looking architecture/contract specification, not an implementation claim  
 **Scope:** Competition Prototype / R2, with production evolution boundaries explicitly identified  
 **Subsystem:** State + Governance + Observability  
+
+> **Implementation status:** `controlplane/trajectory/store.py` (Trajectory Store) and `controlplane/ledger/ledger.py` (Execution Ledger) implement the core distinction this document defines — reconstructable state/history vs. append-only consequential facts — backed by Postgres (`trajectories`, `trajectory_steps`, `execution_ledger`; see `docs/DATA/POSTGRES_SCHEMA.md` §9-10). Implemented: create/retrieve/update a trajectory, append/update a trajectory step, retrieve chronological history, append an append-only ledger entry (never updated/deleted by application code), retrieve ledger entries by trajectory. Not yet implemented: everything else in this document — permission lineage, behavioral drift, multi-agent composition, human-approval records, replay/reconstruction tooling, retention/privacy tombstoning, and every field/table this document describes beyond what `controlplane/db/models.py` currently defines. See `docs/PROJECT_STATE/CURRENT_STATE.md` for the exact current scope.
 
 ---
 

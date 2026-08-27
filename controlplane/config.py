@@ -4,9 +4,11 @@ Single place configuration is read from the environment. Nothing else in
 the codebase should call ``os.environ`` directly -- see
 docs/architecture/CONTROLPLANE_CROSS_CUTTING_SYSTEM_SPEC.md SS9.
 
-Connection placeholders (``database_url``, ``redis_url``, ``qdrant_url``,
-``model_provider_keys``, ``mcp_endpoints``) are read but intentionally
-unused in Layer 1 -- no code connects to them yet.
+``redis_url``, ``qdrant_url``, ``mcp_endpoints`` remain unused placeholders
+(Layer 3+/5+/11+). ``database_url`` is used from Milestone 1 onward.
+``groq_api_key`` is read from the environment only -- never given a
+fallback value here and never logged. See docs/PROJECT_STATE/DECISIONS.md
+for why no model name is hard-coded as a default.
 """
 
 from __future__ import annotations
@@ -15,6 +17,10 @@ import os
 from dataclasses import dataclass, field
 from functools import lru_cache
 
+_DEFAULT_DATABASE_URL = (
+    "postgresql+psycopg2://controlplane:controlplane_dev_password@localhost:5433/controlplane"
+)
+
 
 @dataclass(frozen=True)
 class Settings:
@@ -22,12 +28,17 @@ class Settings:
     application_env: str = "development"
     log_level: str = "INFO"
 
-    # Infrastructure placeholders (Layer 1 does not connect to any of these).
-    database_url: str | None = None
+    database_url: str = _DEFAULT_DATABASE_URL
+
+    # Infrastructure placeholders -- not used until later layers.
     redis_url: str | None = None
     qdrant_url: str | None = None
-    model_provider_keys: str | None = None
     mcp_endpoints: str | None = None
+
+    # Model provider configuration. groq_api_key is a secret: read from the
+    # environment only, never defaulted, never logged, never persisted.
+    groq_api_key: str | None = None
+    groq_model: str | None = None
 
     feature_flags: frozenset[str] = field(default_factory=frozenset)
 
@@ -39,11 +50,12 @@ class Settings:
             application_name=os.environ.get("APPLICATION_NAME", "controlplane"),
             application_env=os.environ.get("APPLICATION_ENV", "development"),
             log_level=os.environ.get("LOG_LEVEL", "INFO").upper(),
-            database_url=os.environ.get("DATABASE_URL"),
+            database_url=os.environ.get("DATABASE_URL", _DEFAULT_DATABASE_URL),
             redis_url=os.environ.get("REDIS_URL"),
             qdrant_url=os.environ.get("QDRANT_URL"),
-            model_provider_keys=os.environ.get("MODEL_PROVIDER_KEYS"),
             mcp_endpoints=os.environ.get("MCP_ENDPOINTS"),
+            groq_api_key=os.environ.get("GROQ_API_KEY"),
+            groq_model=os.environ.get("GROQ_MODEL"),
             feature_flags=flags,
         )
 

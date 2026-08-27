@@ -199,7 +199,9 @@ PostgreSQL
 |     +-- capability_registry
 |     +-- route_registry
 |     +-- trajectories
+|     +-- trajectory_steps
 |     +-- execution_ledger
+|     +-- model_invocations
 |     +-- cost_latency_records
 |     +-- event_index
 |

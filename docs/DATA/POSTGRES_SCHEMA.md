@@ -6,6 +6,8 @@
 
 > This document defines logical schema and relationships. Physical partitioning/index tuning can evolve after measurement.
 
+**Implementation status (Milestone 1, 2026-08-27):** `requests` (SS3.1), `trajectories`/`trajectory_steps` (SS9), `execution_ledger` (SS10.1), `event_index` (SS8.1), and `model_invocations` (SS10.2, new) are implemented — see `controlplane/db/models.py`, managed by Alembic (`alembic/versions/`). One deviation from this document's literal DDL, recorded in `docs/PROJECT_STATE/DECISIONS.md`: all `*_id`/`id` identifier columns are `TEXT`, not `UUID`, because Layer 1 already decided identifiers are prefixed strings (`req_<uuid4>`, `trace_<uuid4>`, `traj_<uuid4>`, ...) for log readability, and a native Postgres `UUID` column cannot hold that prefix. All other tables in this document remain design-only (not yet implemented).
+
 ---
 
 # 1. Database Layout
@@ -591,6 +593,35 @@ Do not update old ledger records.
 If a correction is required, append a compensating record.
 
 The trajectory contract defines the ledger as an append-only record of consequential execution facts.
+
+---
+
+## 10.2 model_invocations
+
+New this milestone. `docs/architecture/TRAJECTORY_AND_LEDGER.md` SS13.1 describes a conceptual "Model Invocation Record" but never gave it a concrete table; this is that table. It is the single authoritative copy of a model call's full input/output text — `execution_ledger` and `event_index` reference it by ID rather than duplicating the text (per SS15 in `docs/architecture/EVENT_MODEL.md`: "Do not duplicate complete payloads unnecessarily").
+
+```text
+id UUID PK
+request_id UUID FK
+trace_id UUID/UUID-like
+trajectory_id UUID FK
+provider TEXT
+model TEXT
+status TEXT
+started_at TIMESTAMPTZ
+completed_at TIMESTAMPTZ nullable
+latency_ms BIGINT nullable
+input_tokens BIGINT nullable
+output_tokens BIGINT nullable
+estimated_cost NUMERIC nullable
+input_text TEXT nullable
+output_text TEXT nullable
+error_metadata JSONB nullable
+```
+
+`status` values: `SUCCESS`, `FAILURE`. `input_text`/`output_text` hold the visible prompt/response only — never hidden chain-of-thought/reasoning tokens, even if a provider's API response includes them.
+
+Every `MODEL_INVOKED` ledger entry (SS10.1) carries `evidence_refs: {"model_invocation_id": ...}` pointing here.
 
 ---
 

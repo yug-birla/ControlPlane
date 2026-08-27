@@ -17,3 +17,4 @@ def test_readiness():
     body = resp.json()
     assert body["status"] == "ready"
     assert body["checks"]["configuration"] == "ok"
+    assert body["checks"]["database"] == "ok"

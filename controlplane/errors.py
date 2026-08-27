@@ -21,6 +21,12 @@ class ControlPlaneError(Exception):
     def __init__(self, message: str) -> None:
         super().__init__(message)
         self.message = message
+        # Set by the API layer while the request context is still bound
+        # (contextvars are reset by RequestContext.bind()'s cleanup before
+        # a global exception handler would otherwise see them -- see
+        # controlplane/api/routes.py).
+        self.request_id: str | None = None
+        self.trace_id: str | None = None
 
     def to_dict(self) -> dict:
         return {

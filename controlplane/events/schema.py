@@ -1,0 +1,83 @@
+"""Canonical event contract -- docs/architecture/EVENT_MODEL.md.
+
+Only the four events this milestone's flow actually produces are defined
+here (a subset of EVENT_MODEL.md SS14's ~29-event canonical taxonomy).
+Later layers add more members to ``EventType`` as they start emitting
+them -- do not pre-declare events nothing produces yet.
+
+Event vs. Command vs. State Update (EVENT_MODEL.md SS3): this module only
+carries events ("what happened"). It must never encode a policy decision
+("what should happen next") -- see controlplane/runtime.py, which is the
+only place that interprets an event and decides.
+"""
+
+from __future__ import annotations
+
+import uuid
+from datetime import datetime, timezone
+from enum import Enum
+
+from pydantic import BaseModel, Field
+
+
+class EventType(str, Enum):
+    QUERY_RECEIVED = "QUERY_RECEIVED"
+    MODEL_CALLED = "MODEL_CALLED"
+    MODEL_FAILURE = "MODEL_FAILURE"
+    FINAL_RESPONSE_GENERATED = "FINAL_RESPONSE_GENERATED"
+
+
+class Severity(str, Enum):
+    """docs/architecture/CONTROLPLANE_FINAL_ARCHITECTURE_IMPLEMENTATION_MASTER_SPEC.md SS64.3:
+    canonical for the event *transport* layer (narrower than the S0-S4
+    governance severity scale in FAILURE_AND_RECOVERY.md)."""
+
+    INFO = "info"
+    NOTICE = "notice"
+    WARNING = "warning"
+    HIGH = "high"
+    CRITICAL = "critical"
+
+
+_DEFAULT_SEVERITY = {
+    EventType.QUERY_RECEIVED: Severity.INFO,
+    EventType.MODEL_CALLED: Severity.INFO,
+    EventType.MODEL_FAILURE: Severity.HIGH,
+    EventType.FINAL_RESPONSE_GENERATED: Severity.INFO,
+}
+
+
+class Event(BaseModel):
+    event_id: str = Field(default_factory=lambda: f"evt_{uuid.uuid4()}")
+    event_type: EventType
+    event_version: str = "1"
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    source: str
+    severity: Severity
+    request_id: str
+    trace_id: str
+    trajectory_id: str
+    correlation_id: str | None = None
+    payload: dict = Field(default_factory=dict)
+
+    @staticmethod
+    def create(
+        event_type: EventType,
+        *,
+        source: str,
+        request_id: str,
+        trace_id: str,
+        trajectory_id: str,
+        payload: dict | None = None,
+        severity: Severity | None = None,
+    ) -> "Event":
+        return Event(
+            event_type=event_type,
+            source=source,
+            severity=severity or _DEFAULT_SEVERITY[event_type],
+            request_id=request_id,
+            trace_id=trace_id,
+            trajectory_id=trajectory_id,
+            correlation_id=trace_id,
+            payload=payload or {},
+        )
