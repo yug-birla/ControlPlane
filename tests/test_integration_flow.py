@@ -34,7 +34,9 @@ def test_full_flow_persists_trajectory_ledger_and_events(monkeypatch):
     assert trajectory["final_status"] == "COMPLETED"
 
     history = TrajectoryStore().get_history(trajectory_id)
-    assert [h["step_type"] for h in history] == ["received", "model_invocation", "completed"]
+    assert [h["step_type"] for h in history] == [
+        "received", "query_profiling", "risk_assessment", "model_invocation", "completed",
+    ]
     assert all(h["status"] in ("COMPLETED",) for h in history)
 
     # 2. Ledger has exactly one MODEL_INVOKED entry for this trajectory.
@@ -44,16 +46,22 @@ def test_full_flow_persists_trajectory_ledger_and_events(monkeypatch):
     assert ledger_entries[0]["consequence_class"] == "READ_ONLY"
     assert ledger_entries[0]["metadata"]["status"] == "SUCCESS"
 
-    # 3. Events recorded in order: QUERY_RECEIVED, MODEL_CALLED, FINAL_RESPONSE_GENERATED.
+    # 3. Events recorded in order.
     events = EventStore().get_by_trajectory(trajectory_id)
     assert [e["event_type"] for e in events] == [
         "QUERY_RECEIVED",
+        "QUERY_PROFILED",
+        "RISK_DETECTED",
         "MODEL_CALLED",
         "FINAL_RESPONSE_GENERATED",
     ]
 
-    # 4. The response answer matches what the model produced.
+    # 4. The response answer matches what the model produced, and carries
+    #    a real (not fabricated) query profile / risk / policy assessment.
     assert body["answer"] == "Paris is the capital of France."
+    assert body["metadata"]["query_profile"]["intent"]
+    assert body["metadata"]["risk"]["severity"] in ("NO_ACTION", "LOW_RISK", "MEDIUM_RISK", "HIGH_RISK", "CRITICAL")
+    assert body["metadata"]["policy"]["tier"]
 
 
 def test_failed_model_invocation_still_persists_trajectory_and_ledger(monkeypatch):
@@ -82,7 +90,9 @@ def test_failed_model_invocation_still_persists_trajectory_and_ledger(monkeypatc
     assert ledger_entries[0]["metadata"]["status"] == "FAILURE"
 
     events = EventStore().get_by_trajectory(trajectory["id"])
-    assert [e["event_type"] for e in events] == ["QUERY_RECEIVED", "MODEL_FAILURE"]
+    assert [e["event_type"] for e in events] == [
+        "QUERY_RECEIVED", "QUERY_PROFILED", "RISK_DETECTED", "MODEL_FAILURE",
+    ]
 
 
 def _trajectory_for_request(request_id: str) -> dict | None:

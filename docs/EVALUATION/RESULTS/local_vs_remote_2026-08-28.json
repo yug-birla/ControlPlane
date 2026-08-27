@@ -1,0 +1,20 @@
+{
+  "experiment_id": "exp_d682a3f8-0d4a-40d1-9c44-85c5ee43e337",
+  "run_id": "run_ac6409ed-5aa6-415b-9b07-74289106cef2",
+  "local": {
+    "method": "local_embedding_knn",
+    "cost": "free",
+    "avg_latency_ms": 2126.599999999962,
+    "accuracy_by_field": {
+      "complexity": 0.3,
+      "sensitivity": 0.7,
+      "ambiguity": 0.8,
+      "actionability": 0.9
+    }
+  },
+  "remote": {
+    "method": "groq_prompted_classification",
+    "status": "NOT_MEASURED",
+    "reason": "GROQ_API_KEY/GROQ_MODEL not set in this environment run -- see docs/EVALUATION/MODEL_BENCHMARKS.md"
+  }
+}

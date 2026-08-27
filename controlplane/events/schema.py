@@ -22,6 +22,13 @@ from pydantic import BaseModel, Field
 
 class EventType(str, Enum):
     QUERY_RECEIVED = "QUERY_RECEIVED"
+    QUERY_PROFILED = "QUERY_PROFILED"
+    """docs/architecture/RUNTIME_FLOW.md SS14 canonical event list -- first
+    implemented this milestone (Query Profiler now exists to emit it)."""
+    RISK_DETECTED = "RISK_DETECTED"
+    """docs/architecture/RUNTIME_FLOW.md SS14 -- emitted for every query
+    (not only risky ones), analogous to QUERY_PROFILED; the ``severity``
+    field is what actually varies with the assessed risk."""
     MODEL_CALLED = "MODEL_CALLED"
     MODEL_FAILURE = "MODEL_FAILURE"
     FINAL_RESPONSE_GENERATED = "FINAL_RESPONSE_GENERATED"
@@ -41,6 +48,8 @@ class Severity(str, Enum):
 
 _DEFAULT_SEVERITY = {
     EventType.QUERY_RECEIVED: Severity.INFO,
+    EventType.QUERY_PROFILED: Severity.INFO,
+    EventType.RISK_DETECTED: Severity.INFO,  # overridden per-call with the assessed severity -- see controlplane/runtime.py
     EventType.MODEL_CALLED: Severity.INFO,
     EventType.MODEL_FAILURE: Severity.HIGH,
     EventType.FINAL_RESPONSE_GENERATED: Severity.INFO,

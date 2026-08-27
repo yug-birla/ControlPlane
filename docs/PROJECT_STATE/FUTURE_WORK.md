@@ -11,11 +11,11 @@
 | 4 | Execution Graph | Not started | `docs/architecture/RUNTIME_FLOW.md` §11-12; `PRODUCT_THESIS_UPDATED.md` §8 | |
 | 5 | Capability / MCP Fabric | Not started | `PRODUCT_THESIS_UPDATED.md` §11; `docs/architecture/CONTROLPLANE_FINAL_ARCHITECTURE_IMPLEMENTATION_MASTER_SPEC.md` §45 | 5 capability groups: Model, SQL/Data, RAG/Retrieval, Web/External Data, Agent/Tools. `controlplane/models/` is a proof that this pattern (thin interface + one real adapter) works |
 | 6 | Synthetic Data Environment | Partially done (data generated, not loaded into Postgres) | `docs/DATA/DATASET_REGISTRY.md`, `docs/DATA/POSTGRES_SCHEMA.md` §12-14 | **Resolve `BLOCKERS.md` B4 first** (two incompatible enterprise datasets) |
-| 7 | Baseline Query Intelligence | Not started | `docs/DATA/SCHEMA.md`; `PRODUCT_THESIS_UPDATED.md` §6 | Create `docs/ALGORITHMS/QUERY_PROFILER.md` alongside this layer |
-| 8 | Baseline Risk / Policy | Not started | `docs/specs/CONTROLPLANE_ROUTING_SYSTEM_SPEC.md` (Risk Profiler, R0/R1/R2) | |
-| 9 | Data / Capability Routing | Not started | `docs/specs/CONTROLPLANE_ROUTING_SYSTEM_SPEC.md` (Capability Router) | **Resolve `BLOCKERS.md` B6 first** (data-source/capability taxonomy mismatch) |
+| 7 | Baseline Query Intelligence | **Done** (2026-08-28, Milestone 2) | `docs/DATA/SCHEMA.md`; `PRODUCT_THESIS_UPDATED.md` §6; `docs/ALGORITHMS/QUERY_PROFILER_BASELINE.md` | `controlplane/query_intelligence/`. Complexity classification needs rework (near chance-level) before anything gates on it — see `docs/EVALUATION/QUERY_PROFILER_RESULTS.md` |
+| 8 | Baseline Risk / Policy | **Done** (2026-08-28, Milestone 2) | `docs/specs/CONTROLPLANE_ROUTING_SYSTEM_SPEC.md`; `docs/ALGORITHMS/RISK_PROFILER_BASELINE.md` | `controlplane/risk/`, `controlplane/policy/`. Missed its one true HIGH_RISK validation example (governance/decision-support, no agentic action) — see `docs/EVALUATION/RISK_PROFILER_RESULTS.md` before trusting for anything safety-critical unassisted |
+| 9 | Data / Capability Routing | Not started (inputs now exist) | `docs/specs/CONTROLPLANE_ROUTING_SYSTEM_SPEC.md` (Capability Router) | `QueryFingerprint.capability_hints`/`data_requirement` are the intended input, already using the canonical `SOURCES_AND_CAPABILITIES.md` vocabulary (`BLOCKERS.md` B6 partially addressed) — but route hints are informational only so far, nothing routes on them yet |
 | 10 | Model Routing | **Single-provider baseline done** (Milestone 1); routing between multiple providers not started | `docs/architecture/MODEL_AND_EVALUATION_DECISIONS.md`; `docs/specs/CONTROLPLANE_ROUTING_SYSTEM_SPEC.md` | `controlplane/models/registry.py` currently returns the one configured Groq provider. Model pool (Qwen3 ~1.3B / 4B / Grok) from `DECISIONS.md` not yet implemented — Groq was used instead as the first real, available provider to prove the runtime backbone |
-| 11 | RAG | Not started | `docs/specs/CONTROLPLANE_RAG_RETRIEVAL_HALLUCINATION_AGENT_GUIDE.md` §3-9 | |
+| 11 | RAG | Not started (encoder ready) | `docs/specs/CONTROLPLANE_RAG_RETRIEVAL_HALLUCINATION_AGENT_GUIDE.md` §3-9 | The local embedding model (`controlplane/models/local_hf_provider.py`) was deliberately selected in Milestone 2 to double as the retrieval encoder — no second embedding model download needed |
 | 12 | RAG Adequacy | Not started | `docs/specs/CONTROLPLANE_RAG_RETRIEVAL_HALLUCINATION_AGENT_GUIDE.md` §10-15 | Output enum: `SUFFICIENT/PARTIALLY_SUFFICIENT/INSUFFICIENT/CONFLICTING` |
 | 13 | Baseline Evaluation | Not started | `docs/specs/FINAL_EVALUATION_GOVERNANCE_COMPONENT_SPEC.md` | **Blocked by `BLOCKERS.md` B5** — no real human-labeled responses exist to evaluate against yet. `model_invocations` now records real telemetry this layer can consume once it exists |
 | 14 | Risk × Confidence Decision Engine | Not started | `docs/architecture/RUNTIME_FLOW.md` §19; `docs/architecture/CONTROLPLANE_FINAL_ARCHITECTURE_IMPLEMENTATION_MASTER_SPEC.md` §43, §64.2 | Use the canonical decision enum from `DECISIONS.md` |
@@ -39,7 +39,11 @@
 - Transcribing the remaining pages of the original competition brief (`BLOCKERS.md` B7).
 - Model routing across multiple providers (Layer 10's full scope — currently one fixed Groq model).
 - Redis Streams-backed event transport (currently in-process; `EventTransport` interface is ready for the swap).
+- Live Groq-vs-local classification comparison (harness built and run once; remote side `NOT_MEASURED` — needs a `GROQ_API_KEY` supplied in-session to actually execute).
+- Reworking Query Profiler complexity classification (near chance-level for both baselines — see `docs/EVALUATION/QUERY_PROFILER_RESULTS.md`).
+- Reworking Risk Profiler's decision-support/governance blind spot (missed its one true HIGH_RISK example — see `docs/EVALUATION/RISK_PROFILER_RESULTS.md`).
+- Re-downloading the local embedding model with `allow_patterns` restricted to the PyTorch/safetensors files only (the current cache includes unused ONNX/OpenVINO/TF variants from `snapshot_download`'s default behavior — a minor disk-space inefficiency, not a functional issue).
 
 ## Next Action
 
-Awaiting explicit instruction before continuing. Candidates: Query Intelligence baseline (Layer 7), Execution Graph (Layer 4), or extending model routing across multiple providers (rest of Layer 10) — see `docs/PROJECT_STATE/BLOCKERS.md` for what each would need resolved first.
+Awaiting explicit instruction before continuing. Candidates: Execution Graph (Layer 4), Data/Capability Routing (Layer 9, inputs now ready), or extending model routing across multiple providers (rest of Layer 10) — see `docs/PROJECT_STATE/BLOCKERS.md` for what each would need resolved first.

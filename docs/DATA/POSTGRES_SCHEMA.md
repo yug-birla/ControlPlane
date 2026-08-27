@@ -254,20 +254,27 @@ The architecture requires capability metadata so the planner reasons over capabi
 
 ## 5.2 model_registry
 
+Extended in Milestone 2 (2026-08-28) with `source`, `model_family`, `parameter_count`, `local_or_remote`, `hardware_requirements`, `license`, `revision` -- required to describe both local (Hugging Face) and remote (Groq) models, per `docs/PROJECT_STATE/DECISIONS.md`. `reasoning_strength`/`version` (originally documented here) were not implemented -- superseded by `model_family`/`revision`, which cover the same intent (a model's lineage/version identity) for the models actually registered so far.
+
 ```text
 id UUID PK
 model_key TEXT UNIQUE
 provider TEXT
+source TEXT
 display_name TEXT
+model_family TEXT nullable
 capabilities JSONB
+parameter_count BIGINT nullable
 context_window INTEGER nullable
-latency_class TEXT
-cost_class TEXT
-reasoning_strength TEXT nullable
+latency_class TEXT nullable
+cost_class TEXT nullable
+local_or_remote TEXT
+hardware_requirements JSONB
+license TEXT nullable
+revision TEXT nullable
+availability_status TEXT
 known_strengths JSONB
 known_weaknesses JSONB
-availability_status TEXT
-version TEXT nullable
 created_at TIMESTAMPTZ
 updated_at TIMESTAMPTZ
 ```

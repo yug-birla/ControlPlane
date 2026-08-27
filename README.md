@@ -39,13 +39,16 @@ ControlPlane/
 
 ```
 docker compose up -d postgres        # isolated ControlPlane Postgres on localhost:5433
-python -m venv .venv && .venv/Scripts/pip install -e ".[dev]"
+python -m venv .venv
+.venv/Scripts/pip install -e ".[dev]" --extra-index-url https://download.pytorch.org/whl/cpu   # CPU-only torch; omitting the index pulls a much larger CUDA build
 .venv/Scripts/python -m alembic upgrade head
-.venv/Scripts/python -m pytest       # 45 tests, no live external API required
+.venv/Scripts/python -m controlplane.models.model_download   # one-time: caches the local embedding model (~91MB)
+.venv/Scripts/python -m controlplane.models.registry_seed    # seeds model_registry
+.venv/Scripts/python -m pytest       # 80 tests, no live external API required (local model must be downloaded first)
 GROQ_API_KEY=... GROQ_MODEL=... .venv/Scripts/python -m uvicorn controlplane.main:app
 ```
 
-See `controlplane/README.md` for the interface and current scope, and `docs/PROJECT_STATE/CURRENT_STATE.md` for exactly what is and isn't implemented.
+See `controlplane/README.md` for the interface and current scope, `docs/PROJECT_STATE/CURRENT_STATE.md` for exactly what is and isn't implemented, and `docs/EVALUATION/` for measured Query Profiler / Risk Profiler / model benchmark results.
 
 ---
 

@@ -1,0 +1,667 @@
+{
+  "experiment_id": "exp_868eb240-83b7-48ef-b2e6-03feff5d51b1",
+  "dataset_id": "query_profiles_validation",
+  "dataset_version": "v0.1",
+  "results": {
+    "rules": {
+      "run_id": "run_5b14123a-c3e8-400a-b830-3be5aa69ed2a",
+      "metrics": {
+        "sample_count": 28,
+        "failures": [],
+        "fields": {
+          "complexity": {
+            "accuracy": 0.35714285714285715,
+            "macro_f1": 0.3615319865319864,
+            "per_class": {
+              "low": {
+                "precision": 1.0,
+                "recall": 0.06666666666666667,
+                "f1": 0.125,
+                "support": 15
+              },
+              "medium": {
+                "precision": 0.11764705882352941,
+                "recall": 0.4,
+                "f1": 0.1818181818181818,
+                "support": 5
+              },
+              "high": {
+                "precision": 0.7,
+                "recall": 0.875,
+                "f1": 0.7777777777777777,
+                "support": 8
+              }
+            },
+            "confusion_matrix": {
+              "low": {
+                "low": 1,
+                "medium": 14,
+                "high": 0
+              },
+              "medium": {
+                "low": 0,
+                "medium": 2,
+                "high": 3
+              },
+              "high": {
+                "low": 0,
+                "medium": 1,
+                "high": 7
+              }
+            }
+          },
+          "sensitivity": {
+            "accuracy": 0.8571428571428571,
+            "macro_f1": 0.30769230769230765,
+            "per_class": {
+              "NONE": {
+                "precision": 0.8571428571428571,
+                "recall": 1.0,
+                "f1": 0.923076923076923,
+                "support": 24
+              },
+              "POTENTIAL_PII": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "support": 2
+              },
+              "PII_EXPOSURE": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "support": 0
+              },
+              "SENSITIVE_DATA_EXPOSURE": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "support": 2
+              }
+            },
+            "confusion_matrix": {
+              "NONE": {
+                "NONE": 24,
+                "POTENTIAL_PII": 0,
+                "PII_EXPOSURE": 0,
+                "SENSITIVE_DATA_EXPOSURE": 0
+              },
+              "POTENTIAL_PII": {
+                "NONE": 2,
+                "POTENTIAL_PII": 0,
+                "PII_EXPOSURE": 0,
+                "SENSITIVE_DATA_EXPOSURE": 0
+              },
+              "PII_EXPOSURE": {
+                "NONE": 0,
+                "POTENTIAL_PII": 0,
+                "PII_EXPOSURE": 0,
+                "SENSITIVE_DATA_EXPOSURE": 0
+              },
+              "SENSITIVE_DATA_EXPOSURE": {
+                "NONE": 2,
+                "POTENTIAL_PII": 0,
+                "PII_EXPOSURE": 0,
+                "SENSITIVE_DATA_EXPOSURE": 0
+              }
+            }
+          },
+          "ambiguity": {
+            "accuracy": 0.8571428571428571,
+            "macro_f1": 0.4615384615384615,
+            "per_class": {
+              "low": {
+                "precision": 0.8571428571428571,
+                "recall": 1.0,
+                "f1": 0.923076923076923,
+                "support": 24
+              },
+              "medium": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "support": 4
+              },
+              "high": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "support": 0
+              }
+            },
+            "confusion_matrix": {
+              "low": {
+                "low": 24,
+                "medium": 0,
+                "high": 0
+              },
+              "medium": {
+                "low": 4,
+                "medium": 0,
+                "high": 0
+              },
+              "high": {
+                "low": 0,
+                "medium": 0,
+                "high": 0
+              }
+            }
+          },
+          "actionability": {
+            "accuracy": 0.6071428571428571,
+            "macro_f1": 0.15111111111111108,
+            "per_class": {
+              "informational": {
+                "precision": 0.6071428571428571,
+                "recall": 1.0,
+                "f1": 0.7555555555555554,
+                "support": 17
+              },
+              "analytical": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "support": 4
+              },
+              "procedural": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "support": 0
+              },
+              "generative": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "support": 2
+              },
+              "decisional": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "support": 4
+              },
+              "agentic": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "support": 1
+              },
+              "pending_clarification": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "support": 0
+              }
+            },
+            "confusion_matrix": {
+              "informational": {
+                "informational": 17,
+                "analytical": 0,
+                "procedural": 0,
+                "generative": 0,
+                "decisional": 0,
+                "agentic": 0,
+                "pending_clarification": 0
+              },
+              "analytical": {
+                "informational": 4,
+                "analytical": 0,
+                "procedural": 0,
+                "generative": 0,
+                "decisional": 0,
+                "agentic": 0,
+                "pending_clarification": 0
+              },
+              "procedural": {
+                "informational": 0,
+                "analytical": 0,
+                "procedural": 0,
+                "generative": 0,
+                "decisional": 0,
+                "agentic": 0,
+                "pending_clarification": 0
+              },
+              "generative": {
+                "informational": 2,
+                "analytical": 0,
+                "procedural": 0,
+                "generative": 0,
+                "decisional": 0,
+                "agentic": 0,
+                "pending_clarification": 0
+              },
+              "decisional": {
+                "informational": 4,
+                "analytical": 0,
+                "procedural": 0,
+                "generative": 0,
+                "decisional": 0,
+                "agentic": 0,
+                "pending_clarification": 0
+              },
+              "agentic": {
+                "informational": 1,
+                "analytical": 0,
+                "procedural": 0,
+                "generative": 0,
+                "decisional": 0,
+                "agentic": 0,
+                "pending_clarification": 0
+              },
+              "pending_clarification": {
+                "informational": 0,
+                "analytical": 0,
+                "procedural": 0,
+                "generative": 0,
+                "decisional": 0,
+                "agentic": 0,
+                "pending_clarification": 0
+              }
+            }
+          }
+        },
+        "capability_hints": {
+          "per_label": {
+            "AGENT": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "support": 1
+            },
+            "CHAT_HISTORY": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "support": 1
+            },
+            "CODING": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666666666666,
+              "support": 2
+            },
+            "GENERAL": {
+              "precision": 0.5454545454545454,
+              "recall": 0.6,
+              "f1": 0.5714285714285713,
+              "support": 10
+            },
+            "MEMORY": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "support": 2
+            },
+            "MULTI_SOURCE": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "support": 2
+            },
+            "RAG": {
+              "precision": 0.8333333333333334,
+              "recall": 1.0,
+              "f1": 0.9090909090909091,
+              "support": 5
+            },
+            "REASONING": {
+              "precision": 0.3333333333333333,
+              "recall": 0.2,
+              "f1": 0.25,
+              "support": 5
+            },
+            "SQL": {
+              "precision": 0.14285714285714285,
+              "recall": 1.0,
+              "f1": 0.25,
+              "support": 1
+            },
+            "WEB": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "support": 0
+            }
+          },
+          "micro_f1": 0.4827586206896552,
+          "macro_f1": 0.2941317941317941
+        },
+        "not_measured": {
+          "intent": "no ground truth in this categorical scheme -- dataset's intent field is free text",
+          "domain": "no fixed taxonomy -- reported qualitatively only"
+        }
+      }
+    },
+    "hybrid": {
+      "run_id": "run_a299c4fe-3983-4a10-8d7c-f6c9e2a94ee3",
+      "metrics": {
+        "sample_count": 28,
+        "failures": [],
+        "fields": {
+          "complexity": {
+            "accuracy": 0.35714285714285715,
+            "macro_f1": 0.3615319865319864,
+            "per_class": {
+              "low": {
+                "precision": 1.0,
+                "recall": 0.06666666666666667,
+                "f1": 0.125,
+                "support": 15
+              },
+              "medium": {
+                "precision": 0.11764705882352941,
+                "recall": 0.4,
+                "f1": 0.1818181818181818,
+                "support": 5
+              },
+              "high": {
+                "precision": 0.7,
+                "recall": 0.875,
+                "f1": 0.7777777777777777,
+                "support": 8
+              }
+            },
+            "confusion_matrix": {
+              "low": {
+                "low": 1,
+                "medium": 14,
+                "high": 0
+              },
+              "medium": {
+                "low": 0,
+                "medium": 2,
+                "high": 3
+              },
+              "high": {
+                "low": 0,
+                "medium": 1,
+                "high": 7
+              }
+            }
+          },
+          "sensitivity": {
+            "accuracy": 0.7857142857142857,
+            "macro_f1": 0.425,
+            "per_class": {
+              "NONE": {
+                "precision": 0.875,
+                "recall": 0.875,
+                "f1": 0.875,
+                "support": 24
+              },
+              "POTENTIAL_PII": {
+                "precision": 0.3333333333333333,
+                "recall": 0.5,
+                "f1": 0.4,
+                "support": 2
+              },
+              "PII_EXPOSURE": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "support": 0
+              },
+              "SENSITIVE_DATA_EXPOSURE": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "support": 2
+              }
+            },
+            "confusion_matrix": {
+              "NONE": {
+                "NONE": 21,
+                "POTENTIAL_PII": 2,
+                "PII_EXPOSURE": 0,
+                "SENSITIVE_DATA_EXPOSURE": 1
+              },
+              "POTENTIAL_PII": {
+                "NONE": 1,
+                "POTENTIAL_PII": 1,
+                "PII_EXPOSURE": 0,
+                "SENSITIVE_DATA_EXPOSURE": 0
+              },
+              "PII_EXPOSURE": {
+                "NONE": 0,
+                "POTENTIAL_PII": 0,
+                "PII_EXPOSURE": 0,
+                "SENSITIVE_DATA_EXPOSURE": 0
+              },
+              "SENSITIVE_DATA_EXPOSURE": {
+                "NONE": 2,
+                "POTENTIAL_PII": 0,
+                "PII_EXPOSURE": 0,
+                "SENSITIVE_DATA_EXPOSURE": 0
+              }
+            }
+          },
+          "ambiguity": {
+            "accuracy": 0.8571428571428571,
+            "macro_f1": 0.4615384615384615,
+            "per_class": {
+              "low": {
+                "precision": 0.8571428571428571,
+                "recall": 1.0,
+                "f1": 0.923076923076923,
+                "support": 24
+              },
+              "medium": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "support": 4
+              },
+              "high": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "support": 0
+              }
+            },
+            "confusion_matrix": {
+              "low": {
+                "low": 24,
+                "medium": 0,
+                "high": 0
+              },
+              "medium": {
+                "low": 4,
+                "medium": 0,
+                "high": 0
+              },
+              "high": {
+                "low": 0,
+                "medium": 0,
+                "high": 0
+              }
+            }
+          },
+          "actionability": {
+            "accuracy": 0.6785714285714286,
+            "macro_f1": 0.37899159663865545,
+            "per_class": {
+              "informational": {
+                "precision": 0.8235294117647058,
+                "recall": 0.8235294117647058,
+                "f1": 0.8235294117647058,
+                "support": 17
+              },
+              "analytical": {
+                "precision": 0.6666666666666666,
+                "recall": 0.5,
+                "f1": 0.5714285714285715,
+                "support": 4
+              },
+              "procedural": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "support": 0
+              },
+              "generative": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "support": 2
+              },
+              "decisional": {
+                "precision": 0.375,
+                "recall": 0.75,
+                "f1": 0.5,
+                "support": 4
+              },
+              "agentic": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "support": 1
+              },
+              "pending_clarification": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "support": 0
+              }
+            },
+            "confusion_matrix": {
+              "informational": {
+                "informational": 14,
+                "analytical": 0,
+                "procedural": 0,
+                "generative": 0,
+                "decisional": 3,
+                "agentic": 0,
+                "pending_clarification": 0
+              },
+              "analytical": {
+                "informational": 0,
+                "analytical": 2,
+                "procedural": 0,
+                "generative": 0,
+                "decisional": 2,
+                "agentic": 0,
+                "pending_clarification": 0
+              },
+              "procedural": {
+                "informational": 0,
+                "analytical": 0,
+                "procedural": 0,
+                "generative": 0,
+                "decisional": 0,
+                "agentic": 0,
+                "pending_clarification": 0
+              },
+              "generative": {
+                "informational": 2,
+                "analytical": 0,
+                "procedural": 0,
+                "generative": 0,
+                "decisional": 0,
+                "agentic": 0,
+                "pending_clarification": 0
+              },
+              "decisional": {
+                "informational": 1,
+                "analytical": 0,
+                "procedural": 0,
+                "generative": 0,
+                "decisional": 3,
+                "agentic": 0,
+                "pending_clarification": 0
+              },
+              "agentic": {
+                "informational": 0,
+                "analytical": 1,
+                "procedural": 0,
+                "generative": 0,
+                "decisional": 0,
+                "agentic": 0,
+                "pending_clarification": 0
+              },
+              "pending_clarification": {
+                "informational": 0,
+                "analytical": 0,
+                "procedural": 0,
+                "generative": 0,
+                "decisional": 0,
+                "agentic": 0,
+                "pending_clarification": 0
+              }
+            }
+          }
+        },
+        "capability_hints": {
+          "per_label": {
+            "AGENT": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "support": 1
+            },
+            "CHAT_HISTORY": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "support": 1
+            },
+            "CODING": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666666666666,
+              "support": 2
+            },
+            "GENERAL": {
+              "precision": 0.5,
+              "recall": 0.5,
+              "f1": 0.5,
+              "support": 10
+            },
+            "MEMORY": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "support": 2
+            },
+            "MULTI_SOURCE": {
+              "precision": 0.5,
+              "recall": 1.0,
+              "f1": 0.6666666666666666,
+              "support": 2
+            },
+            "RAG": {
+              "precision": 0.8333333333333334,
+              "recall": 1.0,
+              "f1": 0.9090909090909091,
+              "support": 5
+            },
+            "REASONING": {
+              "precision": 0.3333333333333333,
+              "recall": 0.2,
+              "f1": 0.25,
+              "support": 5
+            },
+            "SQL": {
+              "precision": 0.1111111111111111,
+              "recall": 1.0,
+              "f1": 0.19999999999999998,
+              "support": 1
+            },
+            "WEB": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "support": 0
+            }
+          },
+          "micro_f1": 0.47619047619047616,
+          "macro_f1": 0.3547138047138047
+        },
+        "not_measured": {
+          "intent": "no ground truth in this categorical scheme -- dataset's intent field is free text",
+          "domain": "no fixed taxonomy -- reported qualitatively only"
+        }
+      }
+    }
+  }
+}

@@ -1,14 +1,16 @@
-"""Traceable runtime -- Milestone 1.
+"""Traceable runtime -- Milestone 2.
 
-USER QUERY -> create request/trajectory -> QUERY_RECEIVED -> invoke the
-configured model provider -> MODEL_CALLED/MODEL_FAILURE -> model
-invocation record -> ledger entry -> FINAL_RESPONSE_GENERATED -> update
-trajectory -> structured response.
+USER QUERY -> create request/trajectory -> QUERY_RECEIVED -> Query
+Profiler -> QUERY_PROFILED -> Risk Profiler + Policy -> RISK_DETECTED ->
+invoke the configured model provider -> MODEL_CALLED/MODEL_FAILURE ->
+model invocation record -> ledger entry -> FINAL_RESPONSE_GENERATED ->
+update trajectory -> structured response.
 
-Still no query intelligence, routing, RAG, evaluation, intervention, or
-replanning -- one query always goes to the one configured model. That is
-Layer 7+ work; see docs/PROJECT_STATE/FUTURE_WORK.md. This module is the
-seam those layers attach to.
+Still no capability/model routing, RAG, evaluation, intervention, or
+replanning -- the query profile and risk assessment are computed and
+persisted, but every query still goes to the one configured model
+regardless of what they say (route hints are informational only this
+milestone). See docs/PROJECT_STATE/FUTURE_WORK.md.
 """
 
 from __future__ import annotations
@@ -19,19 +21,32 @@ from controlplane.config import Settings, get_settings
 from controlplane.context import RequestContext
 from controlplane.db.models import new_id
 from controlplane.errors import ConfigurationError, ControlPlaneError, DependencyError, TimeoutError
-from controlplane.events.schema import Event, EventType
+from controlplane.events.schema import Event, EventType, Severity
 from controlplane.events.store import EventStore
 from controlplane.events.transport import EventTransport, InProcessEventTransport
 from controlplane.ledger.ledger import ConsequenceClass, ExecutionLedger
 from controlplane.logging_config import get_logger
 from controlplane.models.provider import ModelProviderError, ModelProviderTimeout
 from controlplane.models.registry import get_configured_provider
+from controlplane.policy.baseline import PolicyBaseline
+from controlplane.query_intelligence.fingerprint import QueryFingerprint
+from controlplane.query_intelligence.knn_profiler import HybridQueryProfiler
+from controlplane.risk.baseline import BaselineRiskProfiler
+from controlplane.risk.profile import RiskProfile, RiskSeverity
 from controlplane.state import ExecutionState, ExecutionStatus
 from controlplane.trajectory.store import TrajectoryStore
 
 logger = get_logger("controlplane.runtime")
 
 _QUERY_PREVIEW_LEN = 200
+
+_RISK_TO_EVENT_SEVERITY = {
+    RiskSeverity.NO_ACTION: Severity.INFO,
+    RiskSeverity.LOW_RISK: Severity.NOTICE,
+    RiskSeverity.MEDIUM_RISK: Severity.WARNING,
+    RiskSeverity.HIGH_RISK: Severity.HIGH,
+    RiskSeverity.CRITICAL: Severity.CRITICAL,
+}
 
 
 def _utcnow() -> datetime:
@@ -46,14 +61,22 @@ class Runtime:
         event_transport: EventTransport,
         settings_provider=get_settings,
         provider_factory=get_configured_provider,
+        query_profiler=None,
+        risk_profiler=None,
+        policy=None,
     ) -> None:
         self._trajectory_store = trajectory_store
         self._ledger = ledger
         self._events = event_transport
         self._settings_provider = settings_provider
         self._provider_factory = provider_factory
+        self._query_profiler = query_profiler or HybridQueryProfiler()
+        self._risk_profiler = risk_profiler or BaselineRiskProfiler()
+        self._policy = policy or PolicyBaseline()
 
-    def _publish(self, event_type: EventType, ctx: RequestContext, *, source: str, payload: dict) -> None:
+    def _publish(
+        self, event_type: EventType, ctx: RequestContext, *, source: str, payload: dict, severity: Severity | None = None
+    ) -> None:
         event = Event.create(
             event_type,
             source=source,
@@ -61,6 +84,7 @@ class Runtime:
             trace_id=ctx.trace_id,
             trajectory_id=ctx.trajectory_id,
             payload=payload,
+            severity=severity,
         )
         self._events.publish(event)
 
@@ -94,6 +118,16 @@ class Runtime:
             source="controlplane",
             payload={"query_preview": query[:_QUERY_PREVIEW_LEN]},
         )
+
+        try:
+            fingerprint, risk = self._profile_and_assess_risk(ctx, query)
+        except ControlPlaneError as exc:
+            self._fail(ctx, state, step_id=None, error=exc)
+            raise
+        policy_decision = self._policy.decide(risk.severity)
+        state.metadata["query_profile"] = fingerprint.model_dump(mode="json")
+        state.metadata["risk"] = risk.model_dump(mode="json")
+        state.metadata["policy"] = policy_decision.model_dump(mode="json")
 
         state.advance("model_invocation", ExecutionStatus.PROCESSING)
         self._trajectory_store.update_trajectory_status(ctx.trajectory_id, "PROCESSING")
@@ -146,6 +180,84 @@ class Runtime:
 
         state.advance("completed", ExecutionStatus.COMPLETED)
         return state
+
+    def _profile_and_assess_risk(self, ctx: RequestContext, query: str) -> tuple[QueryFingerprint, RiskProfile]:
+        from controlplane.db.engine import session_scope
+        from controlplane.db.models import QueryProfileRecord
+        from controlplane.models.embedding_provider import EmbeddingProviderError
+
+        try:
+            fingerprint = self._query_profiler.profile(query)
+        except EmbeddingProviderError as exc:
+            # Offline-first (bootstrap SS14): if the local model isn't
+            # cached, fail clearly rather than silently falling back to a
+            # remote model the policy may not permit for this task.
+            logger.error("local_model_unavailable", extra={"cp_fields": {"error": str(exc)}})
+            raise ConfigurationError(f"local embedding model unavailable: {exc}") from exc
+        profile_id = new_id("qp")
+        with session_scope() as session:
+            session.add(
+                QueryProfileRecord(
+                    id=profile_id,
+                    request_id=ctx.request_id,
+                    version=1,
+                    intent=fingerprint.intent.value,
+                    domain=fingerprint.domain,
+                    data_requirements={"values": [d.value for d in fingerprint.data_requirement]},
+                    complexity=fingerprint.complexity.value,
+                    sensitivity=fingerprint.sensitivity.value,
+                    impact=fingerprint.impact.value,
+                    actionability=fingerprint.actionability.value,
+                    risk_vector={},  # filled in below once risk is assessed
+                    confidence=fingerprint.confidence,
+                    capability_hints={"values": [h.value for h in fingerprint.capability_hints]},
+                    source=fingerprint.source,
+                )
+            )
+        self._trajectory_store.append_step(
+            trajectory_id=ctx.trajectory_id,
+            step_type="query_profiling",
+            status="COMPLETED",
+            output_ref={"query_profile_id": profile_id, "intent": fingerprint.intent.value, "complexity": fingerprint.complexity.value},
+            completed=True,
+        )
+        self._publish(
+            EventType.QUERY_PROFILED,
+            ctx,
+            source="controlplane",
+            payload={
+                "query_profile_id": profile_id,
+                "intent": fingerprint.intent.value,
+                "capability_hints": [h.value for h in fingerprint.capability_hints],
+                "source": fingerprint.source,
+            },
+        )
+
+        risk = self._risk_profiler.profile(query, fingerprint)
+        with session_scope() as session:
+            record = session.get(QueryProfileRecord, profile_id)
+            record.risk_vector = risk.model_dump(mode="json")
+
+        self._trajectory_store.append_step(
+            trajectory_id=ctx.trajectory_id,
+            step_type="risk_assessment",
+            status="COMPLETED",
+            output_ref={"severity": risk.severity.value, "recommended_control_depth": risk.recommended_control_depth.value},
+            completed=True,
+        )
+        self._publish(
+            EventType.RISK_DETECTED,
+            ctx,
+            source="controlplane",
+            severity=_RISK_TO_EVENT_SEVERITY[risk.severity],
+            payload={
+                "query_profile_id": profile_id,
+                "severity": risk.severity.value,
+                "trigger_signals": risk.trigger_signals,
+                "recommended_control_depth": risk.recommended_control_depth.value,
+            },
+        )
+        return fingerprint, risk
 
     def _invoke_model(self, ctx: RequestContext, settings: Settings, query: str) -> dict:
         from controlplane.db.engine import session_scope
@@ -292,21 +404,32 @@ class Runtime:
             payload={"model_invocation_id": invocation_id, "provider": provider, "error": error_message},
         )
 
-    def _fail(self, ctx: RequestContext, state: ExecutionState, *, step_id: str, error: ControlPlaneError) -> None:
+    def _fail(self, ctx: RequestContext, state: ExecutionState, *, step_id: str | None, error: ControlPlaneError) -> None:
         logger.warning(
             "execution_step_failed", extra={"cp_fields": {"step_id": step_id, "error_code": error.error_code}}
         )
-        self._trajectory_store.update_step_status(
-            step_id, "FAILED", output_ref={"error_code": error.error_code}, completed=True
-        )
+        if step_id is not None:
+            self._trajectory_store.update_step_status(
+                step_id, "FAILED", output_ref={"error_code": error.error_code}, completed=True
+            )
+        else:
+            self._trajectory_store.append_step(
+                trajectory_id=ctx.trajectory_id,
+                step_type="query_profiling",
+                status="FAILED",
+                output_ref={"error_code": error.error_code},
+                completed=True,
+            )
         self._trajectory_store.update_trajectory_status(
             ctx.trajectory_id, "FAILED", final_status="FAILED", completed=True
         )
         self._trajectory_store.update_request_status(ctx.request_id, "FAILED", completed=True)
-        state.fail("model_invocation", error.message)
+        state.fail("model_invocation" if step_id is not None else "query_profiling", error.message)
 
 
-def build_default_runtime(provider_factory=get_configured_provider) -> Runtime:
+def build_default_runtime(
+    provider_factory=get_configured_provider, query_profiler=None, risk_profiler=None, policy=None
+) -> Runtime:
     trajectory_store = TrajectoryStore()
     ledger = ExecutionLedger()
     transport = InProcessEventTransport()
@@ -316,4 +439,7 @@ def build_default_runtime(provider_factory=get_configured_provider) -> Runtime:
         ledger=ledger,
         event_transport=transport,
         provider_factory=provider_factory,
+        query_profiler=query_profiler,
+        risk_profiler=risk_profiler,
+        policy=policy,
     )

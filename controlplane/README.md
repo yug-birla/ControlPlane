@@ -1,30 +1,27 @@
-# controlplane/ (Milestone 1 — Runtime Backbone + Trajectory + Ledger + Events + Real Model Provider)
+# controlplane/ (Milestone 2 — Query Intelligence + Risk Baseline + Local HF Models + Experiment Tracking)
 
-**Purpose:** the runtime backbone a request passes through — API entry, identity, persistent trajectory/ledger, the canonical event contract, and a real model provider (Groq) — with no query intelligence, routing, RAG, evaluation, or intervention yet.
+**Purpose:** the runtime backbone plus a real Query Profiler, Risk Profiler, and Policy baseline — no capability/model routing, RAG, evaluation, intervention, or replanning yet.
 
 ## Interface
 
-- `POST /v1/requests {"query": str, "application_id": str | null}` → `ResponseEnvelope` (`request_id`, `trace_id`, `trajectory_id`, `status`, `answer`, `metadata`). See `controlplane/schemas.py`.
-- `GET /health/live`, `GET /health/ready` (now checks real Postgres connectivity) — see `controlplane/api/health.py`.
-- `controlplane.state.ExecutionState` — the typed in-request context; `metadata` is still the extension point until a field earns a permanent place.
-- `controlplane.runtime.Runtime.handle(ctx, state) -> state` — the single seam later layers (Query Intelligence, Routing, RAG, Intervention, ...) attach to. Orchestrates: persist request/trajectory → emit `QUERY_RECEIVED` → invoke the configured model provider → persist the model invocation → append a ledger entry → emit `MODEL_CALLED`/`MODEL_FAILURE` → emit `FINAL_RESPONSE_GENERATED` → update trajectory. `build_default_runtime()` wires the real dependencies; tests inject fakes via `provider_factory`.
-- `controlplane.errors.ControlPlaneError` and subclasses — unchanged from Layer 1, now also covers provider/storage failures (`DependencyError`, `TimeoutError`).
-- `controlplane/trajectory/`, `controlplane/ledger/`, `controlplane/events/`, `controlplane/models/`, `controlplane/db/` — see each subfolder's own `README.md`.
+- `POST /v1/requests {"query": str, "application_id": str | null}` → `ResponseEnvelope` (`request_id`, `trace_id`, `trajectory_id`, `status`, `answer`, `metadata`). `metadata` now includes real (not fabricated) `query_profile`, `risk`, and `policy` objects — see `controlplane/schemas.py`.
+- `GET /health/live`, `GET /health/ready` (checks real Postgres connectivity).
+- `controlplane.runtime.Runtime.handle(ctx, state) -> state` — orchestrates: persist request/trajectory → `QUERY_RECEIVED` → Query Profiler → persist `query_profiles` row → `QUERY_PROFILED` → Risk Profiler + Policy → `RISK_DETECTED` → invoke the configured model provider → persist model invocation → ledger entry → `MODEL_CALLED`/`MODEL_FAILURE` → `FINAL_RESPONSE_GENERATED` → update trajectory. `build_default_runtime()` wires real dependencies; tests inject fakes for `provider_factory`, `query_profiler`, `risk_profiler`, `policy`.
+- `controlplane/query_intelligence/`, `controlplane/risk/`, `controlplane/policy/`, `controlplane/experiments/`, `controlplane/models/` (now includes a local embedding provider alongside Groq), `controlplane/trajectory/`, `controlplane/ledger/`, `controlplane/events/`, `controlplane/db/` — see each subfolder's own `README.md`.
 
 ## Dependencies
 
-FastAPI, Pydantic, Uvicorn, SQLAlchemy, psycopg2, Alembic, the `groq` SDK. PostgreSQL is a real, required dependency now — see `docker-compose.yml` (an isolated `controlplane_postgres` container on host port 5433, separate from any other project's Postgres on this machine). `GROQ_API_KEY`/`GROQ_MODEL` are read from the environment only; unset means the API returns a structured `CONFIGURATION_ERROR` rather than crashing or faking a response.
+Milestone 1's stack plus `huggingface_hub`, `sentence-transformers` (and its `torch` dependency, CPU-only — see root `README.md` for the install command that avoids pulling a CUDA build). The local embedding model must be downloaded once via `controlplane.models.model_download` before the profiler (and its tests) will work — see root `README.md`.
 
-## Limitations (intentional, Milestone 1 scope)
+## Limitations (intentional, Milestone 2 scope)
 
-- One query always goes to the one configured model, unmodified — no prompt engineering, no query profiling, no routing, no retries, no RAG, no evaluation, no intervention, no replanning.
-- Event transport is in-process and synchronous — no cross-process delivery guarantee (see `controlplane/events/README.md`).
-- No plan/plan_version concept yet — `ExecutionState.plan_id`/`plan_version` stay `None`; no `PLAN_CREATED` event is emitted (nothing naturally creates a plan yet).
-- `/health/ready` checks Postgres only; Redis/Qdrant remain unused placeholders.
+- Route/capability hints are informational only — every query still goes to the one configured Groq model regardless of what the profiler says (no capability/model routing yet, per bootstrap SS2/SS28).
+- Complexity classification is close to chance-level for both Query Profiler baselines — see `docs/EVALUATION/QUERY_PROFILER_RESULTS.md` before relying on it.
+- The Risk Profiler missed the one true HIGH_RISK example in its validation set (a governance/decision-support recommendation with no agentic action) — see `docs/EVALUATION/RISK_PROFILER_RESULTS.md`. Mitigated in practice by `PolicyBaseline`'s independent human-approval gate at HIGH_RISK/CRITICAL, not by profiler accuracy alone.
+- No RAG, no capability/model router, no evaluators, no Intervention Engine, no Replanner, no Behavioral Drift, no Shadow Mode.
 
 ## Extension points for later layers
 
-- Layer 4 (Execution Graph): the trajectory already models steps chronologically; add plan/node concepts on top rather than replacing `trajectory_steps`.
-- Layer 5 (MCP/Capability Fabric): more `ModelProvider`-shaped abstractions (a `Capability` interface) plug in beside `controlplane/models/`.
-- Layer 7+ (Query Intelligence onward): each becomes a component `Runtime` calls before/after the model invocation, behind the same `ExecutionState`-in/out shape.
-- Layer 10 (Model Routing): `controlplane/models/registry.py` grows from "return the one configured provider" into an actual router choosing between multiple registered providers.
+- Layer 9 (Data/Capability Routing): `capability_hints`/`data_requirement` on `QueryFingerprint` are already the intended input.
+- Layer 10 (Model Routing): `controlplane/models/registry.py` grows from "return the one configured provider" into an actual router; `model_registry` already has rows for both the local and remote models to route between.
+- Layer 11+ (RAG): the local embedding model (`controlplane/models/local_hf_provider.py`) was deliberately selected to double as the retrieval encoder — no second embedding model download needed.

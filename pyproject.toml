@@ -1,7 +1,7 @@
 [project]
 name = "controlplane"
-version = "0.1.0"
-description = "ControlPlane.ai - adaptive control plane for AI execution (Layer 1: Foundation)"
+version = "0.2.0"
+description = "ControlPlane.ai - adaptive control plane for AI execution (Milestone 2: Query Intelligence + Risk Baseline)"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115",
@@ -11,6 +11,8 @@ dependencies = [
     "psycopg2-binary>=2.9",
     "alembic>=1.13",
     "groq>=0.11",
+    "huggingface_hub>=0.24",
+    "sentence-transformers>=3.0",
 ]
 
 [project.optional-dependencies]

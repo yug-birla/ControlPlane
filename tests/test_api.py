@@ -53,11 +53,28 @@ def test_missing_query_field_is_a_structured_validation_error():
 
 
 def test_response_contains_no_unimplemented_intelligence_fields():
+    # "risk"/"confidence" moved from forbidden to expected in Milestone 2 --
+    # the Risk Profiler and Query Profiler are now real, not fabricated.
+    # Trust Engine, Evaluation, and Evidence retrieval still don't exist.
     resp = client.post("/v1/requests", json={"query": "hello"})
     body = resp.json()
-    for forbidden in ("trust", "risk", "confidence", "evaluation", "evidence"):
+    for forbidden in ("trust", "evaluation", "evidence"):
         assert forbidden not in body
         assert forbidden not in body.get("metadata", {})
+
+
+def test_response_contains_real_query_profile_and_risk_metadata():
+    resp = client.post("/v1/requests", json={"query": "What was our Q4 revenue?"})
+    body = resp.json()
+    metadata = body["metadata"]
+    assert "query_profile" in metadata
+    assert "risk" in metadata
+    assert "policy" in metadata
+    assert metadata["query_profile"]["source"] in ("rules", "embedding_knn", "hybrid")
+    assert metadata["risk"]["severity"] in ("NO_ACTION", "LOW_RISK", "MEDIUM_RISK", "HIGH_RISK", "CRITICAL")
+    assert set(metadata["risk"]["risk_dimensions"]) == {
+        "factuality", "reasoning", "privacy", "pii", "security", "bias", "financial", "action", "safety",
+    }
 
 
 def test_model_provider_failure_returns_structured_dependency_error(monkeypatch):
