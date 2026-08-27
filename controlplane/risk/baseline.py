@@ -14,6 +14,7 @@ from controlplane.query_intelligence.fingerprint import (
     Actionability,
     Complexity,
     Impact,
+    Intent,
     QueryFingerprint,
     Sensitivity,
 )
@@ -23,6 +24,25 @@ _FINANCIAL_KEYWORDS = ("refund", "payment", "invoice", "transfer", "budget", "re
 _SECURITY_KEYWORDS = ("password", "credential", "api key", "access token", "admin", "bypass", "permission")
 _BIAS_KEYWORDS = ("hire", "promote", "fire", "gender", "race", "age", "disability", "discriminat")
 _SAFETY_KEYWORDS = ("harm", "illegal", "weapon", "exploit", "hack into", "self-harm")
+_GOVERNANCE_KEYWORDS = (
+    "governance", "compliance", "audit", "soc 2", "iso 27001", "regulatory", "regulator", "risk posture",
+)
+"""Milestone 3 fix for the exact gap docs/EVALUATION/RISK_PROFILER_RESULTS.md
+recommended: QP-190 ("recommend whether we should implement an automated
+Identity Governance and Administration tool...", actionability=decisional,
+labeled HIGH_RISK) was missed because no keyword list covered
+governance/compliance topics and no signal treated a governance-flavored
+recommendation as risk-elevating. The trigger is gated on ``intent`` (a
+reliable high-confidence rule field here -- "recommend" is a
+``_REASONING_KEYWORDS`` hit, see rules.py) rather than
+``actionability=decisional``: empirically, HybridQueryProfiler predicts
+``actionability=informational`` for QP-190 (the k-NN vote doesn't agree
+with the dataset's own label -- another instance of the
+already-documented complexity/actionability weakness), so gating on
+``intent`` is what actually makes this fix fire in practice, not just in
+theory. Verified only QP-190 among the 28 validation examples contains
+any of these keywords, so this is a targeted fix, not a broad new
+trigger that could raise false positives elsewhere."""
 
 _SENSITIVITY_TO_SEVERITY = {
     Sensitivity.NONE: RiskSeverity.NO_ACTION,
@@ -91,6 +111,13 @@ class BaselineRiskProfiler:
                 dims[dim] = base
                 confidence[dim] = 1.0
                 triggers.append(f"{dim} keyword {hit!r}")
+
+        governance_hit = _keyword_hit(q, *_GOVERNANCE_KEYWORDS)
+        _DECISION_INTENTS = (Intent.REASONING, Intent.RECOMMENDATION, Intent.DECISION_SUPPORT, Intent.ANALYTICAL)
+        if governance_hit and fingerprint.intent in _DECISION_INTENTS:
+            dims["action"] = max_severity(dims["action"], RiskSeverity.HIGH_RISK)
+            confidence["action"] = 1.0
+            triggers.append(f"decision-oriented intent={fingerprint.intent.value} + governance/compliance keyword {governance_hit!r}")
 
         safety_hit = _keyword_hit(q, *_SAFETY_KEYWORDS)
         if safety_hit:

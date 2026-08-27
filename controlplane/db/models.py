@@ -17,7 +17,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import BigInteger, DateTime, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -245,6 +245,37 @@ class ModelBenchmarkRecord(Base):
     device: Mapped[str | None] = mapped_column(Text, nullable=True)
     measured_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+class RouteDecisionRecord(Base):
+    """New this milestone -- Capability Router + Model Router decisions,
+    persisted per docs/specs/CONTROLPLANE_ROUTING_SYSTEM_SPEC.md SS59
+    ("every router decision should be persisted with router_version,
+    feature_schema_version, policy_version"). No hidden reasoning: every
+    field here is either an enum value, a capability list, or a
+    human-readable ``reason`` string built from named signals -- see
+    controlplane/routing/."""
+
+    __tablename__ = "route_decisions"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    request_id: Mapped[str] = mapped_column(ForeignKey("requests.id"), nullable=False)
+    trajectory_id: Mapped[str] = mapped_column(ForeignKey("trajectories.id"), nullable=False)
+    query_profile_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    capability_router_version: Mapped[str] = mapped_column(Text, nullable=False)
+    selected_capabilities: Mapped[dict] = mapped_column(JSONB, default=dict)
+    restricted_capabilities: Mapped[dict] = mapped_column(JSONB, default=dict)
+    capability_reason: Mapped[str] = mapped_column(Text, nullable=False)
+    execution_graph: Mapped[dict] = mapped_column(JSONB, default=dict)
+    model_router_version: Mapped[str] = mapped_column(Text, nullable=False)
+    model_action: Mapped[str] = mapped_column(Text, nullable=False)
+    model_role: Mapped[str | None] = mapped_column(Text, nullable=True)
+    require_verification: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    human_approval_required: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    model_reason: Mapped[str] = mapped_column(Text, nullable=False)
+    expected_cost_class: Mapped[str | None] = mapped_column(Text, nullable=True)
+    expected_latency_class: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
 def new_id(prefix: str) -> str:

@@ -44,8 +44,9 @@ python -m venv .venv
 .venv/Scripts/python -m alembic upgrade head
 .venv/Scripts/python -m controlplane.models.model_download   # one-time: caches the local embedding model (~91MB)
 .venv/Scripts/python -m controlplane.models.registry_seed    # seeds model_registry
-.venv/Scripts/python -m pytest       # 80 tests, no live external API required (local model must be downloaded first)
+.venv/Scripts/python -m pytest       # 111 tests, no live external API required (local model must be downloaded first)
 GROQ_API_KEY=... GROQ_MODEL=... .venv/Scripts/python -m uvicorn controlplane.main:app
+# Optional (Milestone 3 Model Router): GROQ_MODEL_FAST / GROQ_MODEL_STRONG override GROQ_MODEL per role
 ```
 
 See `controlplane/README.md` for the interface and current scope, `docs/PROJECT_STATE/CURRENT_STATE.md` for exactly what is and isn't implemented, and `docs/EVALUATION/` for measured Query Profiler / Risk Profiler / model benchmark results.

@@ -39,6 +39,13 @@ class Settings:
     # environment only, never defaulted, never logged, never persisted.
     groq_api_key: str | None = None
     groq_model: str | None = None
+    # Milestone 3: Model Router FAST/STRONG roles. Each falls back to
+    # groq_model when its own env var is unset, so a single-model
+    # deployment (Milestone 1/2's setup) keeps working unchanged -- see
+    # docs/PROJECT_STATE/DECISIONS.md for why role-specific model names
+    # are still never hard-coded here.
+    groq_model_fast: str | None = None
+    groq_model_strong: str | None = None
 
     feature_flags: frozenset[str] = field(default_factory=frozenset)
 
@@ -56,6 +63,8 @@ class Settings:
             mcp_endpoints=os.environ.get("MCP_ENDPOINTS"),
             groq_api_key=os.environ.get("GROQ_API_KEY"),
             groq_model=os.environ.get("GROQ_MODEL"),
+            groq_model_fast=os.environ.get("GROQ_MODEL_FAST"),
+            groq_model_strong=os.environ.get("GROQ_MODEL_STRONG"),
             feature_flags=flags,
         )
 

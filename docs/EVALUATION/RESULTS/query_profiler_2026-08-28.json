@@ -1,10 +1,10 @@
 {
-  "experiment_id": "exp_868eb240-83b7-48ef-b2e6-03feff5d51b1",
+  "experiment_id": "exp_3b3eeb35-a04a-48c5-8373-776e0be97904",
   "dataset_id": "query_profiles_validation",
   "dataset_version": "v0.1",
   "results": {
     "rules": {
-      "run_id": "run_5b14123a-c3e8-400a-b830-3be5aa69ed2a",
+      "run_id": "run_ebe34e24-df54-4efd-96e3-91c22ff2dfbf",
       "metrics": {
         "sample_count": 28,
         "failures": [],
@@ -334,39 +334,39 @@
       }
     },
     "hybrid": {
-      "run_id": "run_a299c4fe-3983-4a10-8d7c-f6c9e2a94ee3",
+      "run_id": "run_e7034058-9166-4d2e-bc45-aa5d700cc313",
       "metrics": {
         "sample_count": 28,
         "failures": [],
         "fields": {
           "complexity": {
-            "accuracy": 0.35714285714285715,
-            "macro_f1": 0.3615319865319864,
+            "accuracy": 0.5,
+            "macro_f1": 0.4640455840455841,
             "per_class": {
               "low": {
-                "precision": 1.0,
-                "recall": 0.06666666666666667,
-                "f1": 0.125,
+                "precision": 0.8,
+                "recall": 0.5333333333333333,
+                "f1": 0.64,
                 "support": 15
               },
               "medium": {
-                "precision": 0.11764705882352941,
+                "precision": 0.25,
                 "recall": 0.4,
-                "f1": 0.1818181818181818,
+                "f1": 0.3076923076923077,
                 "support": 5
               },
               "high": {
-                "precision": 0.7,
-                "recall": 0.875,
-                "f1": 0.7777777777777777,
+                "precision": 0.4,
+                "recall": 0.5,
+                "f1": 0.4444444444444445,
                 "support": 8
               }
             },
             "confusion_matrix": {
               "low": {
-                "low": 1,
-                "medium": 14,
-                "high": 0
+                "low": 8,
+                "medium": 4,
+                "high": 3
               },
               "medium": {
                 "low": 0,
@@ -374,9 +374,9 @@
                 "high": 3
               },
               "high": {
-                "low": 0,
-                "medium": 1,
-                "high": 7
+                "low": 2,
+                "medium": 2,
+                "high": 4
               }
             }
           },
@@ -437,19 +437,19 @@
             }
           },
           "ambiguity": {
-            "accuracy": 0.8571428571428571,
-            "macro_f1": 0.4615384615384615,
+            "accuracy": 0.75,
+            "macro_f1": 0.5366430260047281,
             "per_class": {
               "low": {
-                "precision": 0.8571428571428571,
-                "recall": 1.0,
-                "f1": 0.923076923076923,
+                "precision": 0.8695652173913043,
+                "recall": 0.8333333333333334,
+                "f1": 0.851063829787234,
                 "support": 24
               },
               "medium": {
-                "precision": 0.0,
-                "recall": 0.0,
-                "f1": 0.0,
+                "precision": 0.2,
+                "recall": 0.25,
+                "f1": 0.22222222222222224,
                 "support": 4
               },
               "high": {
@@ -461,13 +461,13 @@
             },
             "confusion_matrix": {
               "low": {
-                "low": 24,
-                "medium": 0,
+                "low": 20,
+                "medium": 4,
                 "high": 0
               },
               "medium": {
-                "low": 4,
-                "medium": 0,
+                "low": 3,
+                "medium": 1,
                 "high": 0
               },
               "high": {

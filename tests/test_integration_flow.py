@@ -19,7 +19,7 @@ client = TestClient(app)
 
 def test_full_flow_persists_trajectory_ledger_and_events(monkeypatch):
     provider = FakeModelProvider(content="Paris is the capital of France.")
-    monkeypatch.setattr(routes_module._runtime, "_provider_factory", lambda settings: provider)
+    monkeypatch.setattr(routes_module._runtime, "_provider_factory", lambda settings, role="STRONG": provider)
 
     resp = client.post("/v1/requests", json={"query": "What is the capital of France?"})
     assert resp.status_code == 200
@@ -35,7 +35,7 @@ def test_full_flow_persists_trajectory_ledger_and_events(monkeypatch):
 
     history = TrajectoryStore().get_history(trajectory_id)
     assert [h["step_type"] for h in history] == [
-        "received", "query_profiling", "risk_assessment", "model_invocation", "completed",
+        "received", "query_profiling", "risk_assessment", "routing", "route:generation", "completed",
     ]
     assert all(h["status"] in ("COMPLETED",) for h in history)
 
@@ -52,21 +52,27 @@ def test_full_flow_persists_trajectory_ledger_and_events(monkeypatch):
         "QUERY_RECEIVED",
         "QUERY_PROFILED",
         "RISK_DETECTED",
+        "PLAN_CREATED",
         "MODEL_CALLED",
+        "ROUTE_STARTED",
+        "ROUTE_COMPLETED",
         "FINAL_RESPONSE_GENERATED",
     ]
 
     # 4. The response answer matches what the model produced, and carries
-    #    a real (not fabricated) query profile / risk / policy assessment.
+    #    a real (not fabricated) query profile / risk / policy / routing
+    #    assessment.
     assert body["answer"] == "Paris is the capital of France."
     assert body["metadata"]["query_profile"]["intent"]
     assert body["metadata"]["risk"]["severity"] in ("NO_ACTION", "LOW_RISK", "MEDIUM_RISK", "HIGH_RISK", "CRITICAL")
     assert body["metadata"]["policy"]["tier"]
+    assert body["metadata"]["capability_route"]["selected_capabilities"]
+    assert body["metadata"]["model_route"]["action"] in ("USE_FAST_MODEL", "USE_STRONG_MODEL", "HUMAN_REVIEW", "ABSTAIN")
 
 
 def test_failed_model_invocation_still_persists_trajectory_and_ledger(monkeypatch):
     monkeypatch.setattr(
-        routes_module._runtime, "_provider_factory", lambda settings: FailingModelProvider()
+        routes_module._runtime, "_provider_factory", lambda settings, role="STRONG": FailingModelProvider()
     )
     quiet_client = TestClient(app, raise_server_exceptions=False)
     resp = quiet_client.post("/v1/requests", json={"query": "trigger a failure"})
@@ -91,7 +97,8 @@ def test_failed_model_invocation_still_persists_trajectory_and_ledger(monkeypatc
 
     events = EventStore().get_by_trajectory(trajectory["id"])
     assert [e["event_type"] for e in events] == [
-        "QUERY_RECEIVED", "QUERY_PROFILED", "RISK_DETECTED", "MODEL_FAILURE",
+        "QUERY_RECEIVED", "QUERY_PROFILED", "RISK_DETECTED", "PLAN_CREATED", "MODEL_FAILURE",
+        "ROUTE_STARTED", "ROUTE_COMPLETED",
     ]
 
 

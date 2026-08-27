@@ -1,7 +1,7 @@
 [project]
 name = "controlplane"
-version = "0.2.0"
-description = "ControlPlane.ai - adaptive control plane for AI execution (Milestone 2: Query Intelligence + Risk Baseline)"
+version = "0.3.0"
+description = "ControlPlane.ai - adaptive control plane for AI execution (Milestone 3: Adaptive Execution - Execution Graph, Capability Router, Model Router)"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115",

@@ -1,0 +1,21 @@
+{
+  "experiment_id": "exp_62fe3e41-f7a4-45ec-a334-5ce2743148c6",
+  "metrics": {
+    "sample_count": 10,
+    "simulated_node_latency_ms": 200.0,
+    "graph_shape": "data_sql + data_rag (parallel, no real capability) -> merge -> generation",
+    "sequential_latency_ms": {
+      "mean": 401.60000000032596,
+      "min": 390.99999999598367,
+      "max": 406.9999999992433
+    },
+    "parallel_latency_ms": {
+      "mean": 204.60000000020955,
+      "min": 202.99999999406282,
+      "max": 218.99999999732245
+    },
+    "speedup": 1.962854349950707,
+    "failure_rate": 0.0,
+    "note": "Measures the Graph Executor's own concurrency handling using simulated per-node latency, since SQL/RAG have no real implementation yet (Layer 5/11). Not a measurement of real SQL/RAG/model latency."
+  }
+}

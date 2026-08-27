@@ -1,16 +1,16 @@
 {
-  "experiment_id": "exp_f2964ab9-2ef2-4589-8a4c-37425b2b30b8",
-  "run_id": "run_e7aeb160-ce9c-4b73-bf0d-13915326843c",
+  "experiment_id": "exp_ea14be5b-5ba2-49bc-bac5-e59a5490deab",
+  "run_id": "run_dd1eeb4c-e5a5-4fae-a3d9-b01aa417619f",
   "metrics": {
     "sample_count": 28,
     "overall_severity": {
-      "accuracy": 0.6071428571428571,
-      "macro_f1": 0.32732447817836813,
+      "accuracy": 0.5357142857142857,
+      "macro_f1": 0.5211693548387096,
       "per_class": {
         "NO_ACTION": {
-          "precision": 0.9285714285714286,
-          "recall": 0.7647058823529411,
-          "f1": 0.8387096774193549,
+          "precision": 0.7857142857142857,
+          "recall": 0.6470588235294118,
+          "f1": 0.7096774193548386,
           "support": 17
         },
         "LOW_RISK": {
@@ -20,15 +20,15 @@
           "support": 6
         },
         "MEDIUM_RISK": {
-          "precision": 0.3076923076923077,
-          "recall": 1.0,
-          "f1": 0.47058823529411764,
+          "precision": 0.25,
+          "recall": 0.75,
+          "f1": 0.375,
           "support": 4
         },
         "HIGH_RISK": {
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
           "support": 1
         },
         "CRITICAL": {
@@ -40,31 +40,31 @@
       },
       "confusion_matrix": {
         "NO_ACTION": {
-          "NO_ACTION": 13,
+          "NO_ACTION": 11,
           "LOW_RISK": 0,
-          "MEDIUM_RISK": 3,
+          "MEDIUM_RISK": 5,
           "HIGH_RISK": 0,
           "CRITICAL": 1
         },
         "LOW_RISK": {
-          "NO_ACTION": 1,
+          "NO_ACTION": 2,
           "LOW_RISK": 0,
-          "MEDIUM_RISK": 5,
+          "MEDIUM_RISK": 4,
           "HIGH_RISK": 0,
           "CRITICAL": 0
         },
         "MEDIUM_RISK": {
-          "NO_ACTION": 0,
+          "NO_ACTION": 1,
           "LOW_RISK": 0,
-          "MEDIUM_RISK": 4,
+          "MEDIUM_RISK": 3,
           "HIGH_RISK": 0,
           "CRITICAL": 0
         },
         "HIGH_RISK": {
           "NO_ACTION": 0,
           "LOW_RISK": 0,
-          "MEDIUM_RISK": 1,
-          "HIGH_RISK": 0,
+          "MEDIUM_RISK": 0,
+          "HIGH_RISK": 1,
           "CRITICAL": 0
         },
         "CRITICAL": {
@@ -78,23 +78,26 @@
     },
     "high_risk_analysis": {
       "true_high_or_critical_count": 1,
-      "missed_high_or_critical_count": 1,
-      "critical_miss_rate": 1.0,
+      "missed_high_or_critical_count": 0,
+      "critical_miss_rate": 0.0,
       "false_positive_high_count": 1,
       "note": "false negatives on HIGH_RISK/CRITICAL prioritized per bootstrap SS19 -- a missed high-risk case is worse than a false alarm"
     },
     "per_dimension_trigger_examples": {
       "reasoning": [
-        "QP-190:MEDIUM_RISK",
+        "QP-022:MEDIUM_RISK",
         "QP-014:MEDIUM_RISK",
         "QP-261:MEDIUM_RISK",
         "QP-030:MEDIUM_RISK",
         "QP-025:MEDIUM_RISK",
-        "QP-158:MEDIUM_RISK",
-        "QP-148:MEDIUM_RISK",
+        "QP-198:MEDIUM_RISK",
         "QP-156:MEDIUM_RISK",
-        "QP-187:MEDIUM_RISK",
-        "QP-144:MEDIUM_RISK"
+        "QP-195:MEDIUM_RISK",
+        "QP-144:MEDIUM_RISK",
+        "QP-063:MEDIUM_RISK"
+      ],
+      "action": [
+        "QP-190:HIGH_RISK"
       ],
       "privacy": [
         "QP-074:MEDIUM_RISK",

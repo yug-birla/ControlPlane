@@ -1,4 +1,4 @@
-"""Seeds ``model_registry`` with the two models this milestone actually
+"""Seeds ``model_registry`` with the models/roles this milestone actually
 uses. Run once (idempotent -- upserts by ``model_key``):
 
     .venv/Scripts/python -m controlplane.models.registry_seed
@@ -54,6 +54,55 @@ _ENTRIES = [
                 "requires network + GROQ_API_KEY",
                 "per-token cost",
                 "actual model/parameter_count/context_window vary by GROQ_MODEL and are not known until configured -- never hard-coded, see docs/PROJECT_STATE/DECISIONS.md",
+            ]
+        },
+    ),
+    dict(
+        model_key="groq_fast_role",
+        provider="groq",
+        source="groq_api",
+        display_name="Groq FAST role (model selected via GROQ_MODEL_FAST, falls back to GROQ_MODEL)",
+        model_family=None,
+        capabilities={"tasks": ["GENERATION"], "router_role": "FAST"},
+        parameter_count=None,
+        context_window=None,
+        latency_class="fast",
+        cost_class="metered",
+        local_or_remote="REMOTE",
+        hardware_requirements={},
+        license=None,
+        revision=None,
+        availability_status="AVAILABLE",
+        known_strengths={"notes": ["Model Router's default for low complexity/low risk queries -- see controlplane/routing/model_router.py"]},
+        known_weaknesses={
+            "notes": [
+                "same model as groq_configured_model unless GROQ_MODEL_FAST is set separately",
+                "no local (non-network) FAST option yet -- the Qwen3 ~1.3B local tier from docs/architecture/MODEL_AND_EVALUATION_DECISIONS.md was deferred this milestone, see docs/PROJECT_STATE/DECISIONS.md",
+                "latency_class/cost_class are ESTIMATES, not measurements -- no GROQ_API_KEY was available to benchmark this milestone",
+            ]
+        },
+    ),
+    dict(
+        model_key="groq_strong_role",
+        provider="groq",
+        source="groq_api",
+        display_name="Groq STRONG role (model selected via GROQ_MODEL_STRONG, falls back to GROQ_MODEL)",
+        model_family=None,
+        capabilities={"tasks": ["GENERATION"], "router_role": "STRONG"},
+        parameter_count=None,
+        context_window=None,
+        latency_class="slow",
+        cost_class="metered",
+        local_or_remote="REMOTE",
+        hardware_requirements={},
+        license=None,
+        revision=None,
+        availability_status="AVAILABLE",
+        known_strengths={"notes": ["Model Router's choice for HIGH_RISK/CRITICAL_ACTION policy tiers, high impact, or high complexity -- see controlplane/routing/model_router.py"]},
+        known_weaknesses={
+            "notes": [
+                "same model as groq_configured_model unless GROQ_MODEL_STRONG is set separately",
+                "latency_class/cost_class are ESTIMATES, not measurements -- no GROQ_API_KEY was available to benchmark this milestone",
             ]
         },
     ),

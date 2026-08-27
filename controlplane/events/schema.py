@@ -29,6 +29,19 @@ class EventType(str, Enum):
     """docs/architecture/RUNTIME_FLOW.md SS14 -- emitted for every query
     (not only risky ones), analogous to QUERY_PROFILED; the ``severity``
     field is what actually varies with the assessed risk."""
+    PLAN_CREATED = "PLAN_CREATED"
+    """docs/architecture/EVENT_MODEL.md SS14/15.3 -- emitted once the
+    Capability Router + Model Router have produced the Execution Graph
+    and model-role decision for this request (Milestone 3)."""
+    ROUTE_STARTED = "ROUTE_STARTED"
+    ROUTE_COMPLETED = "ROUTE_COMPLETED"
+    """docs/architecture/EVENT_MODEL.md SS15.5/15.6 -- one pair per
+    Execution Graph node the ``GraphExecutor`` runs."""
+    HUMAN_REVIEW_REQUIRED = "HUMAN_REVIEW_REQUIRED"
+    """docs/architecture/EVENT_MODEL.md SS15.28 -- emitted when the Model
+    Router's action is HUMAN_REVIEW (HIGH_RISK/CRITICAL_ACTION policy
+    tier) or ABSTAIN (an agentic request whose AGENT capability was
+    policy-restricted)."""
     MODEL_CALLED = "MODEL_CALLED"
     MODEL_FAILURE = "MODEL_FAILURE"
     FINAL_RESPONSE_GENERATED = "FINAL_RESPONSE_GENERATED"
@@ -50,6 +63,10 @@ _DEFAULT_SEVERITY = {
     EventType.QUERY_RECEIVED: Severity.INFO,
     EventType.QUERY_PROFILED: Severity.INFO,
     EventType.RISK_DETECTED: Severity.INFO,  # overridden per-call with the assessed severity -- see controlplane/runtime.py
+    EventType.PLAN_CREATED: Severity.INFO,
+    EventType.ROUTE_STARTED: Severity.INFO,
+    EventType.ROUTE_COMPLETED: Severity.INFO,
+    EventType.HUMAN_REVIEW_REQUIRED: Severity.HIGH,
     EventType.MODEL_CALLED: Severity.INFO,
     EventType.MODEL_FAILURE: Severity.HIGH,
     EventType.FINAL_RESPONSE_GENERATED: Severity.INFO,

@@ -13,7 +13,7 @@ def fake_provider(monkeypatch):
     """Automated tests never call the live Groq API -- only
     tests/manual_groq_live_check.py does that, explicitly and manually."""
     provider = FakeModelProvider(content="a fake model response")
-    monkeypatch.setattr(routes_module._runtime, "_provider_factory", lambda settings: provider)
+    monkeypatch.setattr(routes_module._runtime, "_provider_factory", lambda settings, role="STRONG": provider)
     return provider
 
 
@@ -79,7 +79,7 @@ def test_response_contains_real_query_profile_and_risk_metadata():
 
 def test_model_provider_failure_returns_structured_dependency_error(monkeypatch):
     monkeypatch.setattr(
-        routes_module._runtime, "_provider_factory", lambda settings: FailingModelProvider()
+        routes_module._runtime, "_provider_factory", lambda settings, role="STRONG": FailingModelProvider()
     )
     quiet_client = TestClient(app, raise_server_exceptions=False)
     resp = quiet_client.post("/v1/requests", json={"query": "hello"})
@@ -93,7 +93,7 @@ def test_model_provider_timeout_returns_structured_timeout_error(monkeypatch):
     monkeypatch.setattr(
         routes_module._runtime,
         "_provider_factory",
-        lambda settings: FailingModelProvider(timeout=True),
+        lambda settings, role="STRONG": FailingModelProvider(timeout=True),
     )
     quiet_client = TestClient(app, raise_server_exceptions=False)
     resp = quiet_client.post("/v1/requests", json={"query": "hello"})

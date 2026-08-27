@@ -1,0 +1,26 @@
+{
+  "experiment_id": "exp_b2be884f-261c-4ed7-9daf-42280423dcd8",
+  "dataset_id": "query_profiles_validation",
+  "dataset_version": "v0.1",
+  "metrics": {
+    "sample_count": 28,
+    "action_distribution": {
+      "USE_STRONG_MODEL": 9,
+      "HUMAN_REVIEW": 2,
+      "USE_FAST_MODEL": 17
+    },
+    "model_role_distribution": {
+      "STRONG": 11,
+      "FAST": 17
+    },
+    "expected_cost_class_distribution": {
+      "HIGH": 11,
+      "LOW": 17
+    },
+    "fast_model_rate": "17/28",
+    "cost_note": "17/28 queries routed to FAST instead of unconditionally using STRONG -- an estimated cost/latency reduction for those queries based on ESTIMATE cost classes, not a measured dollar/ms amount (no GROQ_API_KEY available this session, see docs/PROJECT_STATE/DECISIONS.md).",
+    "unsafe_routes_using_predicted_risk": [],
+    "unsafe_routes_using_ground_truth_risk": [],
+    "safety_invariant": "PASS: no example, under either our own predicted risk or the dataset's ground-truth risk label, reaches USE_FAST_MODEL (or verification-free execution) at HIGH_RISK/CRITICAL severity."
+  }
+}
