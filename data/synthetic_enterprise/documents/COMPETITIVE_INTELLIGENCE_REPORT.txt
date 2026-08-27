@@ -1,0 +1,3 @@
+Competitive Intelligence Report Q3
+Analyzed RouterAI and InferenceHub.
+ControlPlane key moat: Real-time dynamic intervention, self-healing replanning, and audit safety guarantees.

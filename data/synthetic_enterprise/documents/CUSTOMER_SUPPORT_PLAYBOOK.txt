@@ -1,0 +1,4 @@
+Customer Support Operations Playbook
+P1 Outages: Response within 1 hour, hourly updates until resolution.
+P2 Issues: Response within 4 hours, resolution target 24 hours.
+P3 Requests: Response within 1 business day.

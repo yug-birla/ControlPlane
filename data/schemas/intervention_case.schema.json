@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ControlPlaneInterventionCase",
+  "type": "object",
+  "required": [
+    "case_id",
+    "initial_route",
+    "failure",
+    "severity",
+    "evidence",
+    "possible_interventions",
+    "preferred_intervention",
+    "reason",
+    "expected_effect",
+    "cost_effect",
+    "latency_effect",
+    "risk_effect",
+    "provenance"
+  ],
+  "properties": {
+    "case_id": { "type": "string" },
+    "initial_route": { "type": "string" },
+    "failure": { "type": "string" },
+    "severity": { "type": "string", "enum": ["NO_ACTION", "LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+    "evidence": { "type": "string" },
+    "possible_interventions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "preferred_intervention": {
+      "type": "string",
+      "enum": [
+        "KEEP", "VERIFY", "RETRIEVE_MORE", "RERANK", "CHANGE_MODEL",
+        "INCREASE_COMPUTE", "DECREASE_COMPUTE", "CHANGE_DATA_SOURCE",
+        "REGENERATE", "REPAIR", "REDACT", "ASK_CLARIFICATION",
+        "HUMAN_REVIEW", "ABSTAIN", "BLOCK", "OTHER"
+      ]
+    },
+    "reason": { "type": "string" },
+    "expected_effect": { "type": "string" },
+    "cost_effect": { "type": "string" },
+    "latency_effect": { "type": "string" },
+    "risk_effect": { "type": "string" },
+    "provenance": { "type": "string" }
+  }
+}

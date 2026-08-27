@@ -1,0 +1,3 @@
+AI Usage Policy
+Using public third-party LLMs with raw customer PII or proprietary unreleased source code is strictly prohibited.
+All enterprise AI integrations must route through the ControlPlane gateway.

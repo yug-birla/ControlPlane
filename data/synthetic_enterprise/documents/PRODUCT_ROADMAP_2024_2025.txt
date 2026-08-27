@@ -1,0 +1,3 @@
+Product Roadmap 2024-2025 (Confidential)
+Q4 2024: Multi-agent orchestration, EU data residency cluster.
+Q1 2025: Real-time intervention API v3.0, custom safety policy DSL.

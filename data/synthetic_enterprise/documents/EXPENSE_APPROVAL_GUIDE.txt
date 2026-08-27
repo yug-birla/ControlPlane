@@ -1,0 +1,5 @@
+Expense Approval Guide
+Expenses < $500: Self-approved.
+Expenses $501 - $5,000: Direct manager approval.
+Expenses $5,001 - $25,000: Department director approval.
+Expenses > $25,000: VP and Finance sign-off required.

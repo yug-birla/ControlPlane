@@ -1,0 +1,3 @@
+Cloud Infrastructure Audit Q3
+Total cloud spend: $342,000/quarter. Compute represents 55%, Storage 14%, Databases 16%.
+Spot instance migration on training clusters saved $35k.

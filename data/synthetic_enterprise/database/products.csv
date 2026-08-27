@@ -1,0 +1,6 @@
+product_id,product_name,category,sku,unit_price,cost,launch_date,status
+P001,ControlPlane Core Router,Platform,CP-CORE-001,2499,800,2021-01-15,ACTIVE
+P002,ControlPlane Safety Guard,AI Security,CP-SAFE-001,999,200,2022-06-01,ACTIVE
+P003,ControlPlane Enterprise Suite,Platform,CP-ENT-001,4999,1200,2021-01-15,ACTIVE
+P004,ControlPlane Telemetry & Analytics,Analytics,CP-ANL-001,1499,400,2023-03-01,ACTIVE
+P005,Legacy v1 Connector,Integration,CP-LEG-001,499,100,2020-05-01,DEPRECATED

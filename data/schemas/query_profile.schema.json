@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ControlPlaneQueryProfile",
+  "type": "object",
+  "required": [
+    "query_id",
+    "query",
+    "intent",
+    "domain",
+    "knowledge_type",
+    "required_data_sources",
+    "required_capabilities",
+    "complexity",
+    "risk",
+    "actionability",
+    "sensitivity",
+    "ambiguity",
+    "expected_route",
+    "taxonomy_labels",
+    "provenance"
+  ],
+  "properties": {
+    "query_id": { "type": "string" },
+    "query": { "type": "string" },
+    "intent": { "type": "string" },
+    "domain": { "type": "string" },
+    "knowledge_type": { "type": "string" },
+    "required_data_sources": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "required_capabilities": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "complexity": { "type": "string", "enum": ["low", "medium", "high"] },
+    "risk": {
+      "type": "string",
+      "enum": ["NO_ACTION", "LOW_RISK", "MEDIUM_RISK", "HIGH_RISK", "CRITICAL"]
+    },
+    "actionability": { "type": "string" },
+    "sensitivity": {
+      "type": "string",
+      "enum": ["NONE", "POTENTIAL_PII", "PII_EXPOSURE", "SENSITIVE_DATA_EXPOSURE"]
+    },
+    "ambiguity": { "type": "string", "enum": ["low", "medium", "high"] },
+    "expected_route": { "type": "string" },
+    "taxonomy_labels": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "PUBLIC_FACTUAL",
+          "PRIVATE_FACTUAL",
+          "RAG",
+          "INSUFFICIENT_RAG",
+          "SQL",
+          "ANALYTICAL",
+          "REASONING",
+          "CODING",
+          "RECOMMENDATION",
+          "DECISION_SUPPORT",
+          "MEMORY",
+          "CHAT_HISTORY",
+          "AGENTIC",
+          "HIGH_RISK_AGENTIC",
+          "SENSITIVE",
+          "AMBIGUOUS",
+          "MULTI_SOURCE",
+          "MULTI_STEP"
+        ]
+      }
+    },
+    "provenance": {
+      "type": "string",
+      "enum": ["HUMAN", "EXPERT", "LLM_JUDGE", "AUTOMATIC", "SYNTHETIC", "DERIVED"]
+    },
+    "source_dataset": { "type": "string" },
+    "source_license": { "type": "string" },
+    "failure_mode": { "type": "string" },
+    "generation_date": { "type": "string" },
+    "prompt_version": { "type": "string" },
+    "validation_method": { "type": "string" }
+  }
+}

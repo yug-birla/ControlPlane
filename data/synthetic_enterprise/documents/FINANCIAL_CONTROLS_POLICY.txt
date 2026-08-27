@@ -1,0 +1,3 @@
+Financial Controls Policy
+Wire transfers > $50,000 require dual authorization (Finance Controller + Department VP).
+All new bank accounts require verbal verification with vendor finance contact.

@@ -1,0 +1,6 @@
+period_id,year,month,region,product_category,revenue,cogs,gross_margin_pct,sales_channel
+RP001,2024,1,Americas,Platform,240000,72000,70.0,DIRECT
+RP002,2024,1,EMEA,Platform,185000,55500,70.0,CHANNEL_PARTNER
+RP003,2024,1,APAC,AI Security,125000,25000,80.0,DIRECT
+RP004,2024,2,Americas,Platform,265000,79500,70.0,DIRECT
+RP005,2024,2,EMEA,Analytics,145000,43500,70.0,CHANNEL_PARTNER

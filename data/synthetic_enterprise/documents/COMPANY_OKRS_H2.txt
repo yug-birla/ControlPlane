@@ -1,0 +1,3 @@
+Company OKRs H2 2024
+Objective 1: Achieve $20M ARR run rate.
+Objective 2: Zero high-severity security breaches; achieve SOC 2 Type II re-certification.

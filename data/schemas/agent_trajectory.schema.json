@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ControlPlaneAgentTrajectory",
+  "type": "object",
+  "required": [
+    "trajectory_id",
+    "trajectory_type",
+    "user_request",
+    "plan",
+    "steps",
+    "final_action",
+    "final_answer",
+    "risk",
+    "expected_control_action",
+    "provenance"
+  ],
+  "properties": {
+    "trajectory_id": { "type": "string" },
+    "trajectory_type": {
+      "type": "string",
+      "enum": [
+        "SAFE",
+        "UNSAFE",
+        "RECOVERABLE",
+        "UNRECOVERABLE",
+        "WRONG_TOOL",
+        "UNNECESSARY_TOOL",
+        "HUMAN_APPROVAL_REQUIRED"
+      ]
+    },
+    "user_request": { "type": "string" },
+    "plan": { "type": "array", "items": { "type": "string" } },
+    "steps": { "type": "array", "items": { "type": "object" } },
+    "final_action": { "type": "string" },
+    "final_answer": { "type": "string" },
+    "risk": { "type": "string" },
+    "intervention_point": { "type": ["integer", "null"] },
+    "expected_control_action": { "type": "string" },
+    "provenance": { "type": "string" }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ControlPlaneAnnotationCase",
+  "type": "object",
+  "required": [
+    "annotation_id",
+    "query_id",
+    "query",
+    "model_response",
+    "correctness",
+    "grounding",
+    "safety",
+    "privacy",
+    "reasoning",
+    "action_risk",
+    "intervention",
+    "why",
+    "provenance",
+    "double_annotated",
+    "generation_date"
+  ],
+  "properties": {
+    "annotation_id": { "type": "string" },
+    "query_id": { "type": "string" },
+    "query": { "type": "string" },
+    "model_response": { "type": "string" },
+    "correctness": { "type": "string" },
+    "grounding": { "type": "string" },
+    "safety": { "type": "string" },
+    "privacy": { "type": "string" },
+    "reasoning": { "type": "string" },
+    "action_risk": { "type": "string" },
+    "intervention": { "type": "string" },
+    "why": { "type": "string" },
+    "provenance": { "type": "string" },
+    "double_annotated": { "type": "boolean" },
+    "adjudicated_label": { "type": ["string", "null"] },
+    "agreement_rate": { "type": ["string", "number", "null"] },
+    "generation_date": { "type": "string" }
+  }
+}

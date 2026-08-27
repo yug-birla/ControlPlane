@@ -1,0 +1,3 @@
+IT Procurement Guide
+Software licenses must be requested via IT Service Portal with manager approval.
+Shadow IT software installations are prohibited.

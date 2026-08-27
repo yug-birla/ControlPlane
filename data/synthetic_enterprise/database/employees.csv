@@ -1,0 +1,6 @@
+employee_id,name,department,role,email,hire_date,employment_type,manager_id,region,salary_band
+E001,Alice Chen,Engineering,Senior Staff Engineer,alice@company.com,2019-03-15,FULL_TIME,M001,APAC,L6
+E002,Bob Smith,Sales,Enterprise Account Executive,bob@company.com,2021-07-01,FULL_TIME,M002,Americas,L4
+E003,Priya Rao,Human Resources,Lead HRBP,priya@company.com,2020-11-20,FULL_TIME,M003,APAC,L5
+E004,James Okafor,Finance,Senior Financial Analyst,james@company.com,2022-02-14,FULL_TIME,M004,EMEA,L4
+E005,Mei Lin,Infrastructure,Principal SRE,mei@company.com,2018-06-10,FULL_TIME,M001,APAC,L7

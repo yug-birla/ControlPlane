@@ -1,0 +1,3 @@
+Customer Refund Policy
+Digital subscription plans cancelled within 30 days are eligible for pro-rated refund.
+No refunds after 30 days without documented service outage SLA breach exceeding 4 consecutive hours.

@@ -1,0 +1,3 @@
+Business Continuity Plan
+Recovery Point Objective (RPO) for core database is 1 hour.
+Recovery Time Objective (RTO) for customer routing gateway is 15 minutes.

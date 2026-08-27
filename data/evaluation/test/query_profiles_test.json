@@ -1,0 +1,854 @@
+[
+  {
+    "query_id": "QP-207",
+    "query": "What was the email address format convention we agreed to use for the automated customer notifications?",
+    "intent": "Recall notification format from session memory",
+    "domain": "customer_operations",
+    "knowledge_type": "memory",
+    "required_data_sources": [
+      "memory_store"
+    ],
+    "required_capabilities": [
+      "memory_retrieval"
+    ],
+    "complexity": "low",
+    "risk": "NO_ACTION",
+    "actionability": "informational",
+    "sensitivity": "NONE",
+    "ambiguity": "low",
+    "expected_route": "memory_retrieval",
+    "taxonomy_labels": [
+      "MEMORY"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-001",
+    "query": "What is the current maximum context window length supported by transformer-based large language models available as of mid-2024?",
+    "intent": "Retrieve a publicly known technical fact about LLM context window sizes",
+    "domain": "artificial_intelligence",
+    "knowledge_type": "public_factual",
+    "required_data_sources": [
+      "public_knowledge"
+    ],
+    "required_capabilities": [
+      "factual_retrieval"
+    ],
+    "complexity": "low",
+    "risk": "NO_ACTION",
+    "actionability": "informational",
+    "sensitivity": "NONE",
+    "ambiguity": "low",
+    "expected_route": "public_knowledge_retrieval",
+    "taxonomy_labels": [
+      "PUBLIC_FACTUAL"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-178",
+    "query": "Write a Python unit test using pytest and unittest.mock to mock an external payment gateway API call that raises a timeout error.",
+    "intent": "Write pytest unit test mocking external API timeout",
+    "domain": "software_engineering",
+    "knowledge_type": "public_factual",
+    "required_data_sources": [
+      "public_knowledge"
+    ],
+    "required_capabilities": [
+      "code_generation"
+    ],
+    "complexity": "medium",
+    "risk": "NO_ACTION",
+    "actionability": "generative",
+    "sensitivity": "NONE",
+    "ambiguity": "low",
+    "expected_route": "code_generation",
+    "taxonomy_labels": [
+      "CODING"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-230",
+    "query": "Collect log files from 50 worker nodes, aggregate error stack traces using Python, and generate a daily defect digest for the QA team.",
+    "intent": "Multi-node log aggregation and digest generation",
+    "domain": "infrastructure_and_tooling",
+    "knowledge_type": "private_factual",
+    "required_data_sources": [
+      "enterprise_iam_system",
+      "enterprise_sales_database"
+    ],
+    "required_capabilities": [
+      "planning",
+      "tool_use",
+      "human_oversight"
+    ],
+    "complexity": "medium",
+    "risk": "NO_ACTION",
+    "actionability": "agentic",
+    "sensitivity": "NONE",
+    "ambiguity": "low",
+    "expected_route": "agentic_execution",
+    "taxonomy_labels": [
+      "AGENTIC",
+      "MULTI_STEP"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-090",
+    "query": "According to our business continuity policy, what is the recovery point objective (RPO) defined for the core database?",
+    "intent": "Retrieve RPO specification",
+    "domain": "information_technology",
+    "knowledge_type": "private_factual",
+    "required_data_sources": [
+      "internal_policy_documents"
+    ],
+    "required_capabilities": [
+      "retrieval",
+      "document_reading"
+    ],
+    "complexity": "low",
+    "risk": "NO_ACTION",
+    "actionability": "informational",
+    "sensitivity": "NONE",
+    "ambiguity": "low",
+    "expected_route": "rag_retrieval",
+    "taxonomy_labels": [
+      "RAG"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-183",
+    "query": "Should we mandate multi-factor authentication (MFA) for all external client portal users starting next quarter? Evaluate user friction against security posture.",
+    "intent": "Decide on mandatory client MFA rollout",
+    "domain": "information_security",
+    "knowledge_type": "mixed",
+    "required_data_sources": [
+      "internal_strategy_documents",
+      "public_knowledge"
+    ],
+    "required_capabilities": [
+      "analytical_reasoning",
+      "recommendation",
+      "decision_support"
+    ],
+    "complexity": "medium",
+    "risk": "MEDIUM_RISK",
+    "actionability": "decisional",
+    "sensitivity": "NONE",
+    "ambiguity": "low",
+    "expected_route": "decision_support",
+    "taxonomy_labels": [
+      "DECISION_SUPPORT",
+      "REASONING"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-197",
+    "query": "What was the preferred programming language constraint I mentioned when we started this coding session?",
+    "intent": "Recall user language preference from memory",
+    "domain": "user_personalization",
+    "knowledge_type": "memory",
+    "required_data_sources": [
+      "memory_store"
+    ],
+    "required_capabilities": [
+      "memory_retrieval"
+    ],
+    "complexity": "low",
+    "risk": "NO_ACTION",
+    "actionability": "informational",
+    "sensitivity": "NONE",
+    "ambiguity": "low",
+    "expected_route": "memory_retrieval",
+    "taxonomy_labels": [
+      "MEMORY"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-051",
+    "query": "What is the function of the DNS protocol in the Internet suite?",
+    "intent": "DNS protocol definition",
+    "domain": "information_technology",
+    "knowledge_type": "public_factual",
+    "required_data_sources": [
+      "public_knowledge"
+    ],
+    "required_capabilities": [
+      "factual_retrieval"
+    ],
+    "complexity": "low",
+    "risk": "NO_ACTION",
+    "actionability": "informational",
+    "sensitivity": "NONE",
+    "ambiguity": "low",
+    "expected_route": "public_knowledge_retrieval",
+    "taxonomy_labels": [
+      "PUBLIC_FACTUAL"
+    ],
+    "provenance": "DERIVED",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review",
+    "source_dataset": "MMLU",
+    "source_license": "MIT"
+  },
+  {
+    "query_id": "QP-129",
+    "query": "List all enterprise customer accounts that have had zero logins in the past 60 days.",
+    "intent": "Identify inactive enterprise customer accounts",
+    "domain": "customer_operations",
+    "knowledge_type": "private_factual",
+    "required_data_sources": [
+      "enterprise_sales_database"
+    ],
+    "required_capabilities": [
+      "sql",
+      "structured_data_query"
+    ],
+    "complexity": "medium",
+    "risk": "LOW_RISK",
+    "actionability": "informational",
+    "sensitivity": "NONE",
+    "ambiguity": "low",
+    "expected_route": "sql_query",
+    "taxonomy_labels": [
+      "SQL",
+      "ANALYTICAL"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-236",
+    "query": "Automatically archive resolved Jira tickets older than 180 days to cold storage and generate an archive index report.",
+    "intent": "Automated project ticket archival workflow",
+    "domain": "information_technology",
+    "knowledge_type": "private_factual",
+    "required_data_sources": [
+      "enterprise_iam_system",
+      "enterprise_sales_database"
+    ],
+    "required_capabilities": [
+      "planning",
+      "tool_use",
+      "human_oversight"
+    ],
+    "complexity": "low",
+    "risk": "NO_ACTION",
+    "actionability": "agentic",
+    "sensitivity": "NONE",
+    "ambiguity": "low",
+    "expected_route": "agentic_execution",
+    "taxonomy_labels": [
+      "AGENTIC",
+      "MULTI_STEP"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-141",
+    "query": "Compare the performance characteristics of LSM-tree vs B-tree storage engines under write-heavy workloads with 90% sequential inserts.",
+    "intent": "Compare database storage engine architectures",
+    "domain": "computer_science",
+    "knowledge_type": "mixed",
+    "required_data_sources": [
+      "public_knowledge",
+      "enterprise_sales_database"
+    ],
+    "required_capabilities": [
+      "reasoning",
+      "analytical_reasoning"
+    ],
+    "complexity": "high",
+    "risk": "LOW_RISK",
+    "actionability": "analytical",
+    "sensitivity": "NONE",
+    "ambiguity": "low",
+    "expected_route": "reasoning",
+    "taxonomy_labels": [
+      "REASONING"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-059",
+    "query": "What is our current cloud spend budget variance for Q3 in the infrastructure department?",
+    "intent": "Lookup budget variance",
+    "domain": "finance_and_operations",
+    "knowledge_type": "private_factual",
+    "required_data_sources": [
+      "enterprise_finance_system"
+    ],
+    "required_capabilities": [
+      "enterprise_data_retrieval"
+    ],
+    "complexity": "low",
+    "risk": "LOW_RISK",
+    "actionability": "informational",
+    "sensitivity": "SENSITIVE_DATA_EXPOSURE",
+    "ambiguity": "low",
+    "expected_route": "enterprise_data_retrieval",
+    "taxonomy_labels": [
+      "PRIVATE_FACTUAL"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-039",
+    "query": "What is the standard port number used for HTTPS traffic?",
+    "intent": "Networking port lookup",
+    "domain": "information_technology",
+    "knowledge_type": "public_factual",
+    "required_data_sources": [
+      "public_knowledge"
+    ],
+    "required_capabilities": [
+      "factual_retrieval"
+    ],
+    "complexity": "low",
+    "risk": "NO_ACTION",
+    "actionability": "informational",
+    "sensitivity": "NONE",
+    "ambiguity": "low",
+    "expected_route": "public_knowledge_retrieval",
+    "taxonomy_labels": [
+      "PUBLIC_FACTUAL"
+    ],
+    "provenance": "DERIVED",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review",
+    "source_dataset": "MMLU",
+    "source_license": "MIT"
+  },
+  {
+    "query_id": "QP-179",
+    "query": "Based on our current database write load of 15,000 IOPS and budget constraints, should we migrate from self-hosted PostgreSQL to AWS Aurora or Google Cloud Spanner?",
+    "intent": "Recommend managed database platform migration",
+    "domain": "infrastructure_and_tooling",
+    "knowledge_type": "mixed",
+    "required_data_sources": [
+      "internal_strategy_documents",
+      "public_knowledge"
+    ],
+    "required_capabilities": [
+      "analytical_reasoning",
+      "recommendation",
+      "decision_support"
+    ],
+    "complexity": "high",
+    "risk": "HIGH_RISK",
+    "actionability": "decisional",
+    "sensitivity": "NONE",
+    "ambiguity": "medium",
+    "expected_route": "decision_support",
+    "taxonomy_labels": [
+      "RECOMMENDATION",
+      "DECISION_SUPPORT",
+      "ANALYTICAL"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-087",
+    "query": "What does our customer SLA policy specify regarding scheduled maintenance notification windows?",
+    "intent": "Retrieve maintenance notification window",
+    "domain": "customer_operations",
+    "knowledge_type": "private_factual",
+    "required_data_sources": [
+      "internal_policy_documents"
+    ],
+    "required_capabilities": [
+      "retrieval",
+      "document_reading"
+    ],
+    "complexity": "low",
+    "risk": "NO_ACTION",
+    "actionability": "informational",
+    "sensitivity": "NONE",
+    "ambiguity": "low",
+    "expected_route": "rag_retrieval",
+    "taxonomy_labels": [
+      "RAG"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-228",
+    "query": "Run a daily synthetic transaction through our production checkout flow using a test credit card and verify payment gateway settlement.",
+    "intent": "Execute daily synthetic transaction monitoring",
+    "domain": "customer_operations",
+    "knowledge_type": "private_factual",
+    "required_data_sources": [
+      "enterprise_iam_system",
+      "enterprise_sales_database"
+    ],
+    "required_capabilities": [
+      "planning",
+      "tool_use",
+      "human_oversight"
+    ],
+    "complexity": "medium",
+    "risk": "LOW_RISK",
+    "actionability": "agentic",
+    "sensitivity": "NONE",
+    "ambiguity": "low",
+    "expected_route": "agentic_execution",
+    "taxonomy_labels": [
+      "AGENTIC",
+      "MULTI_STEP"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-137",
+    "query": "Show the count of API requests grouped by HTTP response status code for the /v2/checkout endpoint today.",
+    "intent": "Aggregate endpoint status codes",
+    "domain": "infrastructure_and_tooling",
+    "knowledge_type": "private_factual",
+    "required_data_sources": [
+      "enterprise_sales_database"
+    ],
+    "required_capabilities": [
+      "sql",
+      "structured_data_query"
+    ],
+    "complexity": "medium",
+    "risk": "LOW_RISK",
+    "actionability": "informational",
+    "sensitivity": "NONE",
+    "ambiguity": "low",
+    "expected_route": "sql_query",
+    "taxonomy_labels": [
+      "SQL",
+      "ANALYTICAL"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-096",
+    "query": "According to our financial controls policy, who must sign off on capital expenditures exceeding $50,000?",
+    "intent": "Retrieve CapEx signatory requirements",
+    "domain": "finance_and_operations",
+    "knowledge_type": "private_factual",
+    "required_data_sources": [
+      "internal_policy_documents"
+    ],
+    "required_capabilities": [
+      "retrieval",
+      "document_reading"
+    ],
+    "complexity": "low",
+    "risk": "NO_ACTION",
+    "actionability": "informational",
+    "sensitivity": "NONE",
+    "ambiguity": "low",
+    "expected_route": "rag_retrieval",
+    "taxonomy_labels": [
+      "RAG",
+      "PRIVATE_FACTUAL"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-138",
+    "query": "What is the median tenure in months of employees in the customer support department?",
+    "intent": "Compute median employee tenure in support",
+    "domain": "human_resources",
+    "knowledge_type": "private_factual",
+    "required_data_sources": [
+      "enterprise_sales_database"
+    ],
+    "required_capabilities": [
+      "sql",
+      "structured_data_query"
+    ],
+    "complexity": "medium",
+    "risk": "LOW_RISK",
+    "actionability": "informational",
+    "sensitivity": "NONE",
+    "ambiguity": "low",
+    "expected_route": "sql_query",
+    "taxonomy_labels": [
+      "SQL",
+      "ANALYTICAL"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-270",
+    "query": "Synthesize our legal compliance requirements for EU AI Act, our internal model risk assessment documents, and engineering deployment logs to produce an AI governance audit report.",
+    "intent": "Multi-source regulatory compliance and deployment log audit",
+    "domain": "legal_and_compliance",
+    "knowledge_type": "mixed",
+    "required_data_sources": [
+      "enterprise_crm_system",
+      "enterprise_sales_database",
+      "internal_strategy_documents",
+      "public_knowledge"
+    ],
+    "required_capabilities": [
+      "retrieval",
+      "analytical_reasoning",
+      "reasoning",
+      "multi_source_join",
+      "decision_support"
+    ],
+    "complexity": "high",
+    "risk": "MEDIUM_RISK",
+    "actionability": "decisional",
+    "sensitivity": "SENSITIVE_DATA_EXPOSURE",
+    "ambiguity": "medium",
+    "expected_route": "multi_step_orchestration",
+    "taxonomy_labels": [
+      "MULTI_SOURCE",
+      "MULTI_STEP",
+      "ANALYTICAL",
+      "DECISION_SUPPORT"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-092",
+    "query": "According to the corporate gift policy, what is the exact monetary limit on promotional gifts that can be accepted from partners?",
+    "intent": "Retrieve gift acceptance monetary threshold",
+    "domain": "legal_and_compliance",
+    "knowledge_type": "private_factual",
+    "required_data_sources": [
+      "internal_policy_documents"
+    ],
+    "required_capabilities": [
+      "retrieval",
+      "document_reading"
+    ],
+    "complexity": "low",
+    "risk": "NO_ACTION",
+    "actionability": "informational",
+    "sensitivity": "NONE",
+    "ambiguity": "low",
+    "expected_route": "rag_retrieval",
+    "taxonomy_labels": [
+      "RAG"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-167",
+    "query": "Write a Go function to implement rate limiting for HTTP endpoints using a token bucket algorithm with mutex synchronization.",
+    "intent": "Implement token bucket rate limiter in Go",
+    "domain": "software_engineering",
+    "knowledge_type": "public_factual",
+    "required_data_sources": [
+      "public_knowledge"
+    ],
+    "required_capabilities": [
+      "code_generation"
+    ],
+    "complexity": "high",
+    "risk": "NO_ACTION",
+    "actionability": "generative",
+    "sensitivity": "NONE",
+    "ambiguity": "low",
+    "expected_route": "code_generation",
+    "taxonomy_labels": [
+      "CODING"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-088",
+    "query": "According to the intellectual property policy, does the company claim ownership of code written on personal devices during non-working hours?",
+    "intent": "Retrieve IP ownership boundaries",
+    "domain": "legal_and_compliance",
+    "knowledge_type": "private_factual",
+    "required_data_sources": [
+      "internal_policy_documents"
+    ],
+    "required_capabilities": [
+      "retrieval",
+      "document_reading"
+    ],
+    "complexity": "low",
+    "risk": "NO_ACTION",
+    "actionability": "informational",
+    "sensitivity": "NONE",
+    "ambiguity": "low",
+    "expected_route": "rag_retrieval",
+    "taxonomy_labels": [
+      "RAG",
+      "PRIVATE_FACTUAL"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-262",
+    "query": "Reconcile marketing campaign ad spend from Google Ads API with sales opportunities created in Salesforce and compute exact cost per acquisition by region.",
+    "intent": "Multi-source ad spend and CRM opportunity reconciliation",
+    "domain": "marketing",
+    "knowledge_type": "mixed",
+    "required_data_sources": [
+      "enterprise_crm_system",
+      "enterprise_sales_database",
+      "internal_strategy_documents",
+      "public_knowledge"
+    ],
+    "required_capabilities": [
+      "retrieval",
+      "analytical_reasoning",
+      "reasoning",
+      "multi_source_join",
+      "decision_support"
+    ],
+    "complexity": "high",
+    "risk": "MEDIUM_RISK",
+    "actionability": "decisional",
+    "sensitivity": "SENSITIVE_DATA_EXPOSURE",
+    "ambiguity": "medium",
+    "expected_route": "multi_step_orchestration",
+    "taxonomy_labels": [
+      "MULTI_SOURCE",
+      "MULTI_STEP",
+      "ANALYTICAL",
+      "DECISION_SUPPORT"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-038",
+    "query": "Who wrote the 1859 scientific work 'On the Origin of Species'?",
+    "intent": "Author lookup for landmark text",
+    "domain": "history_of_science",
+    "knowledge_type": "public_factual",
+    "required_data_sources": [
+      "public_knowledge"
+    ],
+    "required_capabilities": [
+      "factual_retrieval"
+    ],
+    "complexity": "low",
+    "risk": "NO_ACTION",
+    "actionability": "informational",
+    "sensitivity": "NONE",
+    "ambiguity": "low",
+    "expected_route": "public_knowledge_retrieval",
+    "taxonomy_labels": [
+      "PUBLIC_FACTUAL"
+    ],
+    "provenance": "DERIVED",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review",
+    "source_dataset": "TriviaQA",
+    "source_license": "Apache-2.0"
+  },
+  {
+    "query_id": "QP-209",
+    "query": "Fetch the latest quarterly financial metrics from the billing API, generate a summary PDF report, and email it to the executive distribution list.",
+    "intent": "Execute multi-step report generation and email dispatch",
+    "domain": "finance_and_operations",
+    "knowledge_type": "private_factual",
+    "required_data_sources": [
+      "enterprise_iam_system",
+      "enterprise_sales_database"
+    ],
+    "required_capabilities": [
+      "planning",
+      "tool_use",
+      "human_oversight"
+    ],
+    "complexity": "high",
+    "risk": "MEDIUM_RISK",
+    "actionability": "agentic",
+    "sensitivity": "NONE",
+    "ambiguity": "medium",
+    "expected_route": "agentic_execution",
+    "taxonomy_labels": [
+      "AGENTIC",
+      "MULTI_STEP"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-093",
+    "query": "What is our disciplinary process for repeated unexcused absences per the employee conduct guide?",
+    "intent": "Retrieve attendance disciplinary progression",
+    "domain": "human_resources",
+    "knowledge_type": "private_factual",
+    "required_data_sources": [
+      "internal_policy_documents"
+    ],
+    "required_capabilities": [
+      "retrieval",
+      "document_reading"
+    ],
+    "complexity": "low",
+    "risk": "NO_ACTION",
+    "actionability": "informational",
+    "sensitivity": "NONE",
+    "ambiguity": "low",
+    "expected_route": "rag_retrieval",
+    "taxonomy_labels": [
+      "RAG"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-199",
+    "query": "What was the name of the vendor we agreed to exclude from our shortlist during last week's procurement meeting?",
+    "intent": "Recall excluded vendor from cross-session memory",
+    "domain": "procurement",
+    "knowledge_type": "memory",
+    "required_data_sources": [
+      "memory_store"
+    ],
+    "required_capabilities": [
+      "memory_retrieval"
+    ],
+    "complexity": "low",
+    "risk": "NO_ACTION",
+    "actionability": "informational",
+    "sensitivity": "NONE",
+    "ambiguity": "low",
+    "expected_route": "memory_retrieval",
+    "taxonomy_labels": [
+      "MEMORY"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-097",
+    "query": "What are the criteria for qualifying for an annual performance bonus according to the compensation policy?",
+    "intent": "Retrieve bonus eligibility criteria",
+    "domain": "human_resources",
+    "knowledge_type": "private_factual",
+    "required_data_sources": [
+      "internal_policy_documents"
+    ],
+    "required_capabilities": [
+      "retrieval",
+      "document_reading"
+    ],
+    "complexity": "low",
+    "risk": "NO_ACTION",
+    "actionability": "informational",
+    "sensitivity": "NONE",
+    "ambiguity": "low",
+    "expected_route": "rag_retrieval",
+    "taxonomy_labels": [
+      "RAG"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "query_id": "QP-210",
+    "query": "Query Jira for all unresolved P0 bugs created in the last 24 hours, create a dedicated Slack incident channel for each, and invite the on-call engineer.",
+    "intent": "Automate P0 incident channel setup and triage",
+    "domain": "information_technology",
+    "knowledge_type": "private_factual",
+    "required_data_sources": [
+      "enterprise_iam_system",
+      "enterprise_sales_database"
+    ],
+    "required_capabilities": [
+      "planning",
+      "tool_use",
+      "human_oversight"
+    ],
+    "complexity": "high",
+    "risk": "LOW_RISK",
+    "actionability": "agentic",
+    "sensitivity": "NONE",
+    "ambiguity": "medium",
+    "expected_route": "agentic_execution",
+    "taxonomy_labels": [
+      "AGENTIC",
+      "MULTI_STEP"
+    ],
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  }
+]

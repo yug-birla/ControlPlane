@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ControlPlaneRAGCase",
+  "type": "object",
+  "required": [
+    "case_id",
+    "query",
+    "documents",
+    "retrieved_documents",
+    "document_relevance",
+    "evidence_sufficiency",
+    "ground_truth",
+    "expected_answer",
+    "rag_category",
+    "provenance"
+  ],
+  "properties": {
+    "case_id": { "type": "string" },
+    "query": { "type": "string" },
+    "documents": { "type": "array", "items": { "type": "string" } },
+    "retrieved_documents": { "type": "array", "items": { "type": "string" } },
+    "document_relevance": { "type": "string", "enum": ["HIGH", "MEDIUM", "LOW", "NONE"] },
+    "evidence_sufficiency": { "type": "string", "enum": ["SUFFICIENT", "PARTIALLY_SUFFICIENT", "INSUFFICIENT"] },
+    "ground_truth": { "type": "string" },
+    "expected_answer": { "type": "string" },
+    "rag_category": { "type": "string", "enum": ["ANSWERABLE", "PARTIALLY_ANSWERABLE", "INSUFFICIENT"] },
+    "failure_mode": { "type": ["string", "null"] },
+    "provenance": { "type": "string", "enum": ["HUMAN", "EXPERT", "LLM_JUDGE", "AUTOMATIC", "SYNTHETIC", "DERIVED"] }
+  }
+}

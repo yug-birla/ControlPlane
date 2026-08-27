@@ -1,0 +1,2976 @@
+[
+  {
+    "case_id": "RC-001",
+    "query": "According to Travel and Expense Policy v3, what is the specific rule regarding Expense Reimbursement?",
+    "documents": [
+      "[Travel and Expense Policy v3]: Employees can claim up to $75/day for meals."
+    ],
+    "retrieved_documents": [
+      "Travel and Expense Policy v3"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Employees can claim up to $75/day for domestic meals; international requires receipts.",
+    "expected_answer": "Employees can claim up to $75/day for meals.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-002",
+    "query": "What are the detailed compliance steps for Parental Leave under Japanese labor law?",
+    "documents": [
+      "[IT Hardware Policy]: Laptops must be encrypted with BitLocker."
+    ],
+    "retrieved_documents": [
+      "IT Hardware Policy"
+    ],
+    "document_relevance": "LOW",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Primary caregivers receive 16 weeks paid leave; secondary receive 4 weeks.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "irrelevant_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-003",
+    "query": "What are all conditions and edge cases for Password Rotation according to InfoSec Standards 2024?",
+    "documents": [
+      "[InfoSec Standards 2024]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "InfoSec Standards 2024"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Passwords must be 14+ characters, MFA enabled.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-004",
+    "query": "What is the exact financial threshold for SLA Commitments?",
+    "documents": [
+      "[Enterprise Customer Agreement Annex B]: Threshold is $5,000.",
+      "[Finance Addendum]: Threshold is $10,000."
+    ],
+    "retrieved_documents": [
+      "Enterprise Customer Agreement Annex B",
+      "Finance Addendum"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "P1 response is 1 hour, 99.9% uptime guarantee.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "conflicting_evidence",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-005",
+    "query": "What are all conditions and edge cases for Remote Equipment according to IT Hardware Policy 2024?",
+    "documents": [
+      "[IT Hardware Policy 2024]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "IT Hardware Policy 2024"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Remote employees receive a $1,000 setup stipend and company laptop.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-006",
+    "query": "According to Data Governance Manual Section 7, what is the specific rule regarding Data Retention?",
+    "documents": [
+      "[Data Governance Manual Section 7]: Customer transaction logs must be retained for 7 years."
+    ],
+    "retrieved_documents": [
+      "Data Governance Manual Section 7"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Transaction logs 7 years, audit logs 3 years.",
+    "expected_answer": "Customer transaction logs must be retained for 7 years.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-007",
+    "query": "What was our Vendor Onboarding policy version in 2017?",
+    "documents": [
+      "[Procurement Playbook v2 (2024 Current Edition)]: Current rules updated in 2024."
+    ],
+    "retrieved_documents": [
+      "Procurement Playbook v2"
+    ],
+    "document_relevance": "LOW",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "PII vendors require SOC 2 Type II and signed DPA.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "stale_evidence",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-008",
+    "query": "According to Code of Conduct Section 8, what is the specific rule regarding Gift Acceptance?",
+    "documents": [
+      "[Code of Conduct Section 8]: Employees must not accept gifts exceeding $100 in value."
+    ],
+    "retrieved_documents": [
+      "Code of Conduct Section 8"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Gifts over $100 must be reported and declined or approved by HR.",
+    "expected_answer": "Employees must not accept gifts exceeding $100 in value.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-009",
+    "query": "According to Compensation Policy Guide, what is the specific rule regarding Annual Bonus?",
+    "documents": [
+      "[Compensation Policy Guide]: Annual bonus eligibility requires minimum 6 months tenure and meeting performance targets."
+    ],
+    "retrieved_documents": [
+      "Compensation Policy Guide"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Bonus requires 6 months tenure, rated Meets Expectations or above.",
+    "expected_answer": "Annual bonus eligibility requires minimum 6 months tenure and meeting performance targets.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-010",
+    "query": "According to Employment Terms Manual, what is the specific rule regarding Termination Notice?",
+    "documents": [
+      "[Employment Terms Manual]: Standard employee resignation notice is 30 calendar days."
+    ],
+    "retrieved_documents": [
+      "Employment Terms Manual"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Resignation requires 30 days notice for ICs, 60 days for managers.",
+    "expected_answer": "Standard employee resignation notice is 30 calendar days.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-011",
+    "query": "According to Travel and Expense Policy v3, what is the specific rule regarding Expense Reimbursement?",
+    "documents": [
+      "[Travel and Expense Policy v3]: Employees can claim up to $75/day for meals."
+    ],
+    "retrieved_documents": [
+      "Travel and Expense Policy v3"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Employees can claim up to $75/day for domestic meals; international requires receipts.",
+    "expected_answer": "Employees can claim up to $75/day for meals.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-012",
+    "query": "What are all conditions and edge cases for Parental Leave according to HR Handbook Section 4.2?",
+    "documents": [
+      "[HR Handbook Section 4.2]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "HR Handbook Section 4.2"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Primary caregivers receive 16 weeks paid leave; secondary receive 4 weeks.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-013",
+    "query": "According to InfoSec Standards 2024, what is the specific rule regarding Password Rotation?",
+    "documents": [
+      "[InfoSec Standards 2024]: Passwords must be at least 14 characters and rotated every 90 days."
+    ],
+    "retrieved_documents": [
+      "InfoSec Standards 2024"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Passwords must be 14+ characters, MFA enabled.",
+    "expected_answer": "Passwords must be at least 14 characters and rotated every 90 days.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-014",
+    "query": "What are the detailed compliance steps for SLA Commitments under Japanese labor law?",
+    "documents": [
+      "[IT Hardware Policy]: Laptops must be encrypted with BitLocker."
+    ],
+    "retrieved_documents": [
+      "IT Hardware Policy"
+    ],
+    "document_relevance": "LOW",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "P1 response is 1 hour, 99.9% uptime guarantee.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "irrelevant_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-015",
+    "query": "What are all conditions and edge cases for Remote Equipment according to IT Hardware Policy 2024?",
+    "documents": [
+      "[IT Hardware Policy 2024]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "IT Hardware Policy 2024"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Remote employees receive a $1,000 setup stipend and company laptop.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-016",
+    "query": "According to Data Governance Manual Section 7, what is the specific rule regarding Data Retention?",
+    "documents": [
+      "[Data Governance Manual Section 7]: Customer transaction logs must be retained for 7 years."
+    ],
+    "retrieved_documents": [
+      "Data Governance Manual Section 7"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Transaction logs 7 years, audit logs 3 years.",
+    "expected_answer": "Customer transaction logs must be retained for 7 years.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-017",
+    "query": "What is our policy on Vendor Onboarding for employees based in Antarctica?",
+    "documents": [],
+    "retrieved_documents": [],
+    "document_relevance": "NONE",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "PII vendors require SOC 2 Type II and signed DPA.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "missing_document",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-018",
+    "query": "According to Code of Conduct Section 8, what is the specific rule regarding Gift Acceptance?",
+    "documents": [
+      "[Code of Conduct Section 8]: Employees must not accept gifts exceeding $100 in value."
+    ],
+    "retrieved_documents": [
+      "Code of Conduct Section 8"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Gifts over $100 must be reported and declined or approved by HR.",
+    "expected_answer": "Employees must not accept gifts exceeding $100 in value.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-019",
+    "query": "What are all conditions and edge cases for Annual Bonus according to Compensation Policy Guide?",
+    "documents": [
+      "[Compensation Policy Guide]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "Compensation Policy Guide"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Bonus requires 6 months tenure, rated Meets Expectations or above.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-020",
+    "query": "According to Employment Terms Manual, what is the specific rule regarding Termination Notice?",
+    "documents": [
+      "[Employment Terms Manual]: Standard employee resignation notice is 30 calendar days."
+    ],
+    "retrieved_documents": [
+      "Employment Terms Manual"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Resignation requires 30 days notice for ICs, 60 days for managers.",
+    "expected_answer": "Standard employee resignation notice is 30 calendar days.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-021",
+    "query": "What is our policy on Expense Reimbursement for employees based in Antarctica?",
+    "documents": [],
+    "retrieved_documents": [],
+    "document_relevance": "NONE",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Employees can claim up to $75/day for domestic meals; international requires receipts.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "missing_document",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-022",
+    "query": "What are the detailed compliance steps for Parental Leave under Japanese labor law?",
+    "documents": [
+      "[IT Hardware Policy]: Laptops must be encrypted with BitLocker."
+    ],
+    "retrieved_documents": [
+      "IT Hardware Policy"
+    ],
+    "document_relevance": "LOW",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Primary caregivers receive 16 weeks paid leave; secondary receive 4 weeks.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "irrelevant_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-023",
+    "query": "According to InfoSec Standards 2024, what is the specific rule regarding Password Rotation?",
+    "documents": [
+      "[InfoSec Standards 2024]: Passwords must be at least 14 characters and rotated every 90 days."
+    ],
+    "retrieved_documents": [
+      "InfoSec Standards 2024"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Passwords must be 14+ characters, MFA enabled.",
+    "expected_answer": "Passwords must be at least 14 characters and rotated every 90 days.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-024",
+    "query": "What is the exact financial threshold for SLA Commitments?",
+    "documents": [
+      "[Enterprise Customer Agreement Annex B]: Threshold is $5,000.",
+      "[Finance Addendum]: Threshold is $10,000."
+    ],
+    "retrieved_documents": [
+      "Enterprise Customer Agreement Annex B",
+      "Finance Addendum"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "P1 response is 1 hour, 99.9% uptime guarantee.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "conflicting_evidence",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-025",
+    "query": "What is our policy on Remote Equipment for employees based in Antarctica?",
+    "documents": [],
+    "retrieved_documents": [],
+    "document_relevance": "NONE",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Remote employees receive a $1,000 setup stipend and company laptop.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "missing_document",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-026",
+    "query": "What are the detailed compliance steps for Data Retention under Japanese labor law?",
+    "documents": [
+      "[IT Hardware Policy]: Laptops must be encrypted with BitLocker."
+    ],
+    "retrieved_documents": [
+      "IT Hardware Policy"
+    ],
+    "document_relevance": "LOW",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Transaction logs 7 years, audit logs 3 years.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "irrelevant_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-027",
+    "query": "According to Procurement Playbook v2, what is the specific rule regarding Vendor Onboarding?",
+    "documents": [
+      "[Procurement Playbook v2]: Vendors with access to PII require SOC 2 Type II certification."
+    ],
+    "retrieved_documents": [
+      "Procurement Playbook v2"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "PII vendors require SOC 2 Type II and signed DPA.",
+    "expected_answer": "Vendors with access to PII require SOC 2 Type II certification.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-028",
+    "query": "According to Code of Conduct Section 8, what is the specific rule regarding Gift Acceptance?",
+    "documents": [
+      "[Code of Conduct Section 8]: Employees must not accept gifts exceeding $100 in value."
+    ],
+    "retrieved_documents": [
+      "Code of Conduct Section 8"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Gifts over $100 must be reported and declined or approved by HR.",
+    "expected_answer": "Employees must not accept gifts exceeding $100 in value.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-029",
+    "query": "What is our policy on Annual Bonus for employees based in Antarctica?",
+    "documents": [],
+    "retrieved_documents": [],
+    "document_relevance": "NONE",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Bonus requires 6 months tenure, rated Meets Expectations or above.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "missing_document",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-030",
+    "query": "What are all conditions and edge cases for Termination Notice according to Employment Terms Manual?",
+    "documents": [
+      "[Employment Terms Manual]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "Employment Terms Manual"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Resignation requires 30 days notice for ICs, 60 days for managers.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-031",
+    "query": "According to Travel and Expense Policy v3, what is the specific rule regarding Expense Reimbursement?",
+    "documents": [
+      "[Travel and Expense Policy v3]: Employees can claim up to $75/day for meals."
+    ],
+    "retrieved_documents": [
+      "Travel and Expense Policy v3"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Employees can claim up to $75/day for domestic meals; international requires receipts.",
+    "expected_answer": "Employees can claim up to $75/day for meals.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-032",
+    "query": "According to HR Handbook Section 4.2, what is the specific rule regarding Parental Leave?",
+    "documents": [
+      "[HR Handbook Section 4.2]: Primary caregivers receive 16 weeks of fully paid leave."
+    ],
+    "retrieved_documents": [
+      "HR Handbook Section 4.2"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Primary caregivers receive 16 weeks paid leave; secondary receive 4 weeks.",
+    "expected_answer": "Primary caregivers receive 16 weeks of fully paid leave.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-033",
+    "query": "According to InfoSec Standards 2024, what is the specific rule regarding Password Rotation?",
+    "documents": [
+      "[InfoSec Standards 2024]: Passwords must be at least 14 characters and rotated every 90 days."
+    ],
+    "retrieved_documents": [
+      "InfoSec Standards 2024"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Passwords must be 14+ characters, MFA enabled.",
+    "expected_answer": "Passwords must be at least 14 characters and rotated every 90 days.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-034",
+    "query": "What are the detailed compliance steps for SLA Commitments under Japanese labor law?",
+    "documents": [
+      "[IT Hardware Policy]: Laptops must be encrypted with BitLocker."
+    ],
+    "retrieved_documents": [
+      "IT Hardware Policy"
+    ],
+    "document_relevance": "LOW",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "P1 response is 1 hour, 99.9% uptime guarantee.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "irrelevant_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-035",
+    "query": "What was our Remote Equipment policy version in 2017?",
+    "documents": [
+      "[IT Hardware Policy 2024 (2024 Current Edition)]: Current rules updated in 2024."
+    ],
+    "retrieved_documents": [
+      "IT Hardware Policy 2024"
+    ],
+    "document_relevance": "LOW",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Remote employees receive a $1,000 setup stipend and company laptop.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "stale_evidence",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-036",
+    "query": "What are all conditions and edge cases for Data Retention according to Data Governance Manual Section 7?",
+    "documents": [
+      "[Data Governance Manual Section 7]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "Data Governance Manual Section 7"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Transaction logs 7 years, audit logs 3 years.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-037",
+    "query": "What is our policy on Vendor Onboarding for employees based in Antarctica?",
+    "documents": [],
+    "retrieved_documents": [],
+    "document_relevance": "NONE",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "PII vendors require SOC 2 Type II and signed DPA.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "missing_document",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-038",
+    "query": "What are all conditions and edge cases for Gift Acceptance according to Code of Conduct Section 8?",
+    "documents": [
+      "[Code of Conduct Section 8]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "Code of Conduct Section 8"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Gifts over $100 must be reported and declined or approved by HR.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-039",
+    "query": "What was our Annual Bonus policy version in 2017?",
+    "documents": [
+      "[Compensation Policy Guide (2024 Current Edition)]: Current rules updated in 2024."
+    ],
+    "retrieved_documents": [
+      "Compensation Policy Guide"
+    ],
+    "document_relevance": "LOW",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Bonus requires 6 months tenure, rated Meets Expectations or above.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "stale_evidence",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-040",
+    "query": "According to Employment Terms Manual, what is the specific rule regarding Termination Notice?",
+    "documents": [
+      "[Employment Terms Manual]: Standard employee resignation notice is 30 calendar days."
+    ],
+    "retrieved_documents": [
+      "Employment Terms Manual"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Resignation requires 30 days notice for ICs, 60 days for managers.",
+    "expected_answer": "Standard employee resignation notice is 30 calendar days.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-041",
+    "query": "What are all conditions and edge cases for Expense Reimbursement according to Travel and Expense Policy v3?",
+    "documents": [
+      "[Travel and Expense Policy v3]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "Travel and Expense Policy v3"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Employees can claim up to $75/day for domestic meals; international requires receipts.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-042",
+    "query": "What are all conditions and edge cases for Parental Leave according to HR Handbook Section 4.2?",
+    "documents": [
+      "[HR Handbook Section 4.2]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "HR Handbook Section 4.2"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Primary caregivers receive 16 weeks paid leave; secondary receive 4 weeks.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-043",
+    "query": "What are all conditions and edge cases for Password Rotation according to InfoSec Standards 2024?",
+    "documents": [
+      "[InfoSec Standards 2024]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "InfoSec Standards 2024"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Passwords must be 14+ characters, MFA enabled.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-044",
+    "query": "According to Enterprise Customer Agreement Annex B, what is the specific rule regarding SLA Commitments?",
+    "documents": [
+      "[Enterprise Customer Agreement Annex B]: P1 response time SLA is 1 hour, resolution target 4 hours."
+    ],
+    "retrieved_documents": [
+      "Enterprise Customer Agreement Annex B"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "P1 response is 1 hour, 99.9% uptime guarantee.",
+    "expected_answer": "P1 response time SLA is 1 hour, resolution target 4 hours.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-045",
+    "query": "What are all conditions and edge cases for Remote Equipment according to IT Hardware Policy 2024?",
+    "documents": [
+      "[IT Hardware Policy 2024]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "IT Hardware Policy 2024"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Remote employees receive a $1,000 setup stipend and company laptop.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-046",
+    "query": "What are all conditions and edge cases for Data Retention according to Data Governance Manual Section 7?",
+    "documents": [
+      "[Data Governance Manual Section 7]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "Data Governance Manual Section 7"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Transaction logs 7 years, audit logs 3 years.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-047",
+    "query": "According to Procurement Playbook v2, what is the specific rule regarding Vendor Onboarding?",
+    "documents": [
+      "[Procurement Playbook v2]: Vendors with access to PII require SOC 2 Type II certification."
+    ],
+    "retrieved_documents": [
+      "Procurement Playbook v2"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "PII vendors require SOC 2 Type II and signed DPA.",
+    "expected_answer": "Vendors with access to PII require SOC 2 Type II certification.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-048",
+    "query": "What is the exact financial threshold for Gift Acceptance?",
+    "documents": [
+      "[Code of Conduct Section 8]: Threshold is $5,000.",
+      "[Finance Addendum]: Threshold is $10,000."
+    ],
+    "retrieved_documents": [
+      "Code of Conduct Section 8",
+      "Finance Addendum"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Gifts over $100 must be reported and declined or approved by HR.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "conflicting_evidence",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-049",
+    "query": "What are all conditions and edge cases for Annual Bonus according to Compensation Policy Guide?",
+    "documents": [
+      "[Compensation Policy Guide]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "Compensation Policy Guide"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Bonus requires 6 months tenure, rated Meets Expectations or above.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-050",
+    "query": "According to Employment Terms Manual, what is the specific rule regarding Termination Notice?",
+    "documents": [
+      "[Employment Terms Manual]: Standard employee resignation notice is 30 calendar days."
+    ],
+    "retrieved_documents": [
+      "Employment Terms Manual"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Resignation requires 30 days notice for ICs, 60 days for managers.",
+    "expected_answer": "Standard employee resignation notice is 30 calendar days.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-051",
+    "query": "What was our Expense Reimbursement policy version in 2017?",
+    "documents": [
+      "[Travel and Expense Policy v3 (2024 Current Edition)]: Current rules updated in 2024."
+    ],
+    "retrieved_documents": [
+      "Travel and Expense Policy v3"
+    ],
+    "document_relevance": "LOW",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Employees can claim up to $75/day for domestic meals; international requires receipts.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "stale_evidence",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-052",
+    "query": "What are all conditions and edge cases for Parental Leave according to HR Handbook Section 4.2?",
+    "documents": [
+      "[HR Handbook Section 4.2]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "HR Handbook Section 4.2"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Primary caregivers receive 16 weeks paid leave; secondary receive 4 weeks.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-053",
+    "query": "What are all conditions and edge cases for Password Rotation according to InfoSec Standards 2024?",
+    "documents": [
+      "[InfoSec Standards 2024]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "InfoSec Standards 2024"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Passwords must be 14+ characters, MFA enabled.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-054",
+    "query": "According to Enterprise Customer Agreement Annex B, what is the specific rule regarding SLA Commitments?",
+    "documents": [
+      "[Enterprise Customer Agreement Annex B]: P1 response time SLA is 1 hour, resolution target 4 hours."
+    ],
+    "retrieved_documents": [
+      "Enterprise Customer Agreement Annex B"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "P1 response is 1 hour, 99.9% uptime guarantee.",
+    "expected_answer": "P1 response time SLA is 1 hour, resolution target 4 hours.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-055",
+    "query": "What was our Remote Equipment policy version in 2017?",
+    "documents": [
+      "[IT Hardware Policy 2024 (2024 Current Edition)]: Current rules updated in 2024."
+    ],
+    "retrieved_documents": [
+      "IT Hardware Policy 2024"
+    ],
+    "document_relevance": "LOW",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Remote employees receive a $1,000 setup stipend and company laptop.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "stale_evidence",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-056",
+    "query": "According to Data Governance Manual Section 7, what is the specific rule regarding Data Retention?",
+    "documents": [
+      "[Data Governance Manual Section 7]: Customer transaction logs must be retained for 7 years."
+    ],
+    "retrieved_documents": [
+      "Data Governance Manual Section 7"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Transaction logs 7 years, audit logs 3 years.",
+    "expected_answer": "Customer transaction logs must be retained for 7 years.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-057",
+    "query": "According to Procurement Playbook v2, what is the specific rule regarding Vendor Onboarding?",
+    "documents": [
+      "[Procurement Playbook v2]: Vendors with access to PII require SOC 2 Type II certification."
+    ],
+    "retrieved_documents": [
+      "Procurement Playbook v2"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "PII vendors require SOC 2 Type II and signed DPA.",
+    "expected_answer": "Vendors with access to PII require SOC 2 Type II certification.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-058",
+    "query": "According to Code of Conduct Section 8, what is the specific rule regarding Gift Acceptance?",
+    "documents": [
+      "[Code of Conduct Section 8]: Employees must not accept gifts exceeding $100 in value."
+    ],
+    "retrieved_documents": [
+      "Code of Conduct Section 8"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Gifts over $100 must be reported and declined or approved by HR.",
+    "expected_answer": "Employees must not accept gifts exceeding $100 in value.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-059",
+    "query": "According to Compensation Policy Guide, what is the specific rule regarding Annual Bonus?",
+    "documents": [
+      "[Compensation Policy Guide]: Annual bonus eligibility requires minimum 6 months tenure and meeting performance targets."
+    ],
+    "retrieved_documents": [
+      "Compensation Policy Guide"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Bonus requires 6 months tenure, rated Meets Expectations or above.",
+    "expected_answer": "Annual bonus eligibility requires minimum 6 months tenure and meeting performance targets.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-060",
+    "query": "According to Employment Terms Manual, what is the specific rule regarding Termination Notice?",
+    "documents": [
+      "[Employment Terms Manual]: Standard employee resignation notice is 30 calendar days."
+    ],
+    "retrieved_documents": [
+      "Employment Terms Manual"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Resignation requires 30 days notice for ICs, 60 days for managers.",
+    "expected_answer": "Standard employee resignation notice is 30 calendar days.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-061",
+    "query": "According to Travel and Expense Policy v3, what is the specific rule regarding Expense Reimbursement?",
+    "documents": [
+      "[Travel and Expense Policy v3]: Employees can claim up to $75/day for meals."
+    ],
+    "retrieved_documents": [
+      "Travel and Expense Policy v3"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Employees can claim up to $75/day for domestic meals; international requires receipts.",
+    "expected_answer": "Employees can claim up to $75/day for meals.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-062",
+    "query": "According to HR Handbook Section 4.2, what is the specific rule regarding Parental Leave?",
+    "documents": [
+      "[HR Handbook Section 4.2]: Primary caregivers receive 16 weeks of fully paid leave."
+    ],
+    "retrieved_documents": [
+      "HR Handbook Section 4.2"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Primary caregivers receive 16 weeks paid leave; secondary receive 4 weeks.",
+    "expected_answer": "Primary caregivers receive 16 weeks of fully paid leave.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-063",
+    "query": "According to InfoSec Standards 2024, what is the specific rule regarding Password Rotation?",
+    "documents": [
+      "[InfoSec Standards 2024]: Passwords must be at least 14 characters and rotated every 90 days."
+    ],
+    "retrieved_documents": [
+      "InfoSec Standards 2024"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Passwords must be 14+ characters, MFA enabled.",
+    "expected_answer": "Passwords must be at least 14 characters and rotated every 90 days.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-064",
+    "query": "What is the exact financial threshold for SLA Commitments?",
+    "documents": [
+      "[Enterprise Customer Agreement Annex B]: Threshold is $5,000.",
+      "[Finance Addendum]: Threshold is $10,000."
+    ],
+    "retrieved_documents": [
+      "Enterprise Customer Agreement Annex B",
+      "Finance Addendum"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "P1 response is 1 hour, 99.9% uptime guarantee.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "conflicting_evidence",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-065",
+    "query": "According to IT Hardware Policy 2024, what is the specific rule regarding Remote Equipment?",
+    "documents": [
+      "[IT Hardware Policy 2024]: Remote employees receive a $1,000 home office setup stipend."
+    ],
+    "retrieved_documents": [
+      "IT Hardware Policy 2024"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Remote employees receive a $1,000 setup stipend and company laptop.",
+    "expected_answer": "Remote employees receive a $1,000 home office setup stipend.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-066",
+    "query": "What are the detailed compliance steps for Data Retention under Japanese labor law?",
+    "documents": [
+      "[IT Hardware Policy]: Laptops must be encrypted with BitLocker."
+    ],
+    "retrieved_documents": [
+      "IT Hardware Policy"
+    ],
+    "document_relevance": "LOW",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Transaction logs 7 years, audit logs 3 years.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "irrelevant_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-067",
+    "query": "According to Procurement Playbook v2, what is the specific rule regarding Vendor Onboarding?",
+    "documents": [
+      "[Procurement Playbook v2]: Vendors with access to PII require SOC 2 Type II certification."
+    ],
+    "retrieved_documents": [
+      "Procurement Playbook v2"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "PII vendors require SOC 2 Type II and signed DPA.",
+    "expected_answer": "Vendors with access to PII require SOC 2 Type II certification.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-068",
+    "query": "What are all conditions and edge cases for Gift Acceptance according to Code of Conduct Section 8?",
+    "documents": [
+      "[Code of Conduct Section 8]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "Code of Conduct Section 8"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Gifts over $100 must be reported and declined or approved by HR.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-069",
+    "query": "What is our policy on Annual Bonus for employees based in Antarctica?",
+    "documents": [],
+    "retrieved_documents": [],
+    "document_relevance": "NONE",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Bonus requires 6 months tenure, rated Meets Expectations or above.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "missing_document",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-070",
+    "query": "What are all conditions and edge cases for Termination Notice according to Employment Terms Manual?",
+    "documents": [
+      "[Employment Terms Manual]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "Employment Terms Manual"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Resignation requires 30 days notice for ICs, 60 days for managers.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-071",
+    "query": "According to Travel and Expense Policy v3, what is the specific rule regarding Expense Reimbursement?",
+    "documents": [
+      "[Travel and Expense Policy v3]: Employees can claim up to $75/day for meals."
+    ],
+    "retrieved_documents": [
+      "Travel and Expense Policy v3"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Employees can claim up to $75/day for domestic meals; international requires receipts.",
+    "expected_answer": "Employees can claim up to $75/day for meals.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-072",
+    "query": "What are all conditions and edge cases for Parental Leave according to HR Handbook Section 4.2?",
+    "documents": [
+      "[HR Handbook Section 4.2]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "HR Handbook Section 4.2"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Primary caregivers receive 16 weeks paid leave; secondary receive 4 weeks.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-073",
+    "query": "According to InfoSec Standards 2024, what is the specific rule regarding Password Rotation?",
+    "documents": [
+      "[InfoSec Standards 2024]: Passwords must be at least 14 characters and rotated every 90 days."
+    ],
+    "retrieved_documents": [
+      "InfoSec Standards 2024"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Passwords must be 14+ characters, MFA enabled.",
+    "expected_answer": "Passwords must be at least 14 characters and rotated every 90 days.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-074",
+    "query": "According to Enterprise Customer Agreement Annex B, what is the specific rule regarding SLA Commitments?",
+    "documents": [
+      "[Enterprise Customer Agreement Annex B]: P1 response time SLA is 1 hour, resolution target 4 hours."
+    ],
+    "retrieved_documents": [
+      "Enterprise Customer Agreement Annex B"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "P1 response is 1 hour, 99.9% uptime guarantee.",
+    "expected_answer": "P1 response time SLA is 1 hour, resolution target 4 hours.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-075",
+    "query": "According to IT Hardware Policy 2024, what is the specific rule regarding Remote Equipment?",
+    "documents": [
+      "[IT Hardware Policy 2024]: Remote employees receive a $1,000 home office setup stipend."
+    ],
+    "retrieved_documents": [
+      "IT Hardware Policy 2024"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Remote employees receive a $1,000 setup stipend and company laptop.",
+    "expected_answer": "Remote employees receive a $1,000 home office setup stipend.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-076",
+    "query": "What is the exact financial threshold for Data Retention?",
+    "documents": [
+      "[Data Governance Manual Section 7]: Threshold is $5,000.",
+      "[Finance Addendum]: Threshold is $10,000."
+    ],
+    "retrieved_documents": [
+      "Data Governance Manual Section 7",
+      "Finance Addendum"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Transaction logs 7 years, audit logs 3 years.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "conflicting_evidence",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-077",
+    "query": "What are all conditions and edge cases for Vendor Onboarding according to Procurement Playbook v2?",
+    "documents": [
+      "[Procurement Playbook v2]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "Procurement Playbook v2"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "PII vendors require SOC 2 Type II and signed DPA.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-078",
+    "query": "According to Code of Conduct Section 8, what is the specific rule regarding Gift Acceptance?",
+    "documents": [
+      "[Code of Conduct Section 8]: Employees must not accept gifts exceeding $100 in value."
+    ],
+    "retrieved_documents": [
+      "Code of Conduct Section 8"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Gifts over $100 must be reported and declined or approved by HR.",
+    "expected_answer": "Employees must not accept gifts exceeding $100 in value.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-079",
+    "query": "What was our Annual Bonus policy version in 2017?",
+    "documents": [
+      "[Compensation Policy Guide (2024 Current Edition)]: Current rules updated in 2024."
+    ],
+    "retrieved_documents": [
+      "Compensation Policy Guide"
+    ],
+    "document_relevance": "LOW",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Bonus requires 6 months tenure, rated Meets Expectations or above.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "stale_evidence",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-080",
+    "query": "What are all conditions and edge cases for Termination Notice according to Employment Terms Manual?",
+    "documents": [
+      "[Employment Terms Manual]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "Employment Terms Manual"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Resignation requires 30 days notice for ICs, 60 days for managers.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-081",
+    "query": "What are all conditions and edge cases for Expense Reimbursement according to Travel and Expense Policy v3?",
+    "documents": [
+      "[Travel and Expense Policy v3]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "Travel and Expense Policy v3"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Employees can claim up to $75/day for domestic meals; international requires receipts.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-082",
+    "query": "What are the detailed compliance steps for Parental Leave under Japanese labor law?",
+    "documents": [
+      "[IT Hardware Policy]: Laptops must be encrypted with BitLocker."
+    ],
+    "retrieved_documents": [
+      "IT Hardware Policy"
+    ],
+    "document_relevance": "LOW",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Primary caregivers receive 16 weeks paid leave; secondary receive 4 weeks.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "irrelevant_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-083",
+    "query": "What are all conditions and edge cases for Password Rotation according to InfoSec Standards 2024?",
+    "documents": [
+      "[InfoSec Standards 2024]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "InfoSec Standards 2024"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Passwords must be 14+ characters, MFA enabled.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-084",
+    "query": "What are all conditions and edge cases for SLA Commitments according to Enterprise Customer Agreement Annex B?",
+    "documents": [
+      "[Enterprise Customer Agreement Annex B]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "Enterprise Customer Agreement Annex B"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "P1 response is 1 hour, 99.9% uptime guarantee.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-085",
+    "query": "What are all conditions and edge cases for Remote Equipment according to IT Hardware Policy 2024?",
+    "documents": [
+      "[IT Hardware Policy 2024]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "IT Hardware Policy 2024"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Remote employees receive a $1,000 setup stipend and company laptop.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-086",
+    "query": "What are all conditions and edge cases for Data Retention according to Data Governance Manual Section 7?",
+    "documents": [
+      "[Data Governance Manual Section 7]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "Data Governance Manual Section 7"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Transaction logs 7 years, audit logs 3 years.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-087",
+    "query": "What was our Vendor Onboarding policy version in 2017?",
+    "documents": [
+      "[Procurement Playbook v2 (2024 Current Edition)]: Current rules updated in 2024."
+    ],
+    "retrieved_documents": [
+      "Procurement Playbook v2"
+    ],
+    "document_relevance": "LOW",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "PII vendors require SOC 2 Type II and signed DPA.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "stale_evidence",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-088",
+    "query": "According to Code of Conduct Section 8, what is the specific rule regarding Gift Acceptance?",
+    "documents": [
+      "[Code of Conduct Section 8]: Employees must not accept gifts exceeding $100 in value."
+    ],
+    "retrieved_documents": [
+      "Code of Conduct Section 8"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Gifts over $100 must be reported and declined or approved by HR.",
+    "expected_answer": "Employees must not accept gifts exceeding $100 in value.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-089",
+    "query": "What are all conditions and edge cases for Annual Bonus according to Compensation Policy Guide?",
+    "documents": [
+      "[Compensation Policy Guide]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "Compensation Policy Guide"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Bonus requires 6 months tenure, rated Meets Expectations or above.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-090",
+    "query": "What are all conditions and edge cases for Termination Notice according to Employment Terms Manual?",
+    "documents": [
+      "[Employment Terms Manual]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "Employment Terms Manual"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Resignation requires 30 days notice for ICs, 60 days for managers.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-091",
+    "query": "What was our Expense Reimbursement policy version in 2017?",
+    "documents": [
+      "[Travel and Expense Policy v3 (2024 Current Edition)]: Current rules updated in 2024."
+    ],
+    "retrieved_documents": [
+      "Travel and Expense Policy v3"
+    ],
+    "document_relevance": "LOW",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Employees can claim up to $75/day for domestic meals; international requires receipts.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "stale_evidence",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-092",
+    "query": "What are all conditions and edge cases for Parental Leave according to HR Handbook Section 4.2?",
+    "documents": [
+      "[HR Handbook Section 4.2]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "HR Handbook Section 4.2"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Primary caregivers receive 16 weeks paid leave; secondary receive 4 weeks.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-093",
+    "query": "According to InfoSec Standards 2024, what is the specific rule regarding Password Rotation?",
+    "documents": [
+      "[InfoSec Standards 2024]: Passwords must be at least 14 characters and rotated every 90 days."
+    ],
+    "retrieved_documents": [
+      "InfoSec Standards 2024"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Passwords must be 14+ characters, MFA enabled.",
+    "expected_answer": "Passwords must be at least 14 characters and rotated every 90 days.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-094",
+    "query": "According to Enterprise Customer Agreement Annex B, what is the specific rule regarding SLA Commitments?",
+    "documents": [
+      "[Enterprise Customer Agreement Annex B]: P1 response time SLA is 1 hour, resolution target 4 hours."
+    ],
+    "retrieved_documents": [
+      "Enterprise Customer Agreement Annex B"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "P1 response is 1 hour, 99.9% uptime guarantee.",
+    "expected_answer": "P1 response time SLA is 1 hour, resolution target 4 hours.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-095",
+    "query": "According to IT Hardware Policy 2024, what is the specific rule regarding Remote Equipment?",
+    "documents": [
+      "[IT Hardware Policy 2024]: Remote employees receive a $1,000 home office setup stipend."
+    ],
+    "retrieved_documents": [
+      "IT Hardware Policy 2024"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Remote employees receive a $1,000 setup stipend and company laptop.",
+    "expected_answer": "Remote employees receive a $1,000 home office setup stipend.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-096",
+    "query": "What are all conditions and edge cases for Data Retention according to Data Governance Manual Section 7?",
+    "documents": [
+      "[Data Governance Manual Section 7]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "Data Governance Manual Section 7"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Transaction logs 7 years, audit logs 3 years.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-097",
+    "query": "What are all conditions and edge cases for Vendor Onboarding according to Procurement Playbook v2?",
+    "documents": [
+      "[Procurement Playbook v2]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "Procurement Playbook v2"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "PII vendors require SOC 2 Type II and signed DPA.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-098",
+    "query": "According to Code of Conduct Section 8, what is the specific rule regarding Gift Acceptance?",
+    "documents": [
+      "[Code of Conduct Section 8]: Employees must not accept gifts exceeding $100 in value."
+    ],
+    "retrieved_documents": [
+      "Code of Conduct Section 8"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Gifts over $100 must be reported and declined or approved by HR.",
+    "expected_answer": "Employees must not accept gifts exceeding $100 in value.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-099",
+    "query": "What was our Annual Bonus policy version in 2017?",
+    "documents": [
+      "[Compensation Policy Guide (2024 Current Edition)]: Current rules updated in 2024."
+    ],
+    "retrieved_documents": [
+      "Compensation Policy Guide"
+    ],
+    "document_relevance": "LOW",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Bonus requires 6 months tenure, rated Meets Expectations or above.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "stale_evidence",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-100",
+    "query": "According to Employment Terms Manual, what is the specific rule regarding Termination Notice?",
+    "documents": [
+      "[Employment Terms Manual]: Standard employee resignation notice is 30 calendar days."
+    ],
+    "retrieved_documents": [
+      "Employment Terms Manual"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Resignation requires 30 days notice for ICs, 60 days for managers.",
+    "expected_answer": "Standard employee resignation notice is 30 calendar days.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-101",
+    "query": "What is our policy on Expense Reimbursement for employees based in Antarctica?",
+    "documents": [],
+    "retrieved_documents": [],
+    "document_relevance": "NONE",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Employees can claim up to $75/day for domestic meals; international requires receipts.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "missing_document",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-102",
+    "query": "According to HR Handbook Section 4.2, what is the specific rule regarding Parental Leave?",
+    "documents": [
+      "[HR Handbook Section 4.2]: Primary caregivers receive 16 weeks of fully paid leave."
+    ],
+    "retrieved_documents": [
+      "HR Handbook Section 4.2"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Primary caregivers receive 16 weeks paid leave; secondary receive 4 weeks.",
+    "expected_answer": "Primary caregivers receive 16 weeks of fully paid leave.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-103",
+    "query": "According to InfoSec Standards 2024, what is the specific rule regarding Password Rotation?",
+    "documents": [
+      "[InfoSec Standards 2024]: Passwords must be at least 14 characters and rotated every 90 days."
+    ],
+    "retrieved_documents": [
+      "InfoSec Standards 2024"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Passwords must be 14+ characters, MFA enabled.",
+    "expected_answer": "Passwords must be at least 14 characters and rotated every 90 days.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-104",
+    "query": "According to Enterprise Customer Agreement Annex B, what is the specific rule regarding SLA Commitments?",
+    "documents": [
+      "[Enterprise Customer Agreement Annex B]: P1 response time SLA is 1 hour, resolution target 4 hours."
+    ],
+    "retrieved_documents": [
+      "Enterprise Customer Agreement Annex B"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "P1 response is 1 hour, 99.9% uptime guarantee.",
+    "expected_answer": "P1 response time SLA is 1 hour, resolution target 4 hours.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-105",
+    "query": "What are all conditions and edge cases for Remote Equipment according to IT Hardware Policy 2024?",
+    "documents": [
+      "[IT Hardware Policy 2024]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "IT Hardware Policy 2024"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Remote employees receive a $1,000 setup stipend and company laptop.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-106",
+    "query": "According to Data Governance Manual Section 7, what is the specific rule regarding Data Retention?",
+    "documents": [
+      "[Data Governance Manual Section 7]: Customer transaction logs must be retained for 7 years."
+    ],
+    "retrieved_documents": [
+      "Data Governance Manual Section 7"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Transaction logs 7 years, audit logs 3 years.",
+    "expected_answer": "Customer transaction logs must be retained for 7 years.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-107",
+    "query": "What was our Vendor Onboarding policy version in 2017?",
+    "documents": [
+      "[Procurement Playbook v2 (2024 Current Edition)]: Current rules updated in 2024."
+    ],
+    "retrieved_documents": [
+      "Procurement Playbook v2"
+    ],
+    "document_relevance": "LOW",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "PII vendors require SOC 2 Type II and signed DPA.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "stale_evidence",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-108",
+    "query": "According to Code of Conduct Section 8, what is the specific rule regarding Gift Acceptance?",
+    "documents": [
+      "[Code of Conduct Section 8]: Employees must not accept gifts exceeding $100 in value."
+    ],
+    "retrieved_documents": [
+      "Code of Conduct Section 8"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Gifts over $100 must be reported and declined or approved by HR.",
+    "expected_answer": "Employees must not accept gifts exceeding $100 in value.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-109",
+    "query": "What are all conditions and edge cases for Annual Bonus according to Compensation Policy Guide?",
+    "documents": [
+      "[Compensation Policy Guide]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "Compensation Policy Guide"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Bonus requires 6 months tenure, rated Meets Expectations or above.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-110",
+    "query": "According to Employment Terms Manual, what is the specific rule regarding Termination Notice?",
+    "documents": [
+      "[Employment Terms Manual]: Standard employee resignation notice is 30 calendar days."
+    ],
+    "retrieved_documents": [
+      "Employment Terms Manual"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Resignation requires 30 days notice for ICs, 60 days for managers.",
+    "expected_answer": "Standard employee resignation notice is 30 calendar days.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-111",
+    "query": "What was our Expense Reimbursement policy version in 2017?",
+    "documents": [
+      "[Travel and Expense Policy v3 (2024 Current Edition)]: Current rules updated in 2024."
+    ],
+    "retrieved_documents": [
+      "Travel and Expense Policy v3"
+    ],
+    "document_relevance": "LOW",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Employees can claim up to $75/day for domestic meals; international requires receipts.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "stale_evidence",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-112",
+    "query": "According to HR Handbook Section 4.2, what is the specific rule regarding Parental Leave?",
+    "documents": [
+      "[HR Handbook Section 4.2]: Primary caregivers receive 16 weeks of fully paid leave."
+    ],
+    "retrieved_documents": [
+      "HR Handbook Section 4.2"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Primary caregivers receive 16 weeks paid leave; secondary receive 4 weeks.",
+    "expected_answer": "Primary caregivers receive 16 weeks of fully paid leave.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-113",
+    "query": "According to InfoSec Standards 2024, what is the specific rule regarding Password Rotation?",
+    "documents": [
+      "[InfoSec Standards 2024]: Passwords must be at least 14 characters and rotated every 90 days."
+    ],
+    "retrieved_documents": [
+      "InfoSec Standards 2024"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Passwords must be 14+ characters, MFA enabled.",
+    "expected_answer": "Passwords must be at least 14 characters and rotated every 90 days.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-114",
+    "query": "According to Enterprise Customer Agreement Annex B, what is the specific rule regarding SLA Commitments?",
+    "documents": [
+      "[Enterprise Customer Agreement Annex B]: P1 response time SLA is 1 hour, resolution target 4 hours."
+    ],
+    "retrieved_documents": [
+      "Enterprise Customer Agreement Annex B"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "P1 response is 1 hour, 99.9% uptime guarantee.",
+    "expected_answer": "P1 response time SLA is 1 hour, resolution target 4 hours.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-115",
+    "query": "According to IT Hardware Policy 2024, what is the specific rule regarding Remote Equipment?",
+    "documents": [
+      "[IT Hardware Policy 2024]: Remote employees receive a $1,000 home office setup stipend."
+    ],
+    "retrieved_documents": [
+      "IT Hardware Policy 2024"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Remote employees receive a $1,000 setup stipend and company laptop.",
+    "expected_answer": "Remote employees receive a $1,000 home office setup stipend.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-116",
+    "query": "According to Data Governance Manual Section 7, what is the specific rule regarding Data Retention?",
+    "documents": [
+      "[Data Governance Manual Section 7]: Customer transaction logs must be retained for 7 years."
+    ],
+    "retrieved_documents": [
+      "Data Governance Manual Section 7"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Transaction logs 7 years, audit logs 3 years.",
+    "expected_answer": "Customer transaction logs must be retained for 7 years.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-117",
+    "query": "What is our policy on Vendor Onboarding for employees based in Antarctica?",
+    "documents": [],
+    "retrieved_documents": [],
+    "document_relevance": "NONE",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "PII vendors require SOC 2 Type II and signed DPA.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "missing_document",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-118",
+    "query": "What are the detailed compliance steps for Gift Acceptance under Japanese labor law?",
+    "documents": [
+      "[IT Hardware Policy]: Laptops must be encrypted with BitLocker."
+    ],
+    "retrieved_documents": [
+      "IT Hardware Policy"
+    ],
+    "document_relevance": "LOW",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Gifts over $100 must be reported and declined or approved by HR.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "irrelevant_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-119",
+    "query": "According to Compensation Policy Guide, what is the specific rule regarding Annual Bonus?",
+    "documents": [
+      "[Compensation Policy Guide]: Annual bonus eligibility requires minimum 6 months tenure and meeting performance targets."
+    ],
+    "retrieved_documents": [
+      "Compensation Policy Guide"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Bonus requires 6 months tenure, rated Meets Expectations or above.",
+    "expected_answer": "Annual bonus eligibility requires minimum 6 months tenure and meeting performance targets.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-120",
+    "query": "According to Employment Terms Manual, what is the specific rule regarding Termination Notice?",
+    "documents": [
+      "[Employment Terms Manual]: Standard employee resignation notice is 30 calendar days."
+    ],
+    "retrieved_documents": [
+      "Employment Terms Manual"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Resignation requires 30 days notice for ICs, 60 days for managers.",
+    "expected_answer": "Standard employee resignation notice is 30 calendar days.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-121",
+    "query": "What is our policy on Expense Reimbursement for employees based in Antarctica?",
+    "documents": [],
+    "retrieved_documents": [],
+    "document_relevance": "NONE",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Employees can claim up to $75/day for domestic meals; international requires receipts.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "missing_document",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-122",
+    "query": "According to HR Handbook Section 4.2, what is the specific rule regarding Parental Leave?",
+    "documents": [
+      "[HR Handbook Section 4.2]: Primary caregivers receive 16 weeks of fully paid leave."
+    ],
+    "retrieved_documents": [
+      "HR Handbook Section 4.2"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Primary caregivers receive 16 weeks paid leave; secondary receive 4 weeks.",
+    "expected_answer": "Primary caregivers receive 16 weeks of fully paid leave.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-123",
+    "query": "According to InfoSec Standards 2024, what is the specific rule regarding Password Rotation?",
+    "documents": [
+      "[InfoSec Standards 2024]: Passwords must be at least 14 characters and rotated every 90 days."
+    ],
+    "retrieved_documents": [
+      "InfoSec Standards 2024"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Passwords must be 14+ characters, MFA enabled.",
+    "expected_answer": "Passwords must be at least 14 characters and rotated every 90 days.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-124",
+    "query": "What are all conditions and edge cases for SLA Commitments according to Enterprise Customer Agreement Annex B?",
+    "documents": [
+      "[Enterprise Customer Agreement Annex B]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "Enterprise Customer Agreement Annex B"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "P1 response is 1 hour, 99.9% uptime guarantee.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-125",
+    "query": "According to IT Hardware Policy 2024, what is the specific rule regarding Remote Equipment?",
+    "documents": [
+      "[IT Hardware Policy 2024]: Remote employees receive a $1,000 home office setup stipend."
+    ],
+    "retrieved_documents": [
+      "IT Hardware Policy 2024"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Remote employees receive a $1,000 setup stipend and company laptop.",
+    "expected_answer": "Remote employees receive a $1,000 home office setup stipend.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-126",
+    "query": "What are all conditions and edge cases for Data Retention according to Data Governance Manual Section 7?",
+    "documents": [
+      "[Data Governance Manual Section 7]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "Data Governance Manual Section 7"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Transaction logs 7 years, audit logs 3 years.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-127",
+    "query": "What are all conditions and edge cases for Vendor Onboarding according to Procurement Playbook v2?",
+    "documents": [
+      "[Procurement Playbook v2]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "Procurement Playbook v2"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "PII vendors require SOC 2 Type II and signed DPA.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-128",
+    "query": "According to Code of Conduct Section 8, what is the specific rule regarding Gift Acceptance?",
+    "documents": [
+      "[Code of Conduct Section 8]: Employees must not accept gifts exceeding $100 in value."
+    ],
+    "retrieved_documents": [
+      "Code of Conduct Section 8"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Gifts over $100 must be reported and declined or approved by HR.",
+    "expected_answer": "Employees must not accept gifts exceeding $100 in value.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-129",
+    "query": "According to Compensation Policy Guide, what is the specific rule regarding Annual Bonus?",
+    "documents": [
+      "[Compensation Policy Guide]: Annual bonus eligibility requires minimum 6 months tenure and meeting performance targets."
+    ],
+    "retrieved_documents": [
+      "Compensation Policy Guide"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Bonus requires 6 months tenure, rated Meets Expectations or above.",
+    "expected_answer": "Annual bonus eligibility requires minimum 6 months tenure and meeting performance targets.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-130",
+    "query": "What are the detailed compliance steps for Termination Notice under Japanese labor law?",
+    "documents": [
+      "[IT Hardware Policy]: Laptops must be encrypted with BitLocker."
+    ],
+    "retrieved_documents": [
+      "IT Hardware Policy"
+    ],
+    "document_relevance": "LOW",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Resignation requires 30 days notice for ICs, 60 days for managers.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "irrelevant_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-131",
+    "query": "According to Travel and Expense Policy v3, what is the specific rule regarding Expense Reimbursement?",
+    "documents": [
+      "[Travel and Expense Policy v3]: Employees can claim up to $75/day for meals."
+    ],
+    "retrieved_documents": [
+      "Travel and Expense Policy v3"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Employees can claim up to $75/day for domestic meals; international requires receipts.",
+    "expected_answer": "Employees can claim up to $75/day for meals.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-132",
+    "query": "What are all conditions and edge cases for Parental Leave according to HR Handbook Section 4.2?",
+    "documents": [
+      "[HR Handbook Section 4.2]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "HR Handbook Section 4.2"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Primary caregivers receive 16 weeks paid leave; secondary receive 4 weeks.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-133",
+    "query": "According to InfoSec Standards 2024, what is the specific rule regarding Password Rotation?",
+    "documents": [
+      "[InfoSec Standards 2024]: Passwords must be at least 14 characters and rotated every 90 days."
+    ],
+    "retrieved_documents": [
+      "InfoSec Standards 2024"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Passwords must be 14+ characters, MFA enabled.",
+    "expected_answer": "Passwords must be at least 14 characters and rotated every 90 days.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-134",
+    "query": "What are the detailed compliance steps for SLA Commitments under Japanese labor law?",
+    "documents": [
+      "[IT Hardware Policy]: Laptops must be encrypted with BitLocker."
+    ],
+    "retrieved_documents": [
+      "IT Hardware Policy"
+    ],
+    "document_relevance": "LOW",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "P1 response is 1 hour, 99.9% uptime guarantee.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "irrelevant_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-135",
+    "query": "What was our Remote Equipment policy version in 2017?",
+    "documents": [
+      "[IT Hardware Policy 2024 (2024 Current Edition)]: Current rules updated in 2024."
+    ],
+    "retrieved_documents": [
+      "IT Hardware Policy 2024"
+    ],
+    "document_relevance": "LOW",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Remote employees receive a $1,000 setup stipend and company laptop.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "stale_evidence",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-136",
+    "query": "According to Data Governance Manual Section 7, what is the specific rule regarding Data Retention?",
+    "documents": [
+      "[Data Governance Manual Section 7]: Customer transaction logs must be retained for 7 years."
+    ],
+    "retrieved_documents": [
+      "Data Governance Manual Section 7"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Transaction logs 7 years, audit logs 3 years.",
+    "expected_answer": "Customer transaction logs must be retained for 7 years.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-137",
+    "query": "According to Procurement Playbook v2, what is the specific rule regarding Vendor Onboarding?",
+    "documents": [
+      "[Procurement Playbook v2]: Vendors with access to PII require SOC 2 Type II certification."
+    ],
+    "retrieved_documents": [
+      "Procurement Playbook v2"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "PII vendors require SOC 2 Type II and signed DPA.",
+    "expected_answer": "Vendors with access to PII require SOC 2 Type II certification.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-138",
+    "query": "According to Code of Conduct Section 8, what is the specific rule regarding Gift Acceptance?",
+    "documents": [
+      "[Code of Conduct Section 8]: Employees must not accept gifts exceeding $100 in value."
+    ],
+    "retrieved_documents": [
+      "Code of Conduct Section 8"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Gifts over $100 must be reported and declined or approved by HR.",
+    "expected_answer": "Employees must not accept gifts exceeding $100 in value.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-139",
+    "query": "According to Compensation Policy Guide, what is the specific rule regarding Annual Bonus?",
+    "documents": [
+      "[Compensation Policy Guide]: Annual bonus eligibility requires minimum 6 months tenure and meeting performance targets."
+    ],
+    "retrieved_documents": [
+      "Compensation Policy Guide"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Bonus requires 6 months tenure, rated Meets Expectations or above.",
+    "expected_answer": "Annual bonus eligibility requires minimum 6 months tenure and meeting performance targets.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-140",
+    "query": "According to Employment Terms Manual, what is the specific rule regarding Termination Notice?",
+    "documents": [
+      "[Employment Terms Manual]: Standard employee resignation notice is 30 calendar days."
+    ],
+    "retrieved_documents": [
+      "Employment Terms Manual"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Resignation requires 30 days notice for ICs, 60 days for managers.",
+    "expected_answer": "Standard employee resignation notice is 30 calendar days.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-141",
+    "query": "What are all conditions and edge cases for Expense Reimbursement according to Travel and Expense Policy v3?",
+    "documents": [
+      "[Travel and Expense Policy v3]: General guidelines apply. Specific regional exceptions are detailed in Annex C (not attached)."
+    ],
+    "retrieved_documents": [
+      "Travel and Expense Policy v3"
+    ],
+    "document_relevance": "MEDIUM",
+    "evidence_sufficiency": "PARTIALLY_SUFFICIENT",
+    "ground_truth": "Employees can claim up to $75/day for domestic meals; international requires receipts.",
+    "expected_answer": "General guidelines available; Annex C specifics missing from retrieved documents.",
+    "rag_category": "PARTIALLY_ANSWERABLE",
+    "failure_mode": "incomplete_retrieval",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-142",
+    "query": "According to HR Handbook Section 4.2, what is the specific rule regarding Parental Leave?",
+    "documents": [
+      "[HR Handbook Section 4.2]: Primary caregivers receive 16 weeks of fully paid leave."
+    ],
+    "retrieved_documents": [
+      "HR Handbook Section 4.2"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Primary caregivers receive 16 weeks paid leave; secondary receive 4 weeks.",
+    "expected_answer": "Primary caregivers receive 16 weeks of fully paid leave.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-143",
+    "query": "What was our Password Rotation policy version in 2017?",
+    "documents": [
+      "[InfoSec Standards 2024 (2024 Current Edition)]: Current rules updated in 2024."
+    ],
+    "retrieved_documents": [
+      "InfoSec Standards 2024"
+    ],
+    "document_relevance": "LOW",
+    "evidence_sufficiency": "INSUFFICIENT",
+    "ground_truth": "Passwords must be 14+ characters, MFA enabled.",
+    "expected_answer": "Cannot determine answer with confidence from available evidence.",
+    "rag_category": "INSUFFICIENT",
+    "failure_mode": "stale_evidence",
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-144",
+    "query": "According to Enterprise Customer Agreement Annex B, what is the specific rule regarding SLA Commitments?",
+    "documents": [
+      "[Enterprise Customer Agreement Annex B]: P1 response time SLA is 1 hour, resolution target 4 hours."
+    ],
+    "retrieved_documents": [
+      "Enterprise Customer Agreement Annex B"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "P1 response is 1 hour, 99.9% uptime guarantee.",
+    "expected_answer": "P1 response time SLA is 1 hour, resolution target 4 hours.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-145",
+    "query": "According to IT Hardware Policy 2024, what is the specific rule regarding Remote Equipment?",
+    "documents": [
+      "[IT Hardware Policy 2024]: Remote employees receive a $1,000 home office setup stipend."
+    ],
+    "retrieved_documents": [
+      "IT Hardware Policy 2024"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Remote employees receive a $1,000 setup stipend and company laptop.",
+    "expected_answer": "Remote employees receive a $1,000 home office setup stipend.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-146",
+    "query": "According to Data Governance Manual Section 7, what is the specific rule regarding Data Retention?",
+    "documents": [
+      "[Data Governance Manual Section 7]: Customer transaction logs must be retained for 7 years."
+    ],
+    "retrieved_documents": [
+      "Data Governance Manual Section 7"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Transaction logs 7 years, audit logs 3 years.",
+    "expected_answer": "Customer transaction logs must be retained for 7 years.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-147",
+    "query": "According to Procurement Playbook v2, what is the specific rule regarding Vendor Onboarding?",
+    "documents": [
+      "[Procurement Playbook v2]: Vendors with access to PII require SOC 2 Type II certification."
+    ],
+    "retrieved_documents": [
+      "Procurement Playbook v2"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "PII vendors require SOC 2 Type II and signed DPA.",
+    "expected_answer": "Vendors with access to PII require SOC 2 Type II certification.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-148",
+    "query": "According to Code of Conduct Section 8, what is the specific rule regarding Gift Acceptance?",
+    "documents": [
+      "[Code of Conduct Section 8]: Employees must not accept gifts exceeding $100 in value."
+    ],
+    "retrieved_documents": [
+      "Code of Conduct Section 8"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Gifts over $100 must be reported and declined or approved by HR.",
+    "expected_answer": "Employees must not accept gifts exceeding $100 in value.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-149",
+    "query": "According to Compensation Policy Guide, what is the specific rule regarding Annual Bonus?",
+    "documents": [
+      "[Compensation Policy Guide]: Annual bonus eligibility requires minimum 6 months tenure and meeting performance targets."
+    ],
+    "retrieved_documents": [
+      "Compensation Policy Guide"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Bonus requires 6 months tenure, rated Meets Expectations or above.",
+    "expected_answer": "Annual bonus eligibility requires minimum 6 months tenure and meeting performance targets.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  },
+  {
+    "case_id": "RC-150",
+    "query": "According to Employment Terms Manual, what is the specific rule regarding Termination Notice?",
+    "documents": [
+      "[Employment Terms Manual]: Standard employee resignation notice is 30 calendar days."
+    ],
+    "retrieved_documents": [
+      "Employment Terms Manual"
+    ],
+    "document_relevance": "HIGH",
+    "evidence_sufficiency": "SUFFICIENT",
+    "ground_truth": "Resignation requires 30 days notice for ICs, 60 days for managers.",
+    "expected_answer": "Standard employee resignation notice is 30 calendar days.",
+    "rag_category": "ANSWERABLE",
+    "failure_mode": null,
+    "provenance": "SYNTHETIC",
+    "generation_date": "2026-08-26",
+    "prompt_version": "v0.1",
+    "validation_method": "manual_review"
+  }
+]

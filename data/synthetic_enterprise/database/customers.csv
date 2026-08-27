@@ -1,0 +1,6 @@
+customer_id,company_name,industry,tier,account_manager_id,contract_start,contract_end,arr,churn_date,nps_score
+C001,Acme Corp,Manufacturing,ENTERPRISE,E002,2022-01-01,2025-01-01,120000,,78
+C002,Globex Inc,Technology,MID_MARKET,E002,2023-03-15,2024-03-15,45000,2024-01-10,42
+C003,Initech Solutions,Financial Services,ENTERPRISE,E002,2021-06-01,2024-06-01,250000,,86
+C004,Umbrella Ltd,Healthcare,ENTERPRISE,E002,2023-09-01,2024-09-01,95000,,68
+C005,Soylent Corp,Logistics,MID_MARKET,E002,2022-11-01,2024-11-01,65000,,81

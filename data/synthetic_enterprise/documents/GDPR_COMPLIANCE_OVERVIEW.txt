@@ -1,0 +1,3 @@
+GDPR Compliance Overview
+Data Protection Officer: dpo@company.com.
+Data Subject Access Requests (DSARs) must be fulfilled within 30 calendar days.

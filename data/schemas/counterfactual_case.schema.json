@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ControlPlaneCounterfactualCase",
+  "type": "object",
+  "required": [
+    "case_id",
+    "query",
+    "route_A",
+    "result_A",
+    "route_B",
+    "result_B",
+    "which_is_better",
+    "why",
+    "cost_A",
+    "cost_B",
+    "latency_A",
+    "latency_B",
+    "provenance"
+  ],
+  "properties": {
+    "case_id": { "type": "string" },
+    "query": { "type": "string" },
+    "route_A": { "type": "string" },
+    "result_A": { "type": "string" },
+    "route_B": { "type": "string" },
+    "result_B": { "type": "string" },
+    "which_is_better": { "type": "string", "enum": ["route_A", "route_B", "tie"] },
+    "why": { "type": "string" },
+    "cost_A": { "type": "string" },
+    "cost_B": { "type": "string" },
+    "latency_A": { "type": "string" },
+    "latency_B": { "type": "string" },
+    "provenance": { "type": "string" }
+  }
+}

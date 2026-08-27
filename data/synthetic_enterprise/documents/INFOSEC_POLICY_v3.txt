@@ -1,0 +1,4 @@
+Information Security Policy v3
+Section 3: Minimum password length is 14 characters; hardware MFA required for all production systems.
+Section 7: All data at rest must use AES-256 encryption. TLS 1.3 required in transit.
+Section 10: External penetration tests must be conducted annually.

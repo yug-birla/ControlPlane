@@ -1,0 +1,3 @@
+Engineering Hiring Plan 2024
+Targeting 24 new engineering hires across APAC and EMEA.
+Focus areas: Distributed Systems, AI Safety, Infrastructure SRE.

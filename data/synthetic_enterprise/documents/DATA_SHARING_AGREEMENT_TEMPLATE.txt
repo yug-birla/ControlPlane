@@ -1,0 +1,3 @@
+Data Sharing Agreement Template
+Governs cross-entity data exchanges under GDPR Article 46 Standard Contractual Clauses (SCCs).
+Mandates mutual data deletion upon contract termination within 30 days.

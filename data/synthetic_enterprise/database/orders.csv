@@ -1,0 +1,6 @@
+order_id,customer_id,product_id,order_date,quantity,unit_price,discount,total_value,region,sales_rep_id
+O001,C001,P001,2024-01-15,1,2499,0,2499,APAC,E002
+O002,C003,P003,2024-02-01,1,4999,500,4499,EMEA,E002
+O003,C001,P002,2024-03-10,2,999,0,1998,APAC,E002
+O004,C005,P004,2024-03-20,1,1499,100,1399,Americas,E002
+O005,C004,P003,2024-04-05,1,4999,0,4999,Americas,E002

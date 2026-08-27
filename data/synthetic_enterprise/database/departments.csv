@@ -1,0 +1,6 @@
+dept_id,dept_name,head_id,annual_budget,headcount,cost_centre
+D001,Engineering,M001,3500000,52,CC-ENG
+D002,Sales & GTM,M002,2400000,38,CC-SALES
+D003,Human Resources,M003,800000,14,CC-HR
+D004,Finance & Ops,M004,950000,12,CC-FIN
+D005,Product Management,M005,1500000,20,CC-PROD

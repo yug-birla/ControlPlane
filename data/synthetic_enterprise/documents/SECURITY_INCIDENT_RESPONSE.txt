@@ -1,0 +1,3 @@
+Security Incident Response Plan
+In the event of ransomware or active compromise: Isolate affected hosts, notify CISO within 15 minutes.
+GDPR regulatory breach notification must occur within 72 hours if personal data is involved.

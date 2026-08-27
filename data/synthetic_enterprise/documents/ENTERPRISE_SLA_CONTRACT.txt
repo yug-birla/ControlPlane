@@ -1,0 +1,3 @@
+Enterprise Support SLA Contract
+Guarantees 99.9% monthly platform uptime.
+Service credits: 5% monthly fee credit per 0.1% uptime degradation below 99.9%.

@@ -1,0 +1,3 @@
+Data Retention Manual
+Customer financial transaction records must be retained for 7 years.
+Employee HR files retained for 5 years post-termination. Disciplinary files retained for 3 years.

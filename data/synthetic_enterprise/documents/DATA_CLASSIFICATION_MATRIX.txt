@@ -1,0 +1,5 @@
+Data Classification Matrix
+Level 1: Public (marketing materials).
+Level 2: Internal (handbooks, org charts).
+Level 3: Confidential (pricing, product roadmaps).
+Level 4: Restricted (PII, passwords, financial records, health data).
