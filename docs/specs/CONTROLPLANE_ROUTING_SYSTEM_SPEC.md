@@ -689,7 +689,7 @@ $0.10 / 1M input tokens
 $0.40 / 1M output tokens
 ```
 
-on the standard paid tier. Google describes it as optimized for cost-efficient high-scale use. citeturn154093search0
+on the standard paid tier. Google describes it as optimized for cost-efficient high-scale use. citeturn154093search0
 
 This makes it a strong candidate for:
 
@@ -710,7 +710,7 @@ $0.25 / 1M input
 $2.00 / 1M output
 ```
 
-and positions it for cost-sensitive, low-latency, high-volume workloads. citeturn154093search1
+and positions it for cost-sensitive, low-latency, high-volume workloads. citeturn154093search1
 
 Strong candidate for:
 
@@ -731,7 +731,7 @@ $2 / 1M input
 $10 / 1M output
 ```
 
-and positions it as a high-capability model. citeturn154093search2
+and positions it as a high-capability model. citeturn154093search2
 
 Use only when the expected quality benefit justifies the higher cost/latency.
 
@@ -746,7 +746,7 @@ $1.25 / 1M input
 $10 / 1M output
 ```
 
-and supports reasoning, tool use and structured outputs. citeturn154093search3
+and supports reasoning, tool use and structured outputs. citeturn154093search3
 
 It should be benchmarked as another strong-model option.
 
@@ -1205,7 +1205,7 @@ SEQUENTIAL
 PARALLEL
 ```
 
-after a cheap probe. The research report notes that the second routing decision—sequential versus parallel continuation—can be a bottleneck, motivating hierarchical routing. fileciteturn0file17L33-L53
+after a cheap probe. The research report notes that the second routing decision—sequential versus parallel continuation—can be a bottleneck, motivating hierarchical routing.
 
 For ControlPlane:
 

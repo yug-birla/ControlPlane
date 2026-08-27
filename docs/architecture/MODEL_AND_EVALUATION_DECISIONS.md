@@ -15,7 +15,7 @@
 | Strong reasoning | **Grok API** | Difficult reasoning / escalation |
 | Local Qwen3 8B | **Not used currently** | Deliberately excluded because of local compute/latency trade-off |
 
-The architecture requires model/provider choice to remain an abstraction owned by ControlPlane rather than hard-coded into individual routes. ControlPlane remains responsible for routing, risk, evaluation interpretation, intervention, replanning, trust, and human escalation. fileciteturn0file8L80-L96
+The architecture requires model/provider choice to remain an abstraction owned by ControlPlane rather than hard-coded into individual routes. ControlPlane remains responsible for routing, risk, evaluation interpretation, intervention, replanning, trust, and human escalation.
 
 ### Why no Qwen3 8B?
 
@@ -147,7 +147,7 @@ PAIRWISE COMPARISON
 
 Pairwise evaluation is particularly important for ControlPlane because the router eventually needs to compare candidate model outputs.
 
-LLM-as-a-Judge research also shows that judges can have systematic biases, so judge outputs must be validated rather than treated as ground truth. citeturn0file15
+LLM-as-a-Judge research also shows that judges can have systematic biases, so judge outputs must be validated rather than treated as ground truth. citeturn0file15
 
 ---
 
@@ -384,7 +384,7 @@ Initial planning targets from the project data specification are:
 50–100 agent trajectories
 ```
 
-These are planning targets, not quotas. fileciteturn7file13L121-L178
+These are planning targets, not quotas.
 
 The overall dataset must capture:
 
@@ -404,7 +404,7 @@ query
 → latency
 ```
 
-This matches the project's data strategy rather than a simple question/answer dataset. fileciteturn7file13L8-L47
+This matches the project's data strategy rather than a simple question/answer dataset.
 
 ---
 
@@ -611,7 +611,7 @@ This evaluates whether the intervention actually improved the result rather than
 }
 ```
 
-This is aligned with the trajectory-level architecture: ControlPlane governs the complete trajectory rather than only the final response. fileciteturn0file6L10-L32
+This is aligned with the trajectory-level architecture: ControlPlane governs the complete trajectory rather than only the final response.
 
 ---
 
@@ -909,7 +909,7 @@ exact database implementation
 
 The architecture intentionally keeps these components replaceable.
 
-The runtime specification explicitly says that it defines lifecycle and decision points without selecting specific ML algorithms, model families, retrieval algorithms, risk formulas, or event-bus technologies. fileciteturn0file3L3-L9
+The runtime specification explicitly says that it defines lifecycle and decision points without selecting specific ML algorithms, model families, retrieval algorithms, risk formulas, or event-bus technologies.
 
 ---
 
@@ -924,18 +924,15 @@ Qwen3 ~1.3B
 Qwen3 4B
 Grok API
 
-
 JUDGE
 
 Prometheus 2 7B-class
-
 
 JUDGE STRATEGY
 
 Few-shot first
 → human validation
 → fine-tune only if necessary
-
 
 PUBLIC DATA
 
@@ -947,7 +944,6 @@ JudgeLM
 RAGTruth
 ARES-related RAG evaluation data
 HaluEval
-
 
 CUSTOM DATA
 

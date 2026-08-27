@@ -36,7 +36,7 @@ Core system design documents covering how the ControlPlane works end-to-end.
 
 | File | Description |
 |---|---|
-| [`PRODUCT_THESIS_UPDATED.md`](PRODUCT_THESIS_UPDATED.md) | Vision, lifecycle (Understand → Plan → Execute → Observe → Replan → Verify → Respond → Learn), query fingerprint design |
+| [`PRODUCT_THESIS_UPDATED.md`](PRODUCT_THESIS_UPDATED.md) | Vision, lifecycle (Understand → Plan → Execute → Observe → Evaluate → Decide → Replan/Self-Heal → Verify → Respond → Learn), query fingerprint design |
 | [`ControlPlane_High_Level_Architecture_OPTIMAL.md`](docs/architecture/ControlPlane_High_Level_Architecture_OPTIMAL.md) | High-level system architecture overview |
 | [`CONTROLPLANE_FINAL_ARCHITECTURE_IMPLEMENTATION_MASTER_SPEC.md`](docs/architecture/CONTROLPLANE_FINAL_ARCHITECTURE_IMPLEMENTATION_MASTER_SPEC.md) | Master implementation specification |
 | [`CONTROLPLANE_CROSS_CUTTING_SYSTEM_SPEC.md`](docs/architecture/CONTROLPLANE_CROSS_CUTTING_SYSTEM_SPEC.md) | Cross-cutting concerns: auth, logging, observability |
@@ -92,7 +92,7 @@ Everything related to the dataset workstream.
 ### `data/raw/generated/` — Bulk Generated Datasets
 | File | Records | Description |
 |---|---|---|
-| `query_profiles_large.json` | 250 | Full query profile dataset covering all taxonomy categories |
+| `query_profiles_large.json` | 270 | Full query profile dataset covering all taxonomy categories (includes the 30 representative profiles in `docs/DATA/QUERY_PROFILES.json`) |
 | `rag_cases.json` | 150 | RAG retrieval cases with sufficiency labels |
 | `intervention_cases.json` | 150 | Intervention decision cases with expected outcomes |
 | `counterfactual_cases.json` | 75 | Counterfactual route and model swap cases |
@@ -101,7 +101,7 @@ Everything related to the dataset workstream.
 ### `data/annotations/`
 | File | Records | Description |
 |---|---|---|
-| `annotation_cases.json` | 250 | Annotation cases — structure complete, **human labels PENDING** |
+| `annotation_cases.json` | 270 | Annotation cases — fully labeled with **synthetic placeholder** labels; real human/expert labels PENDING |
 
 ### `data/evaluation/` — Evaluation Splits & Intervention Query Sets
 | File | Records | Description |
@@ -110,17 +110,17 @@ Everything related to the dataset workstream.
 | `validation/query_profiles_validation.json` | 28 | Validation split |
 | `test/query_profiles_test.json` | 30 | Test split |
 | `challenge/query_profiles_challenge.json` | 77 | Challenge (held-out) split |
-| `nexaconsult_evaluation_queries.json` | ~100 | Intervention evaluation — NexaConsult enterprise context |
-| `controlplane_evaluation_queries.json` | ~100 | Intervention evaluation — ControlPlane system governance |
+| `nexaconsult_evaluation_queries.json` | 100 | Intervention evaluation — NexaConsult enterprise context |
+| `controlplane_evaluation_queries.json` | 100 | Intervention evaluation — ControlPlane system governance |
 
 ### `data/synthetic_enterprise/` — Enterprise Simulation Environment
 | Path | Contents |
 |---|---|
-| `database/` | 8 CSV tables: employees, customers, orders, products, transactions, departments, revenue, support tickets |
+| `database/` | 8 CSV tables (SaaS-style demo data): customers, departments, employees, orders, products, revenue_monthly, support_tickets, transactions — a separate, lightweight dataset not yet loaded into Postgres |
 | `documents/` | 30 enterprise policy documents (HR, infosec, travel, procurement, legal, etc.) |
 | `chat/` | 75 simulated chat history records |
-| `nexaconsult_enterprise.sql` | Full NexaConsult enterprise SQL schema and seed data |
-| `init_postgres_schema.sql` | ControlPlane Postgres schema initialisation script |
+| `nexaconsult_enterprise.sql` | NexaConsult evaluation SQL environment used by `nexaconsult_evaluation_queries.json` |
+| `init_postgres_schema.sql` | ControlPlane Postgres schema init script — implements `controlplane` + `evaluation` + the NexaConsult Global `enterprise_demo` schema (see `docs/DATA/POSTGRES_SCHEMA.md` §12) |
 
 ### `data/schemas/` — JSON Schema Definitions
 Formal JSON Schema (draft-07) files for each dataset type:
@@ -150,7 +150,7 @@ Used in `data/raw/generated/`, `docs/DATA/QUERY_PROFILES.json`, and evaluation s
   "required_capabilities": ["factual_retrieval"],
   "complexity": "low | medium | high",
   "risk": "NO_ACTION | LOW_RISK | MEDIUM_RISK | HIGH_RISK | CRITICAL",
-  "actionability": "informational | procedural | generative | decisional | agentic",
+  "actionability": "agentic | analytical | decisional | generative | informational | pending_clarification | procedural",
   "sensitivity": "NONE | POTENTIAL_PII | PII_EXPOSURE | SENSITIVE_DATA_EXPOSURE",
   "ambiguity": "low | medium | high",
   "expected_route": "...",
@@ -158,6 +158,7 @@ Used in `data/raw/generated/`, `docs/DATA/QUERY_PROFILES.json`, and evaluation s
   "provenance": "SYNTHETIC"
 }
 ```
+`actionability` and `expected_route` are free-text in the frozen v0.1 schema (no closed enum ratified yet); the values above are those observed in the generated dataset, not a formal allowed-value list. See `docs/DATA/SCHEMA.md`.
 
 ### Evaluation Query (Type 2)
 Used in `data/evaluation/nexaconsult_evaluation_queries.json` and `controlplane_evaluation_queries.json`.
@@ -171,7 +172,7 @@ Used in `data/evaluation/nexaconsult_evaluation_queries.json` and `controlplane_
     "correctness": "CORRECT | PARTIALLY_CORRECT | INCORRECT",
     "privacy": "NONE | POTENTIAL_PII | PII_EXPOSURE | SENSITIVE_DATA_EXPOSURE",
     "action_risk": "NO_ACTION | LOW_RISK | MEDIUM_RISK | HIGH_RISK | CRITICAL",
-    "intervention": "KEEP | VERIFY | REDACT | BLOCK | HUMAN_REVIEW | ASK_CLARIFICATION | CHANGE_DATA_SOURCE",
+    "intervention": "one of the 16 labels in the Intervention Taxonomy below",
     "why": "..."
   }
 }
@@ -181,17 +182,26 @@ Used in `data/evaluation/nexaconsult_evaluation_queries.json` and `controlplane_
 
 ## Intervention Taxonomy
 
+The canonical 16-label vocabulary, defined in `docs/DATA/ANNOTATION_GUIDELINES.md` and used by every dataset and Postgres table that records an intervention decision:
+
 | Label | Meaning |
 |---|---|
 | `KEEP` | Response is correct and safe — pass through |
 | `VERIFY` | Response needs verification before delivery |
 | `RETRIEVE_MORE` | Insufficient evidence — retrieve additional context |
+| `RERANK` | Re-order retrieved evidence before using it |
+| `CHANGE_MODEL` | Escalate or switch to a different model |
+| `INCREASE_COMPUTE` | Allocate more reasoning/compute to the task |
+| `DECREASE_COMPUTE` | Reduce reasoning/compute (task is simpler than routed) |
 | `CHANGE_DATA_SOURCE` | Switch to a more appropriate source |
+| `REGENERATE` | Regenerate the response from the same evidence |
+| `REPAIR` | Apply a targeted fix to part of the response |
 | `REDACT` | Strip PII or sensitive content before delivery |
-| `BLOCK` | Do not execute or return — policy violation |
-| `HUMAN_REVIEW` | Escalate to human for authorization |
 | `ASK_CLARIFICATION` | Request is too ambiguous — ask the user |
-| `REPLAN` | Agent must replan the workflow |
+| `HUMAN_REVIEW` | Escalate to human for authorization |
+| `ABSTAIN` | Decline to answer rather than guess |
+| `BLOCK` | Do not execute or return — policy violation |
+| `OTHER` | Annotation-only escape hatch when no other label fits (human annotation records only; the runtime `interventions` table uses `ABORT` instead — see `docs/DATA/POSTGRES_SCHEMA.md` §6.3) |
 
 ---
 
@@ -200,7 +210,7 @@ Used in `data/evaluation/nexaconsult_evaluation_queries.json` and `controlplane_
 | Layer | Status |
 |---|---|
 | Schema v0.1 | ✅ Frozen |
-| Query profiles (250) | ✅ Complete |
+| Query profiles (270) | ✅ Complete |
 | RAG / Intervention / Trajectory datasets | ✅ Complete |
 | Evaluation splits (train/val/test/challenge) | ✅ Complete |
 | Evaluation query sets (NexaConsult + CP) | ✅ Complete |

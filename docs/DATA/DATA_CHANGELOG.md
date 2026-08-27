@@ -1,5 +1,25 @@
 # ControlPlane Data Changelog
 
+## v0.4 — 2026-08-27 (Documentation Audit)
+
+### Corrections (accuracy)
+- `query_profiles_large.json` and `annotation_cases.json` record counts corrected from 250 to their actual count, 270, in `DATASET_REGISTRY.md` and `README.md`.
+- `annotation_cases.json` status corrected from "structure only / labels PENDING" to "fully populated with synthetic placeholder labels; human/expert labels PENDING" — the file already contains complete `SYNTHETIC`-provenance labels, not just structure.
+- `nexaconsult_evaluation_queries.json` / `controlplane_evaluation_queries.json` counts corrected from "~100" to the exact count, 100.
+- `POSTGRES_SCHEMA.md` §12–14 (Synthetic Enterprise Domain) rewritten to match the tables actually created by `init_postgres_schema.sql` (the NexaConsult Global consulting-company schema), which differ from the generic customers/products/orders tables previously documented there. Added an explicit note that `data/synthetic_enterprise/database/*.csv` is a separate, unreconciled dataset with a different (SaaS) shape.
+- `DATA_STORAGE_ARCHITECTURE.md` §5's `enterprise_demo` table list updated to match.
+
+### Completeness
+- `SCHEMA.md` rewritten: fixed pervasive literal backslash-escaping that broke every heading/field/list item; added the `taxonomy_labels` and `provenance` fields (present in the frozen JSON Schema but missing from this document); added known enum values for `complexity`, `risk`, `sensitivity`, `ambiguity`.
+- `POSTGRES_SCHEMA.md` §15 (Evaluation Database) completed with the `responses`, `judgments`, `intervention_labels`, `trajectory_labels`, and evaluation-scoped `query_profiles` tables that `DATA_STORAGE_ARCHITECTURE.md` already listed but that were never defined; added `experiment_runs` (§16.2) distinct from `benchmark_runs`.
+- `DATA_GENERATION.md` completed (previously ended mid-sentence with an unclosed code fence and stopped short of its own stated purpose).
+
+### Consistency
+- Intervention taxonomy unified to the 16-value `ANNOTATION_GUIDELINES.md` vocabulary (adding `OTHER`/`ABORT` where each was missing) across `CONTROLPLANE_DATA_WORK_INSTRUCTIONS.md` §14, `POSTGRES_SCHEMA.md` §6.3, `PRODUCT_THESIS_UPDATED.md` §18, and `README.md`.
+- Stripped ~157 leftover AI-citation artifacts (`fileciteturn...` tokens, invisible private-use-area characters) from `POSTGRES_SCHEMA.md`, `QDRANT_REDIS_DATA_CONTRACT.md`, `DATA_STORAGE_ARCHITECTURE.md`, and several `docs/architecture` and `docs/specs` files.
+- Added `docs/architecture/CONTROLPLANE_FINAL_ARCHITECTURE_IMPLEMENTATION_MASTER_SPEC.md` §64 "Terminology Alignment," declaring canonical spellings for the intervention vocabulary, top-level decision outcomes, severity scale, and model identifiers that had multiple non-identical versions across the architecture/specs doc set.
+- Flagged (not silently resolved) the mismatch between `SOURCES_AND_CAPABILITIES.md`'s canonical `required_data_sources`/`required_capabilities` values and the more granular values actually used in generated data — see `DATASET_GAPS.md`.
+
 ## v0.3 — 2026-08-27
 
 ### Documentation Reorganization

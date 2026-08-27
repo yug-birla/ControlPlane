@@ -1,4 +1,4 @@
-﻿# ControlPlane Evaluation Protocol
+# ControlPlane Evaluation Protocol
 
 ## Purpose
 

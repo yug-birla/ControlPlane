@@ -43,7 +43,7 @@ Interventions
 Final outcome
 ```
 
-This distinction is particularly important for agentic systems, where individually acceptable actions can compose into an unsafe outcome. The research reference identifies trajectory/state/lineage/permissions as the more appropriate unit of risk rather than the message alone. fileciteturn5file0L228-L236
+This distinction is particularly important for agentic systems, where individually acceptable actions can compose into an unsafe outcome. The research reference identifies trajectory/state/lineage/permissions as the more appropriate unit of risk rather than the message alone.
 
 Therefore:
 
@@ -416,7 +416,7 @@ data sensitivity
 actionability
 ```
 
-The research reference specifically highlights jurisdiction-aware policy as a useful response to changing and geographically different regulatory expectations. fileciteturn5file0L166-L214
+The research reference specifically highlights jurisdiction-aware policy as a useful response to changing and geographically different regulatory expectations.
 
 The policy engine should therefore support:
 
@@ -574,7 +574,7 @@ The shared state is the basis for runtime decisions.
 
 This should be a **first-class subsystem**, not merely logging.
 
-The research identifies trajectory/state/lineage/permissions as critical for agentic risk, and specifically recommends a trajectory store plus execution ledger tracking what the agent touched and did. fileciteturn5file0L391-L395
+The research identifies trajectory/state/lineage/permissions as critical for agentic risk, and specifically recommends a trajectory store plus execution ledger tracking what the agent touched and did.
 
 ## Trajectory Store
 
@@ -667,7 +667,7 @@ This is a research-derived addition.
 
 Instead of evaluating only static risk, maintain a lightweight **Behavioral Drift Score**.
 
-The research proposes a buildable weighted score based on signals such as tool velocity, data-source deviation, action sensitivity, conversation length, and monetary deviation. fileciteturn5file0L321-L336
+The research proposes a buildable weighted score based on signals such as tool velocity, data-source deviation, action sensitivity, conversation length, and monetary deviation.
 
 Conceptually:
 
@@ -919,7 +919,7 @@ which agent initiated the action
 which other agents participated
 ```
 
-This addresses trajectory-level failures such as **permission laundering**, where a restricted agent obtains sensitive data through another agent. The research explicitly identifies this as a multi-agent risk. fileciteturn5file0L281-L290
+This addresses trajectory-level failures such as **permission laundering**, where a restricted agent obtains sensitive data through another agent. The research explicitly identifies this as a multi-agent risk.
 
 ---
 
@@ -961,7 +961,7 @@ No single evaluator should have total authority.
 
 # 23. Layer 18 — Defense-in-Depth
 
-The research recommends multiple independent control layers rather than relying on a single checker. fileciteturn5file0L398-L407
+The research recommends multiple independent control layers rather than relying on a single checker.
 
 Conceptually:
 
@@ -1023,7 +1023,7 @@ BLOCK
 
 The exact thresholds must be configurable per use case.
 
-This aligns with the research recommendation to avoid a simple binary pass/block mechanism. fileciteturn5file0L391-L400
+This aligns with the research recommendation to avoid a simple binary pass/block mechanism.
 
 ---
 
@@ -1089,7 +1089,7 @@ HUMAN APPROVAL
 BLOCK
 ```
 
-The research identifies graceful degradation as a practical alternative to binary blocking. fileciteturn5file0L359-L369
+The research identifies graceful degradation as a practical alternative to binary blocking.
 
 This is particularly valuable for agents.
 
@@ -1159,7 +1159,7 @@ route changes
 
 before enforcement.
 
-The research explicitly identifies Shadow Mode as a strong practical mechanism. fileciteturn5file0L345-L357
+The research explicitly identifies Shadow Mode as a strong practical mechanism.
 
 Modes:
 
@@ -1343,7 +1343,7 @@ what was overridden
 why
 ```
 
-The research explicitly recommends tamper-resistant, append-only audit behavior for governance. fileciteturn5file0L110-L126
+The research explicitly recommends tamper-resistant, append-only audit behavior for governance.
 
 For the prototype, implement immutable/append-only semantics at the application level and document stronger storage hardening as a future production concern if necessary.
 
@@ -1415,7 +1415,7 @@ multiple controls
 human if required
 ```
 
-This directly addresses the research finding that checking everything thoroughly is too slow, while checking too little is too risky. fileciteturn5file0L64-L69
+This directly addresses the research finding that checking everything thoroughly is too slow, while checking too little is too risky.
 
 ---
 
@@ -1765,7 +1765,7 @@ Trajectory / permission-lineage detection
 Intervention
 ```
 
-The research recommends one concrete multi-agent demo where the unsafe outcome emerges from composition rather than a single obviously bad message. fileciteturn5file0L391-L407
+The research recommends one concrete multi-agent demo where the unsafe outcome emerges from composition rather than a single obviously bad message.
 
 ---
 
@@ -1817,7 +1817,7 @@ Advanced trajectory risk models
 Formal rollback/compensation systems
 ```
 
-The research specifically recommends leaving conformal prediction, adaptive test-time compute, and chaos engineering outside the R2 core implementation. fileciteturn5file0L381-L387
+The research specifically recommends leaving conformal prediction, adaptive test-time compute, and chaos engineering outside the R2 core implementation.
 
 ---
 

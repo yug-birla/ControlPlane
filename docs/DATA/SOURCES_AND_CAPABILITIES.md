@@ -36,3 +36,13 @@ Capabilities represent the computational, model-specific, or tool-based actions 
 | `HIGH_RELIABILITY` | Deterministic Execution | Fallback routes and compliance-heavy tasks that cannot tolerate hallucination (often routing away from LLMs entirely). |
 
 *Note: Models and tools registered in the Model Capability Registry should broadcast which of these capabilities they support, allowing the planner to dynamically orchestrate them.*
+
+---
+
+## 3. Known Reconciliation Gap
+
+The generated query-profile dataset (`data/raw/generated/query_profiles_large.json`) currently populates `required_data_sources` and `required_capabilities` with a much more granular, free-text vocabulary (e.g. `enterprise_hr_system`, `internal_policy_documents`, `analytical_reasoning`, `structured_data_query`) rather than the canonical, closed lists above. This is tracked as an open item in `DATASET_GAPS.md`; either the generated data should be remapped onto the canonical lists, or this document's lists should be extended to a two-level taxonomy (canonical category → granular value). Do not treat one as silently correcting the other without an explicit reconciliation pass.
+
+## Version
+
+v0.1 — Initial data sources and capabilities definition, derived from `PRODUCT_THESIS_UPDATED.md`.

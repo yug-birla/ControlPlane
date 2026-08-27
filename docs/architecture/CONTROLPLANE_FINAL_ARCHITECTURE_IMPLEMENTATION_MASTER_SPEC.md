@@ -195,7 +195,7 @@ These are recommended prototype quantities.
 | Trajectory store | 1 logical subsystem | N/A |
 | Execution ledger | 1 logical subsystem | N/A |
 
-The routing contract recommends one fast generation role, one strong reasoning role, one evaluator role, zero local query-intelligence models initially, one embedding model, one reranker, and one intervention/replanner interface. fileciteturn0file3L70-L92
+The routing contract recommends one fast generation role, one strong reasoning role, one evaluator role, zero local query-intelligence models initially, one embedding model, one reranker, and one intervention/replanner interface.
 
 ---
 
@@ -211,7 +211,7 @@ Qwen3 4B
 Grok API
 ```
 
-The model decision record explicitly assigns these roles as very-small, medium, and strong-reasoning respectively. fileciteturn0file7L7-L18
+The model decision record explicitly assigns these roles as very-small, medium, and strong-reasoning respectively.
 
 ## 4.1 Qwen3 ~1.3B
 
@@ -235,7 +235,7 @@ prompting
 routing
 ```
 
-**No fine-tuning initially.** fileciteturn0file7L38-L60
+**No fine-tuning initially.**
 
 ## 4.2 Qwen3 4B
 
@@ -249,7 +249,7 @@ simple coding
 non-extreme multi-step reasoning
 ```
 
-**No fine-tuning initially.** fileciteturn0file7L64-L84
+**No fine-tuning initially.**
 
 ## 4.3 Grok API
 
@@ -263,7 +263,7 @@ difficult coding/reasoning
 lower-tier model failure
 ```
 
-It is an escalation capability, not the default. fileciteturn0file7L88-L113
+It is an escalation capability, not the default.
 
 ---
 
@@ -286,7 +286,7 @@ rubric quality
 pairwise model comparison
 ```
 
-It can evaluate direct responses and compare candidate responses. fileciteturn0file7L117-L148
+It can evaluate direct responses and compare candidate responses.
 
 ## Fine-tuning decision
 
@@ -310,7 +310,7 @@ identify systematic ControlPlane-specific weakness
 only then consider specialization
 ```
 
-The current decision record explicitly states that the first fine-tuning candidate should be the evaluator, not the answer models, and only after evidence of systematic weakness. fileciteturn0file7L154-L218
+The current decision record explicitly states that the first fine-tuning candidate should be the evaluator, not the answer models, and only after evidence of systematic weakness.
 
 ---
 
@@ -338,7 +338,7 @@ structured state
 deterministic lineage
 ```
 
-and introducing one small local model only if the evaluation demonstrates a concrete gap. fileciteturn0file1L1471-L1510
+and introducing one small local model only if the evaluation demonstrates a concrete gap.
 
 ## Best later candidates
 
@@ -387,7 +387,7 @@ LLM risk
 → LLM model router
 ```
 
-The routing contract explicitly warns against this control-plane overhead and recommends one cheap query-intelligence inference feeding multiple downstream decisions. fileciteturn0file3L97-L120
+The routing contract explicitly warns against this control-plane overhead and recommends one cheap query-intelligence inference feeding multiple downstream decisions.
 
 ## Later learned model
 
@@ -412,7 +412,7 @@ latency
 memory
 ```
 
-Fine-tuning is optional initially and should occur only after enough consistent internal annotation data exists. fileciteturn0file3L260-L295
+Fine-tuning is optional initially and should occur only after enough consistent internal annotation data exists.
 
 ---
 
@@ -445,7 +445,7 @@ R2
 deep LLM/policy escalation only for ambiguous/high-impact cases
 ```
 
-The routing contract explicitly says deeper analysis should be reserved for critical actions, ambiguous requests, unknown risk classes, conflicting signals, high-impact domains, and low-confidence classification. fileciteturn0file3L298-L317
+The routing contract explicitly says deeper analysis should be reserved for critical actions, ambiguous requests, unknown risk classes, conflicting signals, high-impact domains, and low-confidence classification.
 
 ## Fine-tuning
 
@@ -520,7 +520,7 @@ cascade/escalation
 verify
 ```
 
-The routing system explicitly requires cost/latency-aware selection and warns that the router must be cheaper than the expected benefit of routing. fileciteturn0file3L32-L66
+The routing system explicitly requires cost/latency-aware selection and warns that the router must be cheaper than the expected benefit of routing.
 
 ## Research progression
 
@@ -561,7 +561,7 @@ retrieval
 → ControlPlane decision
 ```
 
-These must not be collapsed into one score. fileciteturn0file2L22-L56
+These must not be collapsed into one score.
 
 ## Retrieval pipeline
 
@@ -599,7 +599,7 @@ Current contract:
 
 > **Qdrant is the single vector database.**
 
-Do not add Chroma or Pinecone to the prototype. fileciteturn0file4L8-L31
+Do not add Chroma or Pinecone to the prototype.
 
 Use collections:
 
@@ -615,7 +615,7 @@ Optional later:
 evaluation_corpus
 ```
 
-Qdrant is an index, not the source of truth. fileciteturn0file4L36-L60
+Qdrant is an index, not the source of truth.
 
 ---
 
@@ -654,7 +654,7 @@ Research:
 - RAGAS
 - RAGTruth
 
-The RAG guide explicitly assigns RAG adequacy as a separate stage from retrieval quality and factuality. fileciteturn0file2L38-L54
+The RAG guide explicitly assigns RAG adequacy as a separate stage from retrieval quality and factuality.
 
 ---
 
@@ -699,7 +699,7 @@ The current evaluation contract freezes eight governance components:
 8. Permission / Data Lineage
 ```
 
-They are not independent policy authorities or automatically separate services. fileciteturn0file1L5-L24
+They are not independent policy authorities or automatically separate services.
 
 ## Important
 
@@ -727,7 +727,7 @@ retrieve
 change model
 ```
 
-The ControlPlane Decision Engine does. fileciteturn0file1L31-L59
+The ControlPlane Decision Engine does.
 
 ---
 
@@ -755,7 +755,7 @@ Behavioral Drift
 Bias
 ```
 
-This ordering is explicitly specified in the governance contract. fileciteturn0file1L1458-L1467
+This ordering is explicitly specified in the governance contract.
 
 ---
 
@@ -937,7 +937,7 @@ The current implementation contract explicitly requires:
 LOCAL ML MODELS REQUIRED = 0
 ```
 
-for V0. fileciteturn0file0L2222-L2248
+for V0.
 
 The initial engine should be:
 
@@ -984,7 +984,7 @@ intervention decision
 → post-intervention verification
 ```
 
-This distinction is explicitly defined in the intervention contract. fileciteturn0file0L123-L187
+This distinction is explicitly defined in the intervention contract.
 
 ---
 
@@ -1057,7 +1057,7 @@ Verify
 Measure actual effect
 ```
 
-This is the current implementation contract. fileciteturn0file0L913-L955
+This is the current implementation contract.
 
 ---
 
@@ -1105,7 +1105,7 @@ BLOCK
 ABORT
 ```
 
-The implementation contract explicitly specifies this deterministic candidate-generation pattern. fileciteturn0file0L959-L1009
+The implementation contract explicitly specifies this deterministic candidate-generation pattern.
 
 ---
 
@@ -1139,7 +1139,7 @@ ranking
 selection
 ```
 
-A high quality score must never override a forbidden action. fileciteturn0file0L1013-L1114
+A high quality score must never override a forbidden action.
 
 ---
 
@@ -1161,7 +1161,7 @@ intervention_score =
 
 Normalize features and use configurable weights.
 
-This is explicitly the required baseline, not the final research algorithm. fileciteturn0file0L1053-L1084
+This is explicitly the required baseline, not the final research algorithm.
 
 ---
 
@@ -1192,7 +1192,7 @@ V4
 adaptive intervention policy
 ```
 
-The intervention contract explicitly says not to build V2–V4 before V0 is measurable. fileciteturn0file0L2124-L2192
+The intervention contract explicitly says not to build V2–V4 before V0 is measurable.
 
 ---
 
@@ -1225,7 +1225,7 @@ trajectory features
 
 This is preferable to fine-tuning another large generative model.
 
-The intervention contract explicitly proposes these as later candidates. fileciteturn0file0L2149-L2176
+The intervention contract explicitly proposes these as later candidates.
 
 ---
 
@@ -1249,7 +1249,7 @@ latency effect
 risk effect
 ```
 
-These labels should only be used for ML after the schema and annotation quality are stable. fileciteturn0file0L2196-L2218
+These labels should only be used for ML after the schema and annotation quality are stable.
 
 ---
 
@@ -1290,8 +1290,6 @@ Plan V2
  ↓
 Execution resumes
 ```
-
-fileciteturn0file9L1171-L1205
 
 ---
 
@@ -1347,7 +1345,7 @@ human approval requirements
 state consistency
 ```
 
-These constraints are part of the canonical runtime contract. fileciteturn0file9L1159-L1167
+These constraints are part of the canonical runtime contract.
 
 ---
 
@@ -1426,7 +1424,7 @@ Do not fine-tune a planner before you have meaningful execution trajectories.
 
 # 38. Trust Engine
 
-The evaluation contract explicitly distinguishes **Response Quality** from the system's final trust engine. fileciteturn0file2L238-L253
+The evaluation contract explicitly distinguishes **Response Quality** from the system's final trust engine.
 
 Therefore:
 
@@ -1608,7 +1606,7 @@ Qdrant
 Redis
 ```
 
-The storage contract explicitly freezes these choices. fileciteturn0file6L11-L26
+The storage contract explicitly freezes these choices.
 
 ## PostgreSQL
 
@@ -1640,8 +1638,6 @@ enterprise_demo
 evaluation
 ```
 
-fileciteturn0file5L11-L23
-
 ## Qdrant
 
 Use:
@@ -1652,7 +1648,7 @@ conversation_search
 memory
 ```
 
-It is the semantic index, not source of truth. fileciteturn0file4L64-L82
+It is the semantic index, not source of truth.
 
 ## Redis
 
@@ -1726,7 +1722,7 @@ Intervention / Replanner
 New Execution Step
 ```
 
-The Event Bus is a communication mechanism; capabilities report what happened and ControlPlane decides what happens next. fileciteturn0file11L7-L35
+The Event Bus is a communication mechanism; capabilities report what happened and ControlPlane decides what happens next.
 
 Important event classes:
 
@@ -1783,8 +1779,6 @@ Execution Ledger
 = append-only consequential facts
 ```
 
-fileciteturn0file12L10-L32
-
 Record:
 
 ```text
@@ -1838,7 +1832,7 @@ claim rollback without rollback capability
 silently increase autonomy
 ```
 
-These are explicit non-negotiable recovery rules. fileciteturn0file10L20-L54
+These are explicit non-negotiable recovery rules.
 
 ---
 
@@ -1869,8 +1863,6 @@ load testing
 
 The system should remain simple enough for this workload and must not become its own bottleneck.
 
-fileciteturn0file8L5-L16
-
 ---
 
 # 50. Data Requirements
@@ -1886,8 +1878,6 @@ The data workstream explicitly targets:
 50–100 counterfactual cases
 50–100 agent trajectories
 ```
-
-fileciteturn0file17L52-L75
 
 The data must represent:
 
@@ -2054,7 +2044,7 @@ The system-level question is:
 
 > **Did ControlPlane improve the outcome sufficiently to justify its additional control overhead?**
 
-This is explicitly the system-level evaluation criterion in the governance specification. fileciteturn0file1L1720-L1747
+This is explicitly the system-level evaluation criterion in the governance specification.
 
 ---
 
@@ -2121,7 +2111,7 @@ Judge / RAG / hallucination evaluator
 
 because the project already has human-annotated evaluation data and evaluator-specific research precedent.
 
-The model decision record explicitly identifies the judge/evaluator as the most likely first specialization target. fileciteturn0file7L203-L218
+The model decision record explicitly identifies the judge/evaluator as the most likely first specialization target.
 
 ### Second candidate
 
@@ -2636,3 +2626,45 @@ But:
 > **"ControlPlane observed the AI execution, determined that the current path was insufficient, changed the path, verified the new outcome, and can show exactly why it made that decision."**
 
 This is the implementation direction that best preserves all of the current contracts without prematurely committing to sophisticated ML where deterministic mechanisms are sufficient.
+
+---
+
+# 64. Terminology Alignment
+
+The documents listed in §0 were authored independently and have accumulated multiple, non-identical vocabularies for several cross-cutting concepts (verified by full-text audit of the doc set, 2026-08-27). This section does not redesign any component; it declares which existing spelling is canonical going forward, so that new code and new documentation converge instead of adding a further variant. Where a document still uses a non-canonical form, that form is not wrong so much as pre-dating this alignment — update it opportunistically rather than in a single mass edit.
+
+## 64.1 Intervention Vocabulary
+
+**Canonical (16 values):** `KEEP, VERIFY, RETRIEVE_MORE, RERANK, CHANGE_MODEL, INCREASE_COMPUTE, DECREASE_COMPUTE, CHANGE_DATA_SOURCE, REGENERATE, REPAIR, REDACT, ASK_CLARIFICATION, HUMAN_REVIEW, ABSTAIN, BLOCK, ABORT`.
+
+This is the vocabulary defined in `docs/DATA/ANNOTATION_GUIDELINES.md`, used by `docs/DATA/POSTGRES_SCHEMA.md` §6.3 (runtime `interventions.intervention_type`) and §15.5 (`intervention_labels`), by `docs/architecture/FAILURE_AND_RECOVERY.md` §7 ("Intervention Classes"), and restated above in §25. Two documented, deliberate variants exist and are **not** errors:
+- Human-annotation records (`annotations.preferred_intervention`) additionally allow `OTHER` in place of `ABORT`, because a human annotator needs an escape hatch a fixed list can't anticipate, whereas a system-emitted decision must always resolve to one of the 16 concrete actions.
+- `docs/architecture/EVENT_MODEL.md` §15.26's "examples of intervention type" (`RETRY, REGENERATE, REROUTE, RETRIEVE, CHANGE_RETRIEVAL, CHANGE_MODEL, INCREASE_REASONING, VERIFY, REPAIR, REDACT, ASK_CLARIFICATION, ABSTAIN, ESCALATE, HUMAN_REVIEW, BLOCK, ABORT`) is illustrative payload content for the `INTERVENTION_TRIGGERED` event, not a competing formal enum — when implementing that payload, populate `intervention_type` from the canonical 16-value list above, not from that example list.
+
+Other documents that still enumerate a different intervention list (e.g. `PRODUCT_THESIS_UPDATED.md` §18, `docs/specs/CONTROLPLANE_RAG_RETRIEVAL_HALLUCINATION_AGENT_GUIDE.md` §2/§15/§22/§43) should be read as pre-dating this alignment; the canonical 16-value list above governs.
+
+## 64.2 Top-Level Decision Outcome
+
+**Canonical (8 values):** `PASS, MONITOR, INTERVENE, ESCALATE, ABSTAIN, BLOCK, REPLAN, HUMAN_REVIEW` — as defined in `docs/DATA/POSTGRES_SCHEMA.md` §6.2 (`decisions.decision`).
+
+This is the outcome of the Risk × Confidence decision described in §43 above and in `docs/architecture/ControlPlane_High_Level_Architecture_OPTIMAL.md` Layer 19. Narrower or differently-worded decision lists elsewhere (e.g. `ALLOW/MODIFY/HUMAN/BLOCK` for a single agentic tool-call authorization, or `CONTINUE/STOP` for a cascade controller) are **not** competing top-level vocabularies — they are the output of a specific, narrower sub-decision (tool authorization, cascade continuation) that ultimately feeds into one of the 8 canonical top-level decisions above. Do not treat every local decision point as needing the full 8-value enum, and do not treat the 8-value enum as replacing a narrower sub-decision's own vocabulary.
+
+## 64.3 Severity Scale
+
+**Canonical:** `S0_INFO, S1_LOW, S2_MEDIUM, S3_HIGH, S4_CRITICAL` — as defined in `docs/architecture/FAILURE_AND_RECOVERY.md` §4 (Severity Scale), which is ahead of `EVENT_MODEL.md` in the §0 source-of-truth order.
+
+`docs/architecture/EVENT_MODEL.md`'s event-envelope `severity` field (`info, notice, warning, high, critical`) is a narrower, transport-level field describing how loudly to surface a single event, not a governance judgment about a failure's impact. When an event correlates with an S0–S4 failure, use this rough correspondence: `S0_INFO → info`, `S1_LOW → notice`, `S2_MEDIUM → warning`, `S3_HIGH → high`, `S4_CRITICAL → critical`. This mapping is a convenience default, not a strict 1:1 requirement — an event's transport severity may legitimately be lower than its associated failure's governance severity while awaiting diagnosis.
+
+## 64.4 Model Identifiers
+
+**Canonical prose names:** "Qwen3 ~1.3B" (very-small role), "Qwen3 4B" (medium role), "Grok API" (strong-reasoning role) — as defined in `docs/architecture/MODEL_AND_EVALUATION_DECISIONS.md`.
+
+**Canonical machine-readable `model_key` values (for `model_registry.model_key` and dataset JSON):** `qwen3-1.3b`, `qwen3-4b`, `grok`. Use these lowercase-hyphenated forms in code, config, and generated data; reserve the prose forms (with the "~" and "API" qualifiers) for human-readable documentation and dashboards. Other casings found in the doc set (`QWEN3_4B`, `GROK`, `Qwen3 1.3B` without the tilde) predate this alignment.
+
+## 64.5 Query Fingerprint vs. Query Profile
+
+"Query Fingerprint" (`PRODUCT_THESIS_UPDATED.md` §6, `ControlPlane_High_Level_Architecture_OPTIMAL.md` Layer 2) is the product-vision name for the same artifact that the frozen, implemented data schema calls the "Query Profile" (`docs/DATA/SCHEMA.md`, `data/schemas/query_profile.schema.json`, the `query_profiles` / `query_profile` field name used throughout the runtime state and Postgres schema). They are the same concept at two different maturity levels, not two different objects: the Query Profile is the current, narrower, frozen v0.1 implementation of the longer-term Query Fingerprint vision. New work should use the field name `query_profile` and the frozen schema's field set; treat the wider Query Fingerprint dimension list as forward-looking, not yet implemented.
+
+## 64.6 What This Section Does Not Resolve
+
+This alignment intentionally does not attempt to unify every enum found in the doc set — several proliferations reflect genuinely different sub-systems operating at different layers (e.g. the Model Router's `USE_FAST_MODEL/START_CASCADE/...` action vocabulary in `docs/specs/CONTROLPLANE_ROUTING_SYSTEM_SPEC.md`, the Cascade Controller's `STOP/CONTINUE/...` outputs, and the Intervention Engine budget-field naming variants in `docs/specs/INTERVENTION_ENGINE_IMPLEMENTATION_SPEC.md`). Resolving those requires an engineering decision about whether the sub-systems themselves should be merged, not merely a naming choice, and is out of scope for a documentation pass. Treat any cross-file terminology question not covered by §64.1–§64.5 as open, and resolve it explicitly (with a note in this section) before implementing against conflicting versions.

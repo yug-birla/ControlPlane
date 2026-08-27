@@ -200,7 +200,10 @@ ASK_CLARIFICATION
 HUMAN_REVIEW
 ABSTAIN
 BLOCK
+OTHER
 ```
+
+This is the same 16-label intervention taxonomy used throughout — see `ANNOTATION_GUIDELINES.md` and §20 below.
 
 ---
 

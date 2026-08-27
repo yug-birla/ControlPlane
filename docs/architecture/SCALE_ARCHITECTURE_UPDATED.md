@@ -54,7 +54,7 @@ MCP CAPABILITY FABRIC
 = how capabilities are discovered and invoked
 ```
 
-The event bus is a communication mechanism rather than a workflow brain, and capabilities report facts without selecting their own successor route. fileciteturn1file4L824-L849
+The event bus is a communication mechanism rather than a workflow brain, and capabilities report facts without selecting their own successor route.
 
 ---
 
@@ -150,7 +150,7 @@ measured protection against overload
 
 The objective is **production-compatible interfaces, not production-level infrastructure complexity**.
 
-The supplied scale guide explicitly rejects Kafka/Kubernetes and large distributed stacks as default answers to this workload. fileciteturn1file0L12-L39 fileciteturn1file1L199-L203
+The supplied scale guide explicitly rejects Kafka/Kubernetes and large distributed stacks as default answers to this workload.
 
 ---
 
@@ -197,7 +197,7 @@ At minimum, test:
 6. downstream failure during a burst
 ```
 
-The scale guide requires measured tests at baseline, 2×, 5×, burst traffic, slow provider, provider failure, evaluator failure, and queue backlog. fileciteturn1file1L207-L222
+The scale guide requires measured tests at baseline, 2×, 5×, burst traffic, slow provider, provider failure, evaluator failure, and queue backlog.
 
 No throughput number should be stated as a capability until the corresponding load test has been run.
 
@@ -257,7 +257,7 @@ The scale architecture must therefore budget for:
 - intervention and replan decisions
 - asynchronous telemetry
 
-The Event Model explicitly allows the same event stream to feed trajectory history, ledger, metrics, dashboards, and audit systems, while keeping non-critical consumers asynchronous. fileciteturn1file4L877-L885
+The Event Model explicitly allows the same event stream to feed trajectory history, ledger, metrics, dashboards, and audit systems, while keeping non-critical consumers asynchronous.
 
 ---
 
@@ -349,7 +349,7 @@ Return or continue
 
 Workers may hold ephemeral execution context, but authoritative state must survive worker replacement.
 
-This is consistent with the architecture's requirement that critical state not live only in process memory and that ExecutionState, trajectory, ledger, plan versions, events, evaluations, and interventions remain persistent/traceable. fileciteturn2file0L131-L164
+This is consistent with the architecture's requirement that critical state not live only in process memory and that ExecutionState, trajectory, ledger, plan versions, events, evaluations, and interventions remain persistent/traceable.
 
 ### Why stateless workers matter
 
@@ -367,7 +367,7 @@ Stateless workers make it possible to scale horizontally without changing the Co
              Shared Persistent State
 ```
 
-Do not implement Kubernetes merely to express this property. Horizontal scaling is an architectural capability; the competition prototype can demonstrate it with a small containerized worker pool and clean interfaces. fileciteturn2file5L798-L818
+Do not implement Kubernetes merely to express this property. Horizontal scaling is an architectural capability; the competition prototype can demonstrate it with a small containerized worker pool and clean interfaces.
 
 ---
 
@@ -393,7 +393,7 @@ trust report
 
 The authoritative execution context should be reconstructable from shared persistent state rather than from one worker's in-process memory. Ephemeral worker memory may contain temporary computation, but loss of a worker must not silently lose the current trajectory, plan version, governance state, or recovery context.
 
-The Trajectory Store represents reconstructable execution state and workflow history, while the Execution Ledger records consequential execution facts. They are complementary rather than interchangeable. fileciteturn0file2L16-L30
+The Trajectory Store represents reconstructable execution state and workflow history, while the Execution Ledger records consequential execution facts. They are complementary rather than interchangeable.
 
 ### Persistence rule
 
@@ -444,7 +444,7 @@ VERIFICATION_FAILED
 HUMAN_REVIEW_REQUIRED
 ```
 
-The Event Model requires a distinction between event, command, and state update; an event describes reality, while the ControlPlane determines the next action. fileciteturn1file4L920-L922
+The Event Model requires a distinction between event, command, and state update; an event describes reality, while the ControlPlane determines the next action.
 
 ### Event bus is not a workflow engine
 
@@ -460,7 +460,7 @@ or:
 RETRIEVAL_INSUFFICIENT → always call SQL
 ```
 
-Those are intelligence-layer decisions. fileciteturn1file4L902-L916
+Those are intelligence-layer decisions.
 
 ### Direct calls remain valid
 
@@ -608,7 +608,7 @@ telemetry fan-out
 → learning signals
 ```
 
-This follows the event architecture's principle that non-critical consumers can process events without blocking the user path. fileciteturn1file4L877-L885
+This follows the event architecture's principle that non-critical consumers can process events without blocking the user path.
 
 Preferred separation:
 
@@ -662,7 +662,7 @@ A dashboard outage must not prevent an otherwise valid response unless a specifi
 
 The dashboard should consume persisted state and asynchronous telemetry rather than forcing every page render or aggregation query onto the request path.
 
-The scale guide explicitly prohibits placing dashboard operations on the critical path. fileciteturn2file3L533-L548
+The scale guide explicitly prohibits placing dashboard operations on the critical path.
 
 ---
 
@@ -718,7 +718,7 @@ Strong verification
 Response / human approval
 ```
 
-The architecture's research-aligned design explicitly uses fast and deep paths so stronger checking is allocated where it creates value. fileciteturn2file0L12-L32
+The architecture's research-aligned design explicitly uses fast and deep paths so stronger checking is allocated where it creates value.
 
 Exact algorithms remain replaceable.
 
@@ -808,7 +808,7 @@ latency comparison
 failure isolation
 ```
 
-The architecture explicitly requires provider-specific code not to leak into the central planner. fileciteturn2file2L271-L292
+The architecture explicitly requires provider-specific code not to leak into the central planner.
 
 ---
 
@@ -883,7 +883,7 @@ Timeout values should be derived from measured component behavior and the reques
 
 A timeout should produce a structured failure/event rather than silently hanging a worker.
 
-The architecture's failure model explicitly treats timeout as a first-class failure condition and requires bounded recovery rather than indefinite retrying. fileciteturn0file0L139-L159 fileciteturn0file0L46-L55
+The architecture's failure model explicitly treats timeout as a first-class failure condition and requires bounded recovery rather than indefinite retrying.
 
 ---
 
@@ -922,7 +922,7 @@ verify
 finish / degrade / escalate / abstain / block / abort
 ```
 
-The failure contract explicitly defines bounded, policy-aware recovery rather than unrestricted retrying. fileciteturn0file0L20-L44
+The failure contract explicitly defines bounded, policy-aware recovery rather than unrestricted retrying.
 
 Never implement:
 
@@ -972,7 +972,7 @@ Model A unavailable
 
 is a control-plane decision governed by capability, risk, cost, latency, and policy—not an automatic hard-coded route-to-route shortcut.
 
-The failure taxonomy and intervention model keep failure classification separate from recovery choice. fileciteturn0file0L59-L75
+The failure taxonomy and intervention model keep failure classification separate from recovery choice.
 
 ---
 
@@ -1035,7 +1035,7 @@ return best available answer
 abstain / escalate
 ```
 
-The product thesis explicitly includes cost and latency budgets in execution plans. fileciteturn2file6L1009-L1045
+The product thesis explicitly includes cost and latency budgets in execution plans.
 
 Do not assume that the cheapest route is always correct; cost is one decision dimension alongside trust, risk, quality, and latency.
 
@@ -1067,7 +1067,7 @@ choose bounded fallback / abstain / escalate
 
 rather than initiating an expensive recovery that cannot complete within the required SLA.
 
-The scale guide requires performance budgets to define expected latency, maximum acceptable latency, timeout, and cost expectations for core components. fileciteturn2file5L841-L864
+The scale guide requires performance budgets to define expected latency, maximum acceptable latency, timeout, and cost expectations for core components.
 
 Do not invent numeric latency targets in this document unless benchmark evidence has established them.
 
@@ -1101,7 +1101,7 @@ status
 error/failure class
 ```
 
-These fields align with the supplied agent and architecture contracts, which require traceability across route, model, retrieval, tools, evaluation, interventions, replans, latency, token usage, estimated cost, and final status. fileciteturn1file2L427-L464
+These fields align with the supplied agent and architecture contracts, which require traceability across route, model, retrieval, tools, evaluation, interventions, replans, latency, token usage, estimated cost, and final status.
 
 ### Telemetry design rule
 
@@ -1232,7 +1232,7 @@ estimated cost/request
 recovery rate
 ```
 
-The supplied scale guide explicitly requires these measurements and prohibits claiming throughput before measurement. fileciteturn2file3L456-L488
+The supplied scale guide explicitly requires these measurements and prohibits claiming throughput before measurement.
 
 Until measured, use:
 
@@ -1332,7 +1332,7 @@ trajectory governance
 trust decisions
 ```
 
-The architecture contracts explicitly require MCP to remain a standardized capability/interoperability layer and keep provider/capability-specific details behind adapters. fileciteturn2file4L625-L695
+The architecture contracts explicitly require MCP to remain a standardized capability/interoperability layer and keep provider/capability-specific details behind adapters.
 
 ### MCP is not mandatory for every internal interaction
 
@@ -1368,7 +1368,7 @@ clear failure semantics
 
 Kafka is not an architectural requirement. It should be considered only if actual workload or retention/streaming requirements demonstrate that a lighter transport is insufficient.
 
-The same principle applies to Kubernetes: do not introduce it unless measured requirements or deployment constraints justify it. fileciteturn1file0L120-L135
+The same principle applies to Kubernetes: do not introduce it unless measured requirements or deployment constraints justify it.
 
 ---
 
@@ -1433,7 +1433,7 @@ Do **not**:
 - claim throughput without load testing
 - sacrifice correctness for throughput
 
-These constraints are directly consistent with the architecture scale guide and agent instructions. fileciteturn2file3L533-L573
+These constraints are directly consistent with the architecture scale guide and agent instructions.
 
 ---
 
@@ -1454,7 +1454,7 @@ Before adding a new scale-sensitive component, answer:
 10. Does it truly need to be synchronous?
 ```
 
-These questions are part of the supplied scale guidance. fileciteturn1file0L101-L116
+These questions are part of the supplied scale guidance.
 
 ---
 
@@ -1541,7 +1541,7 @@ Implement scale architecture incrementally:
 16. optimization based on measurements
 ```
 
-Do not implement every infrastructure component simultaneously. This ordering is consistent with the supplied scale guide. fileciteturn1file0L16-L39
+Do not implement every infrastructure component simultaneously. This ordering is consistent with the supplied scale guide.
 
 ---
 

@@ -38,13 +38,13 @@ REDIS
     "What needs to be fast, temporary, cached, queued, or streamed?"
 ```
 
-This preserves the architecture's required distinction between persistent execution state, event/queue transport, trajectory/ledger storage, and caching. The scale architecture explicitly separates these infrastructure responsibilities from ControlPlane intelligence. fileciteturn1file0L61-L110
+This preserves the architecture's required distinction between persistent execution state, event/queue transport, trajectory/ledger storage, and caching. The scale architecture explicitly separates these infrastructure responsibilities from ControlPlane intelligence.
 
 ---
 
 # 2. Why This Architecture
 
-The competition assumes 10,000 interactions/week, but individual interactions can produce many internal operations. The architecture therefore needs persistent state, event transport, caching, bounded concurrency, and observability without introducing unnecessary distributed infrastructure. fileciteturn1file0L114-L151
+The competition assumes 10,000 interactions/week, but individual interactions can produce many internal operations. The architecture therefore needs persistent state, event transport, caching, bounded concurrency, and observability without introducing unnecessary distributed infrastructure.
 
 The storage design follows:
 
@@ -203,17 +203,23 @@ PostgreSQL
 |     +-- cost_latency_records
 |     +-- event_index
 |
-+-- enterprise_demo
-|     +-- customers
-|     +-- employees
-|     +-- products
-|     +-- orders
-|     +-- transactions
-|     +-- revenue
++-- enterprise_demo  (NexaConsult Global synthetic company — see POSTGRES_SCHEMA.md §12)
 |     +-- departments
+|     +-- employees
+|     +-- employee_skills
+|     +-- clients
+|     +-- projects
+|     +-- project_allocations
+|     +-- revenue
+|     +-- timesheets
+|     +-- expenses
+|     +-- invoices
 |     +-- support_tickets
+|     +-- okrs
+|     +-- performance_reviews
 |     +-- conversations
 |     +-- conversation_messages
+|     +-- service_catalog
 |
 +-- evaluation
       +-- cases
@@ -496,7 +502,7 @@ audit
 
 For tool/agent records, do not store secrets, API keys, passwords, or credentials.
 
-The architecture explicitly requires privacy/PII governance, access restrictions and trajectory-level data lineage. fileciteturn2file8L1686-L1707
+The architecture explicitly requires privacy/PII governance, access restrictions and trajectory-level data lineage.
 
 ---
 
@@ -514,7 +520,7 @@ Execution Ledger
 append-only consequential facts
 ```
 
-This separation is explicitly defined by the trajectory contract. fileciteturn1file4L10-L32
+This separation is explicitly defined by the trajectory contract.
 
 For the prototype, both can live in PostgreSQL.
 
@@ -537,8 +543,6 @@ An event describes what happened.
 A command instructs an operation.
 
 A state update changes authoritative state.
-
-fileciteturn2file6L1343-L1367
 
 The event transport may use Redis Streams.
 
@@ -594,7 +598,7 @@ services:
 
 Do not introduce Kubernetes or Kafka by default.
 
-The scale architecture explicitly favors production-compatible interfaces over production-level infrastructure complexity for this workload. fileciteturn1file0L133-L151
+The scale architecture explicitly favors production-compatible interfaces over production-level infrastructure complexity for this workload.
 
 ---
 

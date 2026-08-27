@@ -1,4 +1,4 @@
-﻿# ControlPlane Data Strategy
+# ControlPlane Data Strategy
 
 ## Purpose
 

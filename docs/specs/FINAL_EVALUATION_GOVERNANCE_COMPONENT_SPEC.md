@@ -20,9 +20,9 @@ The architecture already establishes that:
 - ControlPlane owns evaluation interpretation, intervention, replanning, trust, and human escalation.
 - The Execution Graph represents what should happen.
 - The Event Bus represents what happened or changed.
-- MCP is a capability/interoperability fabric and **must not become the brain**. fileciteturn0file7L146-L176
-- The governed object for agentic execution is the complete trajectory, not only the final response. fileciteturn0file5L10-L32
-- The runtime is deliberately algorithm-agnostic; algorithm selection belongs below these contracts. fileciteturn0file2L13-L19
+- MCP is a capability/interoperability fabric and **must not become the brain**.
+- The governed object for agentic execution is the complete trajectory, not only the final response.
+- The runtime is deliberately algorithm-agnostic; algorithm selection belongs below these contracts.
 
 This document therefore defines **what each component must do**, what data it needs, what it returns, what the first implementation should be, what should remain optional, and what the coding agent must not invent.
 
@@ -58,7 +58,7 @@ available capabilities
 
 and chooses the next action.
 
-This follows the Event Model rule that evaluators report observations while ControlPlane decides what happens next. fileciteturn0file4L9-L35
+This follows the Event Model rule that evaluators report observations while ControlPlane decides what happens next.
 
 ---
 
@@ -123,7 +123,7 @@ observations
 decision_rationale
 ```
 
-The trajectory/ledger architecture explicitly excludes private model chain-of-thought as a stored artifact. fileciteturn0file5L164-L172
+The trajectory/ledger architecture explicitly excludes private model chain-of-thought as a stored artifact.
 
 ---
 
@@ -367,7 +367,7 @@ Use:
 existing benchmark responses
 ```
 
-The project data plan already targets 200–300 human-annotated cases. fileciteturn0file11L121-L178
+The project data plan already targets 200–300 human-annotated cases.
 
 ### Fine-tuning
 
@@ -558,7 +558,7 @@ verifiable reasoning
 test-time compute
 ```
 
-The project's adaptive test-time compute research reference is also useful for understanding why reasoning quality and computation allocation can be coupled. fileciteturn0file17L33-L53
+The project's adaptive test-time compute research reference is also useful for understanding why reasoning quality and computation allocation can be coupled.
 
 ---
 
@@ -742,7 +742,7 @@ synthetic adversarial cases
 agent/tool safety trajectories
 ```
 
-The project data plan specifically requires safe/unsafe/recoverable/unrecoverable trajectories. fileciteturn0file11L75-L101
+The project data plan specifically requires safe/unsafe/recoverable/unrecoverable trajectories.
 
 ---
 
@@ -1024,7 +1024,7 @@ workflow length
 monetary/action changes
 ```
 
-The trajectory/ledger contract explicitly exists to expose these execution facts. fileciteturn0file5L64-L89
+The trajectory/ledger contract explicitly exists to expose these execution facts.
 
 ---
 
@@ -1124,7 +1124,7 @@ safe recovery
 unsafe recovery
 ```
 
-The data workstream already calls for 50–100 agent trajectories. fileciteturn0file11L151-L178
+The data workstream already calls for 50–100 agent trajectories.
 
 ---
 
@@ -1373,7 +1373,7 @@ SENSITIVE_DATA_EXPORT
 
 ## 11.5 Research basis
 
-The trajectory architecture explicitly calls for permission lineage and data-flow visibility, especially because multi-agent sequences can compose into unsafe behavior. fileciteturn0file5L93-L111
+The trajectory architecture explicitly calls for permission lineage and data-flow visibility, especially because multi-agent sequences can compose into unsafe behavior.
 
 The research reference also identifies permission laundering as a multi-agent risk.
 
@@ -1451,7 +1451,7 @@ Policy Engine
 Decision Engine
 ```
 
-The current architecture already identifies these runtime/governance contracts as first-class. fileciteturn0file2L113-L150
+The current architecture already identifies these runtime/governance contracts as first-class.
 
 ---
 
@@ -1540,7 +1540,7 @@ V4
 Continuous improvement / routing based on execution history
 ```
 
-The project data plan explicitly requires human labels, intervention labels, counterfactuals, RAG cases, and agent trajectories. fileciteturn0file11L121-L178
+The project data plan explicitly requires human labels, intervention labels, counterfactuals, RAG cases, and agent trajectories.
 
 Do not fine-tune before these datasets are stable.
 
@@ -1639,7 +1639,7 @@ DERIVED
 
 Never treat an LLM-generated label as automatically equivalent to human ground truth.
 
-At least 20% of human cases should be double-annotated under the existing data workstream. fileciteturn0file11
+At least 20% of human cases should be double-annotated under the existing data workstream.
 
 ---
 
@@ -1744,7 +1744,7 @@ The system-level question is:
 
 > **Did ControlPlane improve the outcome sufficiently to justify the additional control overhead?**
 
-The product architecture explicitly prioritizes quality, trust, safety, adaptivity, efficiency, latency, recoverability, auditability, and scalability together. fileciteturn0file7L80-L94
+The product architecture explicitly prioritizes quality, trust, safety, adaptivity, efficiency, latency, recoverability, auditability, and scalability together.
 
 ---
 
@@ -1784,7 +1784,7 @@ with stable interfaces.
 
 Scale them later if necessary.
 
-This is consistent with the scale architecture's explicit warning against unnecessary distributed-system complexity for the 10,000/week competition workload. fileciteturn0file0L5-L9
+This is consistent with the scale architecture's explicit warning against unnecessary distributed-system complexity for the 10,000/week competition workload.
 
 ---
 

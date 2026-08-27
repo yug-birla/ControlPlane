@@ -106,9 +106,9 @@ An individual step may be acceptable in isolation while the sequence becomes uns
 - a replan that materially changes the expected path
 - a final answer that appears safe even though the execution touched inappropriate resources
 
-The research basis used for the current architecture explicitly frames agentic risk as a property of **trajectory, state, lineage, permissions, and cumulative actions**, rather than only of an individual message or final response. fileciteturn2file1L255-L258
+The research basis used for the current architecture explicitly frames agentic risk as a property of **trajectory, state, lineage, permissions, and cumulative actions**, rather than only of an individual message or final response.
 
-The architecture therefore treats trajectory state as a first-class control object. The current agent operating rules explicitly require trajectory state, permission/data lineage, persistent execution state, and an append-only ledger for consequential facts. fileciteturn3file1L240-L284 fileciteturn2file5L810-L914
+The architecture therefore treats trajectory state as a first-class control object. The current agent operating rules explicitly require trajectory state, permission/data lineage, persistent execution state, and an append-only ledger for consequential facts.
 
 ### Core principle
 
@@ -211,7 +211,7 @@ Trajectory capture must respect cost, latency, retention, privacy, and execution
 
 ### 4.9 Prototype simplicity
 
-The R2 prototype needs production-compatible interfaces, not production-level infrastructure complexity. Current scale guidance explicitly discourages infrastructure added merely for appearance. fileciteturn2file10L1859-L1886
+The R2 prototype needs production-compatible interfaces, not production-level infrastructure complexity. Current scale guidance explicitly discourages infrastructure added merely for appearance.
 
 ---
 
@@ -255,7 +255,7 @@ Trajectory
 └── Final outcome
 ```
 
-The architecture already identifies the trajectory as including query, context, data accessed, permissions, models, retrieval, tools, actions, intermediate state, evaluations, interventions, and final outcome. fileciteturn0file1L12-L46
+The architecture already identifies the trajectory as including query, context, data accessed, permissions, models, retrieval, tools, actions, intermediate state, evaluations, interventions, and final outcome.
 
 ## 5.2 What is the trajectory's unit of governance?
 
@@ -370,7 +370,7 @@ human wait
 termination
 ```
 
-These capabilities are aligned with the mutable execution graph defined by the architecture. fileciteturn1file3L705-L748
+These capabilities are aligned with the mutable execution graph defined by the architecture.
 
 ## 6.4 Evidence and state
 
@@ -417,7 +417,7 @@ time spent waiting for human approval
 external call count
 ```
 
-The scale architecture requires persistent execution state and traceable histories rather than state held only in process memory. fileciteturn2file9L1575-L1607
+The scale architecture requires persistent execution state and traceable histories rather than state held only in process memory.
 
 ---
 
@@ -437,7 +437,7 @@ It should capture facts that materially affect:
 - interventions
 - execution accountability
 
-The existing architecture explicitly identifies data accessed, documents accessed, tools called, permissions used, models used, actions taken, external destinations, state changes, human approvals, and interventions as ledger material. fileciteturn1file3L1261-L1276
+The existing architecture explicitly identifies data accessed, documents accessed, tools called, permissions used, models used, actions taken, external destinations, state changes, human approvals, and interventions as ledger material.
 
 ## 7.1 Ledger entry concept
 
@@ -461,7 +461,7 @@ risk context
 correlation metadata
 ```
 
-The current runtime governance guidance requires ledger attribution to trajectory, event, time, actor/source, action/capability, authorization context, policy version, result/status, and evidence/reference. fileciteturn2file5L866-L913
+The current runtime governance guidance requires ledger attribution to trajectory, event, time, actor/source, action/capability, authorization context, policy version, result/status, and evidence/reference.
 
 ## 7.2 Consequential fact categories
 
@@ -524,7 +524,7 @@ The ledger is not a replacement for the Decision Engine, and the Trajectory Stor
 
 # 9. Identifier Model
 
-The architecture already requires request and trace identifiers at the API boundary. fileciteturn0file1L247-L272
+The architecture already requires request and trace identifiers at the API boundary.
 
 The trajectory subsystem adds a dedicated `trajectory_id`.
 
@@ -590,7 +590,7 @@ abort
 
 `plan_version` identifies the concrete version used by the trajectory.
 
-The initial plan is provisional; every material plan modification creates or references a new plan version. fileciteturn1file1L269-L304
+The initial plan is provisional; every material plan modification creates or references a new plan version.
 
 ---
 
@@ -616,7 +616,7 @@ Evaluation / Decision
 Intervention / Replan
 ```
 
-The architecture explicitly requires structured events for meaningful state transitions and discourages direct route-to-route coupling. fileciteturn1file3L1288-L1331
+The architecture explicitly requires structured events for meaningful state transitions and discourages direct route-to-route coupling.
 
 ## 10.1 Event minimum
 
@@ -735,7 +735,7 @@ event
 timestamp
 ```
 
-and requires the query to be reconstructable from recorded history. fileciteturn1file5L1189-L1232
+and requires the query to be reconstructable from recorded history.
 
 ## 12.1 Node lifecycle
 
@@ -824,11 +824,11 @@ Reason:
 - selected capability has a stronger observed profile for this task class
 ```
 
-This matches the existing architecture's explicit requirement to store decision traces rather than private chain-of-thought. fileciteturn1file5L1236-L1255
+This matches the existing architecture's explicit requirement to store decision traces rather than private chain-of-thought.
 
 ## 13.3 Provider abstraction
 
-Provider-specific fields must remain secondary to normalized ControlPlane fields. The existing architecture requires model/provider abstraction and prevents provider-specific code from leaking into the central planner. fileciteturn3file0L12-L33
+Provider-specific fields must remain secondary to normalized ControlPlane fields. The existing architecture requires model/provider abstraction and prevents provider-specific code from leaking into the central planner.
 
 ---
 
@@ -856,7 +856,7 @@ evidence adequacy / retrieval quality reference
 status
 ```
 
-The current architecture's RAG contract already calls for sources, chunks, retrieval scores, source metadata, evidence adequacy, and freshness. fileciteturn2file0L141-L169
+The current architecture's RAG contract already calls for sources, chunks, retrieval scores, source metadata, evidence adequacy, and freshness.
 
 ## 14.2 Data access record
 
@@ -909,7 +909,7 @@ which agent initiated the action
 which other agents participated
 ```
 
-This exists partly to detect **permission laundering**, where one agent indirectly obtains or exports information another agent could not access itself. fileciteturn2file0L226-L240
+This exists partly to detect **permission laundering**, where one agent indirectly obtains or exports information another agent could not access itself.
 
 ## 15.1 Permission lineage model
 
@@ -977,7 +977,7 @@ Result
 Post-action verification
 ```
 
-The current architecture explicitly requires ControlPlane authorization before an MCP/tool invocation and records the result into the ledger. fileciteturn2file0L196-L222
+The current architecture explicitly requires ControlPlane authorization before an MCP/tool invocation and records the result into the ledger.
 
 ## 16.1 Tool proposal record
 
@@ -1095,7 +1095,7 @@ BLOCK
 ABORT
 ```
 
-The current runtime guidance also allows decisions such as `CONTINUE`, `MONITOR`, `MODIFY`, `RETRIEVE`, `VERIFY`, `REPLAN`, `ESCALATE`, `HUMAN_REVIEW`, `BLOCK`, and `ABORT`. fileciteturn3file1L166-L181
+The current runtime guidance also allows decisions such as `CONTINUE`, `MONITOR`, `MODIFY`, `RETRIEVE`, `VERIFY`, `REPLAN`, `ESCALATE`, `HUMAN_REVIEW`, `BLOCK`, and `ABORT`.
 
 ## 18.1 Conceptual intervention record
 
@@ -1134,7 +1134,7 @@ whether the intervention helped
 
 Trajectory governance requires risk and confidence to evolve with execution.
 
-The architecture explicitly maintains risk/confidence state in shared execution state. fileciteturn1file1L357-L399
+The architecture explicitly maintains risk/confidence state in shared execution state.
 
 ## 19.1 Risk state is not a single immutable score
 
@@ -1154,7 +1154,7 @@ action
 reputational
 ```
 
-The product thesis already frames these as distinct dimensions rather than reducing risk to a single opaque category. fileciteturn0file3L397-L445
+The product thesis already frames these as distinct dimensions rather than reducing risk to a single opaque category.
 
 ## 19.2 Trajectory-level risk accumulation
 
@@ -1173,7 +1173,7 @@ replan frequency
 behavioral drift
 ```
 
-The architecture identifies Behavioral Drift Score as a research-derived trajectory signal comparing expected versus actual trajectory behavior. fileciteturn1file3L1335-L1351
+The architecture identifies Behavioral Drift Score as a research-derived trajectory signal comparing expected versus actual trajectory behavior.
 
 The score itself is outside this document's implementation contract; the trajectory records must simply preserve the inputs needed by the relevant future evaluator.
 
@@ -1349,7 +1349,7 @@ customer-visible interface
 financial system
 ```
 
-The architecture explicitly lists external destinations as part of the ledger/governed execution state. fileciteturn2file0L226-L240
+The architecture explicitly lists external destinations as part of the ledger/governed execution state.
 
 ---
 
@@ -1387,7 +1387,7 @@ The ledger is append-only for audit purposes.
 
 Historical consequential facts must not be silently mutated.
 
-This matches the current project guidance that ledger records are append-only and should not be silently rewritten. fileciteturn2file5L897-L913
+This matches the current project guidance that ledger records are append-only and should not be silently rewritten.
 
 ## 25.2 Trajectory Store
 
@@ -1652,7 +1652,7 @@ Did the intervention help?
 What did it cost?
 ```
 
-The current architecture defines a request timeline from query through plan, execution graph, events, replans, evaluations, interventions, final answer, and trust report. fileciteturn1file5L1259-L1353
+The current architecture defines a request timeline from query through plan, execution graph, events, replans, evaluations, interventions, final answer, and trust report.
 
 ## 29.1 Request / trajectory explorer
 
@@ -1767,7 +1767,7 @@ workflow was aborted
 
 Every meaningful completed trajectory can contribute structured data to the learning loop.
 
-The architecture explicitly expects completed executions to contribute query, profile, plan, trajectory, events, risk, interventions, outcome, feedback, cost, latency, and trust signals for future improvement. fileciteturn3file0L74-L106
+The architecture explicitly expects completed executions to contribute query, profile, plan, trajectory, events, risk, interventions, outcome, feedback, cost, latency, and trust signals for future improvement.
 
 ## 30.1 Potential analytics
 
@@ -1805,7 +1805,7 @@ The initial prototype does not need sophisticated online learning. It should pre
 
 ## 30.3 Analytics must be asynchronous where possible
 
-Dashboard aggregation, long-term analytics, offline evaluation, benchmarking, trend detection, and learning signals should remain off the user-critical path wherever possible. The scale guide explicitly separates critical execution from asynchronous observability/analytics. fileciteturn0file4L270-L313
+Dashboard aggregation, long-term analytics, offline evaluation, benchmarking, trend detection, and learning signals should remain off the user-critical path wherever possible. The scale guide explicitly separates critical execution from asynchronous observability/analytics.
 
 ---
 
@@ -1967,7 +1967,7 @@ basic reconstruction
 basic dashboard timeline
 ```
 
-The prototype should prioritize observability, state persistence, clear interfaces, and measured behavior at the stated competition scale rather than enterprise infrastructure complexity. fileciteturn2file4L614-L650
+The prototype should prioritize observability, state persistence, clear interfaces, and measured behavior at the stated competition scale rather than enterprise infrastructure complexity.
 
 ## 33.2 Prototype — explicitly not required
 
@@ -2104,7 +2104,7 @@ The Trajectory Store + Execution Ledger sits inside the existing architecture as
               Final / Human Outcome
 ```
 
-This is consistent with the established architecture, which identifies Trajectory Store and Execution Ledger as first-class state components alongside execution state and event history. fileciteturn0file1L146-L189
+This is consistent with the established architecture, which identifies Trajectory Store and Execution Ledger as first-class state components alongside execution state and event history.
 
 ---
 
@@ -2152,7 +2152,7 @@ The store and ledger do not independently advance the workflow. They record and 
 
 # 37. Performance and Scale Considerations
 
-The architecture assumes approximately 10,000 user interactions per week and recognizes that each interaction may create many internal events. The scale guide treats tens of thousands to 100,000+ internal events per week as a plausible planning range before agentic amplification, not as a measured capacity claim. fileciteturn1file0L86-L144
+The architecture assumes approximately 10,000 user interactions per week and recognizes that each interaction may create many internal events. The scale guide treats tens of thousands to 100,000+ internal events per week as a plausible planning range before agentic amplification, not as a measured capacity claim.
 
 ## 37.1 Critical path
 
@@ -2240,7 +2240,7 @@ Writing an entry to the ledger must never imply authorization to perform the cor
 
 ## 38.4 No direct capability bypass
 
-Capabilities should not be able to execute consequential actions while bypassing ControlPlane authorization. The current operating rules explicitly prohibit direct capability-to-capability bypasses that skip required intervention points. fileciteturn3file1L166-L181
+Capabilities should not be able to execute consequential actions while bypassing ControlPlane authorization. The current operating rules explicitly prohibit direct capability-to-capability bypasses that skip required intervention points.
 
 ---
 
@@ -2260,7 +2260,7 @@ TOOL_FAILURE
 RESOURCE_FAILURE
 ```
 
-The architecture explicitly requires meaningful failure classes rather than collapsing everything into generic `ERROR`. fileciteturn2file6L957-L985
+The architecture explicitly requires meaningful failure classes rather than collapsing everything into generic `ERROR`.
 
 Each failure should link to:
 
@@ -2486,13 +2486,13 @@ Historical analysis and learning must not unnecessarily block the user-critical 
 
 This document is aligned to the supplied ControlPlane architecture and research direction:
 
-- The high-level architecture defines ControlPlane as a trajectory-governance system and identifies Trajectory Store + Execution Ledger as a first-class subsystem. fileciteturn0file1L10-L46
-- The architecture distinguishes Trajectory Store from Execution Ledger and lists the records expected in each. fileciteturn1file3L798-L840
-- The runtime governance guidance defines trajectory-level governance and the append-only ledger contract. fileciteturn2file5L806-L914
-- The research reference recommends Trajectory Store + Execution Ledger as the backbone for tracking data touched, tools called, permissions used, and external destinations reached. fileciteturn2file3L510-L528
-- The scale guidance requires persistent trajectory/execution state and separates critical-path execution from asynchronous observability/analytics. fileciteturn1file0L97-L144
+- The high-level architecture defines ControlPlane as a trajectory-governance system and identifies Trajectory Store + Execution Ledger as a first-class subsystem.
+- The architecture distinguishes Trajectory Store from Execution Ledger and lists the records expected in each.
+- The runtime governance guidance defines trajectory-level governance and the append-only ledger contract.
+- The research reference recommends Trajectory Store + Execution Ledger as the backbone for tracking data touched, tools called, permissions used, and external destinations reached.
+- The scale guidance requires persistent trajectory/execution state and separates critical-path execution from asynchronous observability/analytics.
 
-This document intentionally does not infer implementation status from architecture prose. The project's authoritative current-state mechanism requires implementation status to be marked separately as `IMPLEMENTED`, `PARTIAL`, `MOCKED`, `PLANNED`, `EXPERIMENTAL`, `BLOCKED`, or `DEPRECATED`. fileciteturn3file4L791-L819
+This document intentionally does not infer implementation status from architecture prose. The project's authoritative current-state mechanism requires implementation status to be marked separately as `IMPLEMENTED`, `PARTIAL`, `MOCKED`, `PLANNED`, `EXPERIMENTAL`, `BLOCKED`, or `DEPRECATED`.
 
 ---
 

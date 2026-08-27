@@ -168,7 +168,7 @@ retrieval_score
 rerank_score
 ```
 
-The RAG capability must expose source/chunk information, retrieval scores, source metadata and evidence adequacy to ControlPlane. fileciteturn2file2L532-L547
+The RAG capability must expose source/chunk information, retrieval scores, source metadata and evidence adequacy to ControlPlane.
 
 ---
 
@@ -209,7 +209,7 @@ Payload:
 {
   "conversation_id": "conv_001",
   "message_id": "msg_023",
-  "customer_id": "cust_007",
+  "client_id": "client_007",
   "timestamp": "2026-08-26T10:30:00Z",
   "access_level": "support",
   "sensitivity": "internal",
@@ -447,7 +447,7 @@ non-critical history processing
 
 Critical decision semantics remain in ControlPlane.
 
-The Event Model explicitly states that event transport carries observations; it does not contain business policy. fileciteturn2file6L1325-L1339
+The Event Model explicitly states that event transport carries observations; it does not contain business policy.
 
 ---
 
@@ -629,7 +629,6 @@ The final rule is:
     ControlPlane   Enterprise    Evaluation
        State          Data          Data
 
-
                   RETRIEVAL INDEX
                       ↓
                     Qdrant
@@ -637,7 +636,6 @@ The final rule is:
         ┌─────────────┼─────────────┐
         ↓             ↓             ↓
       RAG          Chat Search     Memory
-
 
                    FAST LAYER
                       ↓

@@ -1,4 +1,4 @@
-﻿# ControlPlane Data Quality Policy
+# ControlPlane Data Quality Policy
 
 ## Purpose
 

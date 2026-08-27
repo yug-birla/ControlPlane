@@ -246,7 +246,7 @@ created_at TIMESTAMPTZ
 updated_at TIMESTAMPTZ
 ```
 
-The architecture requires capability metadata so the planner reasons over capabilities instead of hard-coded implementations. fileciteturn2file2L465-L483
+The architecture requires capability metadata so the planner reasons over capabilities instead of hard-coded implementations.
 
 ---
 
@@ -371,7 +371,7 @@ created_at TIMESTAMPTZ
 completed_at TIMESTAMPTZ nullable
 ```
 
-Use the current intervention taxonomy defined by the data workstream:
+Use the intervention taxonomy defined by the data workstream (`ANNOTATION_GUIDELINES.md`), extended with `ABORT` for the runtime case where no bounded recovery is possible (see `docs/architecture/FAILURE_AND_RECOVERY.md`):
 
 ```text
 KEEP
@@ -389,9 +389,10 @@ ASK_CLARIFICATION
 HUMAN_REVIEW
 ABSTAIN
 BLOCK
+ABORT
 ```
 
-fileciteturn2file7L1430-L1452
+This runtime enum uses `ABORT` (not `OTHER`) because a system-emitted decision must always resolve to a concrete action; `OTHER` is reserved for the human-annotation vocabulary (`annotations.preferred_intervention`, §15.2) where an annotator needs an escape hatch the fixed list doesn't cover.
 
 ---
 
@@ -431,7 +432,7 @@ consistency
 rag_adequacy
 ```
 
-The product thesis defines evaluation as modular with structured score/confidence/evidence/issues/recommendation output. fileciteturn2file8L1789-L1825
+The product thesis defines evaluation as modular with structured score/confidence/evidence/issues/recommendation output.
 
 ---
 
@@ -503,7 +504,7 @@ payload JSONB
 schema_version TEXT
 ```
 
-The Event Model requires events to carry structured identifiers, source, timestamps, version and normalized semantics. fileciteturn2file6L1371-L1404
+The Event Model requires events to carry structured identifiers, source, timestamps, version and normalized semantics.
 
 ---
 
@@ -589,7 +590,7 @@ Do not update old ledger records.
 
 If a correction is required, append a compensating record.
 
-The trajectory contract defines the ledger as an append-only record of consequential execution facts. fileciteturn1file4L16-L30
+The trajectory contract defines the ledger as an append-only record of consequential execution facts.
 
 ---
 
@@ -617,28 +618,76 @@ This supports cost/latency-aware intervention and routing.
 
 # 12. SYNTHETIC ENTERPRISE DOMAIN
 
-The data workstream explicitly requires a synthetic enterprise environment and forbids use of real confidential data. fileciteturn2file5L1087-L1138
+The data workstream explicitly requires a synthetic enterprise environment and forbids use of real confidential data.
 
-Recommended tables:
+The `enterprise_demo` schema implements a synthetic consulting company ("NexaConsult Global"). This is the schema actually created by `data/synthetic_enterprise/init_postgres_schema.sql`, which this section documents:
 
 ```text
-employees
-customers
-products
-orders
-transactions
-revenue
-support_tickets
 departments
+employees
+employee_skills
+clients
+projects
+project_allocations
+revenue
+timesheets
+expenses
+invoices
+support_tickets
+okrs
+performance_reviews
 conversations
 conversation_messages
+service_catalog
 ```
 
 All synthetic records should have stable IDs.
 
+> **Relationship to `data/synthetic_enterprise/database/*.csv`:** Those 8 CSV files (`customers`, `departments`, `employees`, `orders`, `products`, `revenue_monthly`, `support_tickets`, `transactions`) are a separate, simpler flat-file dataset with a different (SaaS/e-commerce) business shape and different column sets. They are **not** loaded into the `enterprise_demo` schema above and have not been reconciled with it. Do not assume the two describe the same tables — see `DATASET_GAPS.md`.
+
 ---
 
 # 13. Example Enterprise Tables
+
+## clients
+
+```text
+id UUID PK
+client_code TEXT UNIQUE
+name TEXT
+industry TEXT
+segment TEXT
+region TEXT
+country TEXT
+account_owner_id UUID FK -> employees
+annual_revenue_usd NUMERIC nullable
+relationship_start DATE nullable
+status TEXT
+created_at TIMESTAMPTZ
+```
+
+## projects
+
+```text
+id UUID PK
+project_code TEXT UNIQUE
+name TEXT
+client_id UUID FK
+department_id UUID FK nullable
+project_type TEXT
+status TEXT
+lead_employee_id UUID FK nullable
+start_date DATE
+end_date DATE nullable
+planned_end_date DATE nullable
+contract_value_usd NUMERIC nullable
+budget_usd NUMERIC nullable
+actual_spend_usd NUMERIC
+delivery_model TEXT nullable
+region TEXT nullable
+sow_reference TEXT nullable
+created_at TIMESTAMPTZ
+```
 
 ## revenue
 
@@ -646,38 +695,33 @@ All synthetic records should have stable IDs.
 id UUID PK
 period_start DATE
 period_end DATE
-department_id UUID nullable
-revenue NUMERIC
+project_id UUID FK nullable
+department_id UUID FK nullable
+client_id UUID FK nullable
+revenue_usd NUMERIC
+revenue_type TEXT
 currency TEXT
-source_version TEXT
+fx_rate NUMERIC
 created_at TIMESTAMPTZ
 ```
 
-## transactions
+## timesheets
 
 ```text
 id UUID PK
-customer_id UUID
-product_id UUID
-transaction_time TIMESTAMPTZ
-amount NUMERIC
-currency TEXT
+employee_id UUID FK
+project_id UUID FK nullable
+week_start DATE
+billable_hours NUMERIC
+non_billable_hours NUMERIC
+overtime_hours NUMERIC
 status TEXT
-department_id UUID nullable
+approved_by UUID FK nullable
+submitted_at TIMESTAMPTZ nullable
+approved_at TIMESTAMPTZ nullable
 ```
 
-## customers
-
-```text
-id UUID PK
-customer_code TEXT UNIQUE
-name TEXT
-segment TEXT
-region TEXT
-created_at TIMESTAMPTZ
-```
-
-For sensitive-demo behavior, include synthetic fields that can trigger privacy policy without containing real personal information.
+For sensitive-demo behavior, include synthetic fields that can trigger privacy policy without containing real personal information (e.g. `employees.base_salary`, `clients.annual_revenue_usd`).
 
 ---
 
@@ -687,8 +731,11 @@ For sensitive-demo behavior, include synthetic fields that can trigger privacy p
 
 ```text
 id UUID PK
-customer_id UUID nullable
-department_id UUID nullable
+client_id UUID FK nullable
+project_id UUID FK nullable
+employee_id UUID FK nullable
+channel TEXT
+subject TEXT nullable
 started_at TIMESTAMPTZ
 ended_at TIMESTAMPTZ nullable
 access_level TEXT
@@ -714,7 +761,41 @@ Qdrant may contain embeddings for semantic retrieval.
 
 # 15. Evaluation Database
 
-## cases
+This domain persists the evaluation-workstream datasets described in `docs/DATA/DATASET_REGISTRY.md`. `cases` is the shared parent row; `case_type` selects which of `responses`, `annotations`, `intervention_labels`, or `trajectory_labels` applies to a given case.
+
+## 15.0 query_profiles (evaluation-scoped)
+
+Purpose: the generated/evaluation query-profile dataset (`docs/DATA/QUERY_PROFILES.json`, `data/raw/generated/query_profiles_large.json`), kept separate from `controlplane.query_profiles` (§3.2), which holds live-request query profiles.
+
+```text
+id UUID PK
+query_id TEXT UNIQUE
+query TEXT
+intent TEXT
+domain TEXT
+knowledge_type TEXT
+required_data_sources JSONB
+required_capabilities JSONB
+complexity TEXT
+risk TEXT
+actionability TEXT
+sensitivity TEXT
+ambiguity TEXT
+expected_route TEXT
+taxonomy_labels JSONB
+provenance TEXT
+source_dataset TEXT nullable
+source_license TEXT nullable
+failure_mode TEXT nullable
+generation_date DATE nullable
+prompt_version TEXT nullable
+validation_method TEXT nullable
+created_at TIMESTAMPTZ
+```
+
+Fields and allowed values match `data/schemas/query_profile.schema.json` and `docs/DATA/SCHEMA.md`.
+
+## 15.1 cases
 
 ```text
 id UUID PK
@@ -727,12 +808,34 @@ difficulty TEXT
 created_at TIMESTAMPTZ
 ```
 
-## annotations
+`case_type` values: `QUERY_PROFILE`, `RAG`, `INTERVENTION`, `COUNTERFACTUAL`, `AGENT_TRAJECTORY`, `ANNOTATION`. `split` uses the values defined in `EVALUATION_PROTOCOL.md` (`TRAIN`, `VALIDATION`, `TEST`, `CHALLENGE`). `difficulty` uses the balance-target categories defined in `DATA_QUALITY.md`.
+
+## 15.2 responses
+
+Purpose: one row per model-generated response to a query, prior to any human or judge evaluation.
 
 ```text
 id UUID PK
 case_id UUID FK
-annotator_type TEXT
+model_id UUID nullable
+response_text TEXT
+input_tokens BIGINT nullable
+output_tokens BIGINT nullable
+latency_ms BIGINT nullable
+estimated_cost NUMERIC nullable
+provenance TEXT
+created_at TIMESTAMPTZ
+```
+
+See `DATASET_GAPS.md`: no real model responses have been generated yet; this table is currently empty in the prototype.
+
+## 15.3 annotations
+
+```text
+id UUID PK
+case_id UUID FK
+response_id UUID FK nullable
+provenance TEXT
 correctness TEXT
 grounding TEXT
 safety TEXT
@@ -741,16 +844,85 @@ reasoning TEXT
 action_risk TEXT
 preferred_intervention TEXT nullable
 why TEXT nullable
+double_annotated BOOLEAN
+adjudicated_label TEXT nullable
+agreement_rate NUMERIC nullable
 created_at TIMESTAMPTZ
 ```
 
-The current data specification defines the human labels and requires provenance for every label. fileciteturn2file5L1183-L1284
+Vocabulary from `ANNOTATION_GUIDELINES.md` v0.1. `provenance` uses the values `HUMAN | EXPERT | LLM_JUDGE | AUTOMATIC | SYNTHETIC | DERIVED` and is required on every row (see `DATA_QUALITY.md`). `preferred_intervention` uses the 16-value annotation intervention vocabulary (`ANNOTATION_GUIDELINES.md`, includes `OTHER`).
+
+## 15.4 judgments
+
+Purpose: one row per LLM-judge evaluation of a response (distinct from `annotations`, which may be human, expert, or judge-sourced; `judgments` is specifically the structured judge output described in `MODEL_AND_EVALUATION_DECISIONS.md`).
+
+```text
+id UUID PK
+case_id UUID FK
+response_id UUID FK nullable
+judge_model_id UUID nullable
+judge_version TEXT
+correctness NUMERIC nullable
+relevance NUMERIC nullable
+grounding NUMERIC nullable
+reasoning NUMERIC nullable
+safety NUMERIC nullable
+privacy NUMERIC nullable
+confidence NUMERIC nullable
+issues JSONB
+evidence_refs JSONB
+created_at TIMESTAMPTZ
+```
+
+## 15.5 intervention_labels
+
+Purpose: persists the intervention dataset described in `CONTROLPLANE_DATA_WORK_INSTRUCTIONS.md` §14 (`data/raw/generated/intervention_cases.json`).
+
+```text
+id UUID PK
+case_id UUID FK
+initial_route TEXT
+failure TEXT
+severity TEXT
+evidence TEXT
+possible_interventions JSONB
+preferred_intervention TEXT
+reason TEXT
+expected_effect TEXT nullable
+cost_effect TEXT nullable
+latency_effect TEXT nullable
+risk_effect TEXT nullable
+provenance TEXT
+created_at TIMESTAMPTZ
+```
+
+## 15.6 trajectory_labels
+
+Purpose: persists the agent trajectory dataset described in `CONTROLPLANE_DATA_WORK_INSTRUCTIONS.md` §18 (`data/raw/generated/agent_trajectories.json`).
+
+```text
+id UUID PK
+case_id UUID FK
+trajectory_type TEXT
+user_request TEXT
+plan JSONB
+steps JSONB
+final_action TEXT
+final_answer TEXT
+risk TEXT
+intervention_point INTEGER nullable
+expected_control_action TEXT
+provenance TEXT
+created_at TIMESTAMPTZ
+```
+
+`trajectory_type` uses the values `SAFE | UNSAFE | RECOVERABLE | UNRECOVERABLE | WRONG_TOOL | UNNECESSARY_TOOL | HUMAN_APPROVAL_REQUIRED`.
 
 ---
 
 # 16. Benchmark Runs
 
-## benchmark_runs
+## 16.1 benchmark_runs
 
 ```text
 id UUID PK
@@ -772,7 +944,24 @@ vs
 ControlPlane
 ```
 
-using quality, factuality, grounding, safety, recovery, cost, latency and other metrics specified by the data workstream. fileciteturn2file1L193-L225
+using quality, factuality, grounding, safety, recovery, cost, latency and other metrics specified by the data workstream.
+
+## 16.2 experiment_runs
+
+Purpose: one row per BASELINE-vs-CONTROLPLANE comparison run (`EVALUATION_PROTOCOL.md` "Comparison Experiment"), as distinct from `benchmark_runs`, which scores a single system/algorithm version against a dataset rather than comparing two systems.
+
+```text
+id UUID PK
+experiment_name TEXT
+dataset_version TEXT
+baseline_config JSONB
+controlplane_config JSONB
+started_at TIMESTAMPTZ
+completed_at TIMESTAMPTZ nullable
+metrics JSONB
+```
+
+`metrics` holds the per-metric baseline-vs-ControlPlane comparison values listed in `EVALUATION_PROTOCOL.md` (quality, factuality, grounding, safety, recovery rate, cost, latency, model calls, tool calls). Do not populate `metrics` until the experiment has actually been run (see `DATASET_GAPS.md`).
 
 ---
 
@@ -808,6 +997,11 @@ execution_ledger(trajectory_id, sequence_number)
 execution_ledger(occurred_at)
 
 execution_metrics(request_id, timestamp)
+
+cases(case_type, split)
+annotations(case_id)
+intervention_labels(case_id)
+trajectory_labels(case_id)
 ```
 
 Do not over-index before measurement.

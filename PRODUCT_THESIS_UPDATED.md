@@ -1,6 +1,6 @@
 # ControlPlane.ai — Product Thesis
 
-## 1. Product Identity
+## Product Identity
 
 **Product:** ControlPlane.ai
 
@@ -77,9 +77,6 @@ And after execution begins:
 > **“If new evidence indicates that the original execution plan is wrong or incomplete, how should the system adapt?”**
 
 The competition brief explicitly highlights different risk signatures and latency budgets across use cases, overlapping bias/hallucination/privacy risks, the absence of reliable real-time ground truth, alert fatigue, compounding risk in multi-turn/agentic workflows, evolving governance requirements, and limited visibility into foundation-model internals.
-
----
-
 
 ---
 
@@ -193,9 +190,9 @@ The system is therefore a **closed-loop AI control system**.
 
 # 4. Fundamental Product Principle
 
-## Understand → Plan → Execute → Observe → Replan → Verify → Respond → Learn
+## Understand → Plan → Execute → Observe → Evaluate → Decide → Replan / Self-Heal → Verify → Respond → Learn
 
-Every request follows this conceptual lifecycle.
+Every request follows this conceptual lifecycle. (This is the same central loop restated in §38 "Final Product Definition"; the two are one lifecycle, not two.)
 
 ### Understand
 
@@ -244,9 +241,17 @@ Continuously collect:
 - confidence
 - system events
 
-### Replan
+### Evaluate
 
-If new information changes the interpretation of the task or reveals a failure, the ControlPlane can modify the execution graph.
+Score the observed output and trajectory against quality, factuality, grounding, reasoning, safety, privacy, and risk dimensions (see §15, Evaluation Layer), producing structured findings rather than a single opaque score.
+
+### Decide
+
+Combine the evaluation findings with risk, confidence, policy, and impact to choose one of: pass, monitor, intervene, escalate to a human, or abstain/block.
+
+### Replan / Self-Heal
+
+If the decision calls for it, the ControlPlane modifies the execution graph — rerouting, retrieving further evidence, switching models, or requesting human input — and resumes execution under the new plan.
 
 ### Verify
 
@@ -312,6 +317,8 @@ The system must be able to adapt.
 # 6. Query Intelligence Layer
 
 The Query Intelligence Layer creates a **multi-dimensional Query Fingerprint**.
+
+> **Relationship to the implemented data schema:** the "Query Fingerprint" described in this section is the product-vision concept; `docs/DATA/SCHEMA.md` and `data/schemas/query_profile.schema.json` are its frozen v0.1 implementation, called the **Query Profile**. The two describe the same underlying idea, but the frozen schema's field names and allowed values (e.g. `complexity`, `risk`, `sensitivity`) are narrower than the full taxonomy sketched below — treat this section as the long-term direction, not the current implemented contract.
 
 It does not force a query into one category.
 
@@ -1073,7 +1080,7 @@ without becoming the source of truth for ControlPlane decisions.
 
 Capabilities are modular and independently replaceable.
 
-## 11.1 Data Capabilities
+## 12.1 Data Capabilities
 
 ### SQL / Structured Data
 
@@ -1393,25 +1400,23 @@ ControlPlane does not merely classify a failure.
 
 It attempts to resolve it.
 
-Available intervention classes:
+Available intervention classes (the canonical vocabulary defined in `docs/DATA/ANNOTATION_GUIDELINES.md` and used throughout the data, storage, and failure/recovery contracts):
 
 ```text
-ALLOW
-RETRY
-REGENERATE
-REROUTE
-RETRIEVE
-RETRIEVE_DIFFERENTLY
-INCREASE_REASONING
-DECREASE_REASONING
-CHANGE_MODEL
-CHANGE_DATA_SOURCE
+KEEP
 VERIFY
+RETRIEVE_MORE
+RERANK
+CHANGE_MODEL
+INCREASE_COMPUTE
+DECREASE_COMPUTE
+CHANGE_DATA_SOURCE
+REGENERATE
 REPAIR
 REDACT
-ABSTAIN
-ESCALATE
+ASK_CLARIFICATION
 HUMAN_REVIEW
+ABSTAIN
 BLOCK
 ABORT
 ```
@@ -1626,7 +1631,7 @@ The dashboard is not merely a collection of metrics.
 
 It is the **operational interface to the ControlPlane**.
 
-## 23.1 Live Control Center
+## 24.1 Live Control Center
 
 Show:
 
@@ -1640,7 +1645,7 @@ Show:
 - status
 - current intervention
 
-## 23.2 Query Explorer
+## 24.2 Query Explorer
 
 For any request:
 
@@ -1666,7 +1671,7 @@ Final Answer
 Trust Report
 ```
 
-## 23.3 Execution Graph
+## 24.3 Execution Graph
 
 Visually represent:
 
@@ -1677,7 +1682,7 @@ Visually represent:
 - replanned
 - waiting for human
 
-## 23.4 Decision Log
+## 24.4 Decision Log
 
 For every major decision:
 
@@ -1688,7 +1693,7 @@ For every major decision:
 - selected action
 - outcome
 
-## 23.5 Model / Route Analytics
+## 24.5 Model / Route Analytics
 
 Track:
 
@@ -1700,7 +1705,7 @@ Track:
 - escalation rate
 - route effectiveness
 
-## 23.6 Risk Dashboard
+## 24.6 Risk Dashboard
 
 Track:
 
