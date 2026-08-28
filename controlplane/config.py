@@ -47,6 +47,13 @@ class Settings:
     groq_model_fast: str | None = None
     groq_model_strong: str | None = None
 
+    # Gemini: comparison-only provider (never the default route -- quota is
+    # limited/non-free). Two keys supported for quota headroom; both are
+    # secrets, read from the environment only, never defaulted/logged.
+    gemini_api_key_1: str | None = None
+    gemini_api_key_2: str | None = None
+    gemini_model: str | None = None
+
     feature_flags: frozenset[str] = field(default_factory=frozenset)
 
     @staticmethod
@@ -65,6 +72,9 @@ class Settings:
             groq_model=os.environ.get("GROQ_MODEL"),
             groq_model_fast=os.environ.get("GROQ_MODEL_FAST"),
             groq_model_strong=os.environ.get("GROQ_MODEL_STRONG"),
+            gemini_api_key_1=os.environ.get("GEMINI_API_KEY_1"),
+            gemini_api_key_2=os.environ.get("GEMINI_API_KEY_2"),
+            gemini_model=os.environ.get("GEMINI_MODEL"),
             feature_flags=flags,
         )
 

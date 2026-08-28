@@ -11,7 +11,9 @@ Human-written summaries of experiments that are actually run, per the Milestone 
 | `RISK_PROFILER_RESULTS.md` | Risk severity accuracy and high-risk false-negative analysis |
 | `MODEL_BENCHMARKS.md` | Local embedding model latency (cold/warm, p50/p95/p99) and the local-vs-remote comparison |
 | `ROUTING_RESULTS.md` | Capability Router restriction/coverage results, Model Router action distribution + safety invariant (Milestone 3) |
-| `EXECUTION_GRAPH_RESULTS.md` | Sequential vs. parallel Graph Executor benchmark (Milestone 3) |
+| `EXECUTION_GRAPH_RESULTS.md` | Sequential vs. parallel Graph Executor benchmark, simulated latency (Milestone 3) |
+| `RAG_RESULTS.md` | RAG adequacy calibration, retrieval verification, the prompt-grounding fix (Milestone 4/5) |
+| `CONTROL_LOOP_RESULTS.md` | Decision/Intervention/Replan/Verification before-after + counterfactual results, real end-to-end scenario traces (Milestone 5) |
 | `RESULTS/` | Raw JSON exports, named `<experiment>_<date>.json`, one file per experiment per day (a same-day re-run overwrites that day's file — a real limitation of the current date-only naming, not yet fixed). |
 
 **Reproduce any result:**
@@ -24,5 +26,10 @@ docker compose up -d postgres
 .venv/Scripts/python -m controlplane.experiments.evaluate_capability_router
 .venv/Scripts/python -m controlplane.experiments.evaluate_model_router
 .venv/Scripts/python -m controlplane.experiments.benchmark_graph_execution
+.venv/Scripts/python -m controlplane.experiments.benchmark_real_capability_execution
+.venv/Scripts/python -m controlplane.experiments.evaluate_rag_adequacy
+.venv/Scripts/python -m controlplane.experiments.evaluate_control_loop_before_after
+# Requires live keys, otherwise NOT_MEASURED:
+GEMINI_API_KEY_1=... .venv/Scripts/python -m controlplane.experiments.compare_groq_vs_gemini
 ```
 Each run's `code_commit` (git SHA) and `hardware` are recorded in `experiment_runs`, so a result can always be traced back to the exact code and machine it came from.

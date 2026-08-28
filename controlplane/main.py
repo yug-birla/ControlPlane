@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from controlplane.api.health import router as health_router
 from controlplane.api.routes import router as requests_router
 from controlplane.config import get_settings
+from controlplane.dashboard.router import router as dashboard_router
 from controlplane.errors import ControlPlaneError, InternalError
 from controlplane.logging_config import configure_logging, get_logger
 
@@ -16,9 +17,10 @@ settings = get_settings()
 configure_logging(settings.log_level)
 logger = get_logger("controlplane.main")
 
-app = FastAPI(title="ControlPlane.ai", version="0.1.0")
+app = FastAPI(title="ControlPlane.ai", version="0.3.0")
 app.include_router(health_router)
 app.include_router(requests_router)
+app.include_router(dashboard_router)
 
 
 def _error_response(error: ControlPlaneError) -> JSONResponse:

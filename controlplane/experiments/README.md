@@ -6,7 +6,7 @@
 
 - `tracking.py`: `record_experiment`/`record_run`/`record_evaluation`/`record_benchmark` — the only way experiment data reaches `experiments`/`experiment_runs`/`evaluation_results`/`model_benchmarks`.
 - `metrics.py`: dependency-free classification metrics (accuracy, per-class P/R/F1, confusion matrix, multi-label micro/macro F1, false-negative rate) — no scikit-learn.
-- `evaluate_query_profiler.py`, `evaluate_risk_profiler.py`, `benchmark_local_model.py`, `compare_local_vs_remote.py`, `evaluate_capability_router.py`, `evaluate_model_router.py`, `benchmark_graph_execution.py`: runnable scripts (`python -m controlplane.experiments.<name>`) that produce the numbers in `docs/EVALUATION/`.
+- `evaluate_query_profiler.py`, `evaluate_risk_profiler.py`, `benchmark_local_model.py`, `compare_local_vs_remote.py`, `evaluate_capability_router.py`, `evaluate_model_router.py`, `benchmark_graph_execution.py`, `benchmark_real_capability_execution.py`, `evaluate_rag_adequacy.py`, `compare_groq_vs_gemini.py`, `evaluate_control_loop_before_after.py`: runnable scripts (`python -m controlplane.experiments.<name>`) that produce the numbers in `docs/EVALUATION/`.
 
 ## Dependencies
 

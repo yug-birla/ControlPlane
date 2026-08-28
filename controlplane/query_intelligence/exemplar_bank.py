@@ -24,7 +24,15 @@ from pathlib import Path
 
 import numpy as np
 
+from controlplane.models.embedding_cache import cached_embed_batch
+
 _TRAIN_PATH = Path(__file__).resolve().parents[2] / "data/evaluation/train/query_profiles_train.json"
+_CACHE_PATH = Path(__file__).resolve().parents[2] / "data/cache/exemplar_embeddings.npz"
+"""Committed to the repository -- see docs/PROJECT_STATE/BLOCKERS.md B9.
+Deleting this file is safe (it will be recomputed), but then this
+process's embeddings depend on whatever sentence-transformers/torch
+version is currently installed, reintroducing B9's cross-session drift
+until the file is regenerated and re-committed."""
 
 DATASET_ID = "query_profiles_train"
 DATASET_VERSION = "v0.1"  # docs/DATA/DATA_CHANGELOG.md schema v0.1 freeze
@@ -52,14 +60,25 @@ def _load_records() -> list[dict]:
 
 @lru_cache(maxsize=1)
 def load_exemplars() -> list[Exemplar]:
-    """Cached: embeddings are computed once per process, not per request."""
-    from controlplane.models.local_hf_provider import LocalHFEmbeddingProvider
+    """Cached in-process (``lru_cache``) *and* on disk (``_CACHE_PATH``,
+    see ``embedding_cache.py`` / BLOCKERS.md B9) -- embeddings are
+    computed once, ever, per (model revision, exact query text) and then
+    reused byte-for-byte regardless of which library version a later
+    session has installed."""
+    from controlplane.models.local_hf_provider import MODEL_REVISION, LocalHFEmbeddingProvider
 
     records = _load_records()
-    provider = LocalHFEmbeddingProvider()
-    results = provider.embed_batch(texts=[r["query"] for r in records])
+    texts = [r["query"] for r in records]
+
+    def _compute(texts: list[str]) -> np.ndarray:
+        provider = LocalHFEmbeddingProvider()
+        results = provider.embed_batch(texts=texts)
+        return np.array([r.embedding for r in results], dtype=np.float32)
+
+    embeddings = cached_embed_batch(_CACHE_PATH, MODEL_REVISION, texts, _compute)
+
     exemplars = []
-    for record, result in zip(records, results):
+    for record, embedding in zip(records, embeddings):
         exemplars.append(
             Exemplar(
                 query_id=record["query_id"],
@@ -71,7 +90,7 @@ def load_exemplars() -> list[Exemplar]:
                 actionability=record["actionability"],
                 taxonomy_labels=tuple(record["taxonomy_labels"]),
                 required_data_sources=tuple(record["required_data_sources"]),
-                embedding=np.array(result.embedding, dtype=np.float32),
+                embedding=embedding,
             )
         )
     return exemplars

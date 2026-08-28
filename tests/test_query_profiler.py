@@ -49,6 +49,33 @@ def test_complexity_scales_with_word_count():
     assert long_query.complexity == Complexity.HIGH
 
 
+def test_action_keyword_as_a_topic_reference_is_not_agentic_regression():
+    """PERMANENT REGRESSION TEST (found during Milestone 5's mandatory
+    architecture audit -- the "semantic actionability false-positive"
+    named explicitly in that milestone's known-issues list). "Refund" as
+    a noun modifying "policy"/"document" ("the refund policy document")
+    is a topic reference, not a command -- must not classify as an
+    agentic action request. Root cause was a weak algorithm (keyword
+    presence can't distinguish verb vs. noun usage), fixed with a
+    syntactic-position check in controlplane/query_intelligence/rules.py,
+    not by adding more exception keywords."""
+    fp = RuleBasedQueryProfiler().profile(
+        "What was our Q4 revenue and according to the refund policy document what are cancellation terms?"
+    )
+    assert fp.actionability == Actionability.INFORMATIONAL
+    assert fp.intent != Intent.ACTION_REQUEST
+
+    fp2 = RuleBasedQueryProfiler().profile("What is the refund policy for cancelled subscriptions?")
+    assert fp2.actionability == Actionability.INFORMATIONAL
+
+
+def test_action_keyword_as_a_real_command_still_triggers_agentic():
+    # The fix above must not blunt real agentic detection.
+    fp = RuleBasedQueryProfiler().profile("Please process the refund for customer 123 immediately, execute it now.")
+    assert fp.actionability == Actionability.AGENTIC
+    assert fp.intent == Intent.ACTION_REQUEST
+
+
 def test_every_rule_based_field_has_an_explanation_or_deterministic_default():
     fp = RuleBasedQueryProfiler().profile("What was our Q4 revenue?")
     # Rules baseline must be explainable (bootstrap SS8) -- every non-list

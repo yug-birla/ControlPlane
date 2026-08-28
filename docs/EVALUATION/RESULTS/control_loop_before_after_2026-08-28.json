@@ -1,0 +1,124 @@
+{
+  "experiment_id": "exp_02fb5610-5df7-4c8a-8b48-79b0845f2c22",
+  "metrics": {
+    "sample_count": 5,
+    "scenarios_where_controlplane_intervened": "3/5",
+    "scenarios_improved_over_baseline": "2/5",
+    "scenarios_with_safety_correct_abstention": "1/5",
+    "unnecessary_intervention_rate": "0/5",
+    "avg_extra_latency_ms_per_request": 150.0,
+    "results": [
+      {
+        "scenario_id": "rag_recovery",
+        "query": "What is the meal reimbursement limit according to the travel policy?",
+        "model_calls": 2,
+        "extra_model_calls_vs_baseline": 1,
+        "extra_latency_ms_estimate": 250,
+        "baseline_answer": "The weather forecast predicts rain tomorrow across the region.",
+        "baseline_score": {
+          "grounding": "UNSUPPORTED",
+          "confidence": "MEDIUM"
+        },
+        "controlplane_answer": "Meal reimbursement is up to $75/day domestic, $100/day international, per the travel policy.",
+        "controlplane_score": {
+          "grounding": "SUPPORTED",
+          "confidence": "HIGH"
+        },
+        "decision_action": "CONTINUE",
+        "verification_status": "VERIFIED",
+        "improved_over_baseline": true,
+        "safety_correct_abstention": false,
+        "unnecessary_intervention": false
+      },
+      {
+        "scenario_id": "rag_exhausted",
+        "query": "What is the meal reimbursement limit according to the travel policy?",
+        "model_calls": 2,
+        "extra_model_calls_vs_baseline": 1,
+        "extra_latency_ms_estimate": 250,
+        "baseline_answer": "The weather forecast predicts rain tomorrow across the region.",
+        "baseline_score": {
+          "grounding": "UNSUPPORTED",
+          "confidence": "MEDIUM"
+        },
+        "controlplane_answer": null,
+        "controlplane_score": {
+          "grounding": "NONE (abstained/clarification)",
+          "confidence": "NONE"
+        },
+        "decision_action": "ASK_CLARIFICATION",
+        "verification_status": "NOT_VERIFIED",
+        "improved_over_baseline": false,
+        "safety_correct_abstention": true,
+        "unnecessary_intervention": false
+      },
+      {
+        "scenario_id": "model_escalation",
+        "query": "What is the capital of France?",
+        "model_calls": 2,
+        "extra_model_calls_vs_baseline": 1,
+        "extra_latency_ms_estimate": 250,
+        "baseline_answer": "I'm not sure, it's unclear to me.",
+        "baseline_score": {
+          "grounding": "NOT_APPLICABLE",
+          "confidence": "LOW"
+        },
+        "controlplane_answer": "The capital of France is Paris, a well-established fact.",
+        "controlplane_score": {
+          "grounding": "NOT_APPLICABLE",
+          "confidence": "MEDIUM"
+        },
+        "decision_action": "CONTINUE",
+        "verification_status": "VERIFIED",
+        "improved_over_baseline": true,
+        "safety_correct_abstention": false,
+        "unnecessary_intervention": false
+      },
+      {
+        "scenario_id": "clean_no_intervention_needed",
+        "query": "What is the capital of Japan?",
+        "model_calls": 1,
+        "extra_model_calls_vs_baseline": 0,
+        "extra_latency_ms_estimate": 0,
+        "baseline_answer": "The capital of Japan is Tokyo, a well-established fact.",
+        "baseline_score": {
+          "grounding": "NOT_APPLICABLE",
+          "confidence": "MEDIUM"
+        },
+        "controlplane_answer": "The capital of Japan is Tokyo, a well-established fact.",
+        "controlplane_score": {
+          "grounding": "NOT_APPLICABLE",
+          "confidence": "MEDIUM"
+        },
+        "decision_action": "CONTINUE",
+        "verification_status": "VERIFIED",
+        "improved_over_baseline": false,
+        "safety_correct_abstention": false,
+        "unnecessary_intervention": false
+      },
+      {
+        "scenario_id": "clean_rag_already_grounded",
+        "query": "What is our refund policy for cancelled subscriptions?",
+        "model_calls": 1,
+        "extra_model_calls_vs_baseline": 0,
+        "extra_latency_ms_estimate": 0,
+        "baseline_answer": "Digital subscription plans cancelled within 30 days are eligible for a pro-rated refund.",
+        "baseline_score": {
+          "grounding": "SUPPORTED",
+          "confidence": "HIGH"
+        },
+        "controlplane_answer": "Digital subscription plans cancelled within 30 days are eligible for a pro-rated refund.",
+        "controlplane_score": {
+          "grounding": "SUPPORTED",
+          "confidence": "HIGH"
+        },
+        "decision_action": "VERIFY",
+        "verification_status": "VERIFIED",
+        "improved_over_baseline": false,
+        "safety_correct_abstention": false,
+        "unnecessary_intervention": false
+      }
+    ],
+    "note": "Scripted model responses, not live-model statistics at scale (see module docstring). Measures whether the control-loop mechanism changes outcomes on constructed inputs, not aggregate live-model quality improvement -- that would need a real, larger model-comparison budget (NOT_MEASURED)."
+  }
+}

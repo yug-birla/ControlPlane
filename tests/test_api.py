@@ -53,12 +53,14 @@ def test_missing_query_field_is_a_structured_validation_error():
 
 
 def test_response_contains_no_unimplemented_intelligence_fields():
-    # "risk"/"confidence" moved from forbidden to expected in Milestone 2 --
-    # the Risk Profiler and Query Profiler are now real, not fabricated.
-    # Trust Engine, Evaluation, and Evidence retrieval still don't exist.
+    # "risk"/"confidence" moved from forbidden to expected in Milestone 2;
+    # "evaluation" moved from forbidden to expected in Milestone 4 -- the
+    # Evaluation layer is now real (though several of its evaluators are
+    # explicitly NOT_IMPLEMENTED, not fabricated). Trust Engine still
+    # doesn't exist.
     resp = client.post("/v1/requests", json={"query": "hello"})
     body = resp.json()
-    for forbidden in ("trust", "evaluation", "evidence"):
+    for forbidden in ("trust",):
         assert forbidden not in body
         assert forbidden not in body.get("metadata", {})
 
@@ -75,6 +77,19 @@ def test_response_contains_real_query_profile_and_risk_metadata():
     assert set(metadata["risk"]["risk_dimensions"]) == {
         "factuality", "reasoning", "privacy", "pii", "security", "bias", "financial", "action", "safety",
     }
+
+
+def test_response_contains_real_evaluation_metadata():
+    resp = client.post("/v1/requests", json={"query": "What is the capital of France?"})
+    body = resp.json()
+    evaluations = body["metadata"]["evaluation"]
+    names = {e["evaluator"] for e in evaluations}
+    assert {
+        "privacy_pii", "action_risk", "safety", "grounding", "factuality",
+        "response_confidence", "reasoning", "bias",
+    } == names
+    not_implemented = {e["evaluator"] for e in evaluations if e["status"] == "NOT_IMPLEMENTED"}
+    assert {"reasoning", "bias"} == not_implemented
 
 
 def test_model_provider_failure_returns_structured_dependency_error(monkeypatch):

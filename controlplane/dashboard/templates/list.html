@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Requests -- ControlPlane Dashboard{% endblock %}
+{% block content %}
+<div class="panel">
+  <h2>Aggregate (this deployment, {{ stats.total_requests }} total requests)</h2>
+  <p class="note">Status: {{ stats.status_distribution }} &middot; Risk: {{ stats.risk_distribution }} &middot;
+     Model action: {{ stats.model_action_distribution }} &middot; Model role: {{ stats.model_role_distribution }} &middot;
+     Human-review rate: {{ stats.human_review_rate }} &middot; Abstain rate: {{ stats.abstain_rate }}</p>
+  <p class="note">Control loop -- Decisions: {{ stats.decision_distribution }} &middot; Interventions: {{ stats.intervention_distribution }} &middot;
+     Verification: {{ stats.verification_distribution }} &middot; Intervention rate: {{ stats.intervention_rate }}</p>
+</div>
+
+<h2>Recent Requests</h2>
+<table>
+<tr><th>Time</th><th>Query</th><th>Status</th><th>Intent</th><th>Complexity</th><th>Risk</th><th>Model Action</th><th>Capabilities</th><th>Intervened?</th><th>Verification</th></tr>
+{% for r in requests %}
+<tr>
+  <td class="note">{{ r.created_at.strftime("%H:%M:%S") if r.created_at else "" }}</td>
+  <td><a class="reqlink" href="/dashboard/requests/{{ r.request_id }}">{{ r.query_preview }}</a></td>
+  <td><span class="badge status-{{ r.status }}">{{ r.status }}</span></td>
+  <td>{{ r.intent or "-" }}</td>
+  <td>{{ r.complexity or "-" }}</td>
+  <td>{% if r.risk_severity %}<span class="badge severity-{{ r.risk_severity }}">{{ r.risk_severity }}</span>{% else %}-{% endif %}</td>
+  <td>{{ r.model_action or "-" }}</td>
+  <td class="note">{{ (r.selected_capabilities or [])|join(", ") }}</td>
+  <td>{{ "yes" if r.intervened else "-" }}</td>
+  <td>{{ r.verification_status or "-" }}</td>
+</tr>
+{% endfor %}
+</table>
+{% if not requests %}<p class="note">No requests yet -- send a query to <code>POST /v1/requests</code> to see it here.</p>{% endif %}
+{% endblock %}

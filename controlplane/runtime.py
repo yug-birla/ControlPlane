@@ -1,32 +1,46 @@
-"""Traceable runtime -- Milestone 3.
+"""Traceable runtime -- Milestone 4 (Real RAG + SQL + Evaluation +
+Gemini + Dashboard).
 
 USER QUERY -> create request/trajectory -> QUERY_RECEIVED -> Query
 Profiler -> QUERY_PROFILED -> Risk Profiler + Policy -> RISK_DETECTED ->
 Capability Router + Model Router -> PLAN_CREATED (+ HUMAN_REVIEW_REQUIRED
 when applicable) -> Execution Graph run by the Graph Executor
-(ROUTE_STARTED/ROUTE_COMPLETED per node; the "generation" node invokes
-the configured model provider for the routed role) -> model invocation
-record -> ledger entry -> FINAL_RESPONSE_GENERATED -> update trajectory
--> structured response.
+(ROUTE_STARTED/ROUTE_COMPLETED per node; "SQL" and "RAG" nodes now run
+real capabilities -- controlplane/capabilities/ -- and "generation"
+invokes the configured model provider for the routed role) -> model
+invocation record -> ledger entry -> FINAL_RESPONSE_GENERATED -> update
+trajectory -> structured response.
 
-Still no RAG, evaluation, intervention, or replanning. SQL/RAG/WEB/
-CHAT_HISTORY/MEMORY/AGENT capability nodes run via the executor's
-explicit MOCKED handler -- see controlplane/execution/executor.py -- so
-a query can be *routed* to them, but no real data is fetched and no real
-action is performed yet (Layer 5/11/18, see
-docs/PROJECT_STATE/FUTURE_WORK.md). See docs/PROJECT_STATE/FUTURE_WORK.md
-for the full list of what's still ahead.
+Still no evaluation-driven intervention or replanning (the Evaluation
+layer, controlplane/evaluation/, exists and can score a response, but
+nothing yet acts on its output -- see docs/PROJECT_STATE/FUTURE_WORK.md).
+WEB/CHAT_HISTORY/MEMORY/AGENT capability nodes still run via the
+executor's explicit MOCKED handler (Layer 18 Agent/Tool Control and the
+Web/Chat/Memory capabilities are still future work).
 """
 
 from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from controlplane.capabilities.rag_capability import RAGCapability
+from controlplane.capabilities.sql_capability import SQLCapability
 from controlplane.config import Settings, get_settings
 from controlplane.context import RequestContext
-from controlplane.db.models import RouteDecisionRecord, new_id
+from controlplane.db.models import (
+    DecisionRecord,
+    InterventionRecord,
+    ReplanRecord,
+    ResponseEvaluationRecord,
+    RouteDecisionRecord,
+    VerificationRecord,
+    new_id,
+)
+from controlplane.decision.engine import ControlAction, ControlDecision, DecisionEngine
 from controlplane.errors import ConfigurationError, ControlPlaneError, DependencyError, TimeoutError
+from controlplane.evaluation.evaluators import EvaluationContext, EvaluationResult, EvaluationSuite
 from controlplane.events.schema import Event, EventType, Severity
+from controlplane.intervention.engine import InterventionEngine, InterventionSpec, InterventionType
 from controlplane.events.store import EventStore
 from controlplane.events.transport import EventTransport, InProcessEventTransport
 from controlplane.execution.executor import GraphExecutor
@@ -44,6 +58,7 @@ from controlplane.routing.capability_router import CapabilityRoute, CapabilityRo
 from controlplane.routing.model_router import ModelRouteAction, ModelRouteDecision, ModelRouter
 from controlplane.state import ExecutionState, ExecutionStatus
 from controlplane.trajectory.store import TrajectoryStore
+from controlplane.verification.engine import VerificationEngine, VerificationResult, VerificationStatus
 
 logger = get_logger("controlplane.runtime")
 
@@ -76,6 +91,12 @@ class Runtime:
         capability_router=None,
         model_router=None,
         graph_executor=None,
+        sql_capability=None,
+        rag_capability=None,
+        evaluation_suite=None,
+        decision_engine=None,
+        intervention_engine=None,
+        verification_engine=None,
     ) -> None:
         self._trajectory_store = trajectory_store
         self._ledger = ledger
@@ -88,6 +109,12 @@ class Runtime:
         self._capability_router = capability_router or CapabilityRouter()
         self._model_router = model_router or ModelRouter()
         self._graph_executor = graph_executor or GraphExecutor(handlers={})
+        self._sql_capability = sql_capability or SQLCapability()
+        self._rag_capability = rag_capability or RAGCapability()
+        self._evaluation_suite = evaluation_suite or EvaluationSuite()
+        self._decision_engine = decision_engine or DecisionEngine()
+        self._intervention_engine = intervention_engine or InterventionEngine()
+        self._verification_engine = verification_engine or VerificationEngine()
 
     def _publish(
         self, event_type: EventType, ctx: RequestContext, *, source: str, payload: dict, severity: Severity | None = None
@@ -168,29 +195,36 @@ class Runtime:
             state.metadata["capability_route"] = capability_route.to_dict()
             self._fail(ctx, state, step_id=None, error=exc, step_type="generation", record_step=False)
             raise
-        state.metadata["capability_route"] = capability_route.to_dict()
+        evaluation_results = self._run_evaluation(ctx, capability_route, fingerprint, risk, query, result["content"])
 
-        state.metadata["answer"] = result["content"]
+        final_answer, final_result, final_role, final_evaluation, decision, verification = self._run_control_loop(
+            ctx, settings, query, capability_route, model_decision, risk, fingerprint, result, evaluation_results,
+        )
+        state.metadata["capability_route"] = capability_route.to_dict()
+        state.metadata["answer"] = final_answer
         state.metadata["model"] = {
-            "provider": result["provider"],
-            "model": result["model"],
-            "role": model_decision.model_role,
-            "latency_ms": result["latency_ms"],
-            "input_tokens": result["input_tokens"],
-            "output_tokens": result["output_tokens"],
+            "provider": final_result["provider"],
+            "model": final_result["model"],
+            "role": final_role,
+            "latency_ms": final_result["latency_ms"],
+            "input_tokens": final_result["input_tokens"],
+            "output_tokens": final_result["output_tokens"],
         }
+        state.metadata["evaluation"] = [r.model_dump(mode="json") for r in final_evaluation]
+        state.metadata["decision"] = decision.model_dump(mode="json")
+        state.metadata["verification"] = verification.model_dump(mode="json")
 
         self._publish(
             EventType.FINAL_RESPONSE_GENERATED,
             ctx,
             source="controlplane",
-            payload={"model_invocation_id": result["invocation_id"]},
+            payload={"model_invocation_id": final_result["invocation_id"], "verification_status": verification.status.value},
         )
         self._trajectory_store.append_step(
             trajectory_id=ctx.trajectory_id,
             step_type="completed",
             status="COMPLETED",
-            output_ref={"model_invocation_id": result["invocation_id"]},
+            output_ref={"model_invocation_id": final_result["invocation_id"], "verification_status": verification.status.value},
             completed=True,
         )
         self._trajectory_store.update_trajectory_status(
@@ -386,7 +420,13 @@ class Runtime:
         model_decision: ModelRouteDecision,
     ) -> dict:
         captured: dict = {}
-        handlers = {"generation": self._generation_handler(ctx, settings, query, model_decision.model_role, captured)}
+        handlers = {
+            "generation": self._generation_handler(
+                ctx, settings, query, model_decision.model_role, captured, capability_route.graph
+            ),
+            "SQL": lambda node: self._sql_capability.execute(query),
+            "RAG": lambda node: self._rag_capability.execute(query),
+        }
         executor = GraphExecutor(handlers=handlers)
         graph_result = executor.run(capability_route.graph, mode="parallel")
 
@@ -416,10 +456,286 @@ class Runtime:
             raise captured["error"]
         return captured["result"]
 
-    def _generation_handler(self, ctx: RequestContext, settings: Settings, query: str, role: str, captured: dict):
-        def handler(node) -> dict:
+    def _run_evaluation(
+        self,
+        ctx: RequestContext,
+        capability_route: CapabilityRoute,
+        fingerprint: QueryFingerprint,
+        risk: RiskProfile,
+        query: str,
+        answer: str,
+    ) -> list[EvaluationResult]:
+        from controlplane.db.engine import session_scope
+
+        evidence_texts: list[str] = []
+        sql_rows: list[dict] = []
+        for node in capability_route.graph.nodes:
+            if node.capability == "RAG" and node.status == NodeStatus.COMPLETED:
+                evidence_texts.extend(item["text"] for item in node.output_ref.get("evidence", []))
+            if node.capability == "SQL" and node.status == NodeStatus.COMPLETED:
+                sql_rows.extend(node.output_ref.get("rows", []))
+
+        eval_ctx = EvaluationContext(
+            query=query, answer=answer, evidence_texts=evidence_texts, sql_rows=sql_rows,
+            fingerprint=fingerprint, risk=risk,
+        )
+        results = self._evaluation_suite.run(eval_ctx)
+
+        with session_scope() as session:
+            for r in results:
+                session.add(
+                    ResponseEvaluationRecord(
+                        id=new_id("respeval"),
+                        request_id=ctx.request_id,
+                        trajectory_id=ctx.trajectory_id,
+                        evaluator=r.evaluator,
+                        status=r.status.value,
+                        label=r.label,
+                        score=r.score,
+                        result=r.model_dump(mode="json"),
+                    )
+                )
+
+        self._trajectory_store.append_step(
+            trajectory_id=ctx.trajectory_id,
+            step_type="evaluation",
+            status="COMPLETED",
+            output_ref={
+                "evaluators": [r.evaluator for r in results],
+                "implemented": [r.evaluator for r in results if r.status.value == "IMPLEMENTED"],
+            },
+            completed=True,
+        )
+        self._publish(
+            EventType.EVALUATION_COMPLETED,
+            ctx,
+            source="controlplane",
+            payload={"results": [{"evaluator": r.evaluator, "status": r.status.value, "label": r.label} for r in results]},
+        )
+        return results
+
+    def _run_control_loop(
+        self,
+        ctx: RequestContext,
+        settings: Settings,
+        query: str,
+        capability_route: CapabilityRoute,
+        model_decision: ModelRouteDecision,
+        risk: RiskProfile,
+        fingerprint: QueryFingerprint,
+        result: dict,
+        evaluation_results: list[EvaluationResult],
+    ) -> tuple[str | None, dict, str, list[EvaluationResult], ControlDecision, VerificationResult]:
+        """Decide -> (Intervene -> Replan -> re-Evaluate)* -> Verify.
+        Bounded to at most ``DecisionEngine._max_attempts - 1`` retries by
+        the Decision Engine itself (a decision with ``can_retry=False``
+        never requests another intervention) -- the ``for`` loop below is
+        an additional, independent hard cap (bootstrap SS19: "do not
+        retry forever"), not the only thing preventing an infinite loop.
+        """
+        from controlplane.db.engine import session_scope
+
+        current_role = model_decision.model_role
+        attempt = 1
+        decision = self._decision_engine.decide(evaluation_results, risk, model_decision, attempt_number=attempt)
+        decision_id = self._record_decision(ctx, decision)
+
+        _HARD_MAX_ITERATIONS = 5  # independent of DecisionEngine's own bound -- see docstring
+        for _ in range(_HARD_MAX_ITERATIONS):
+            if not decision.requires_intervention:
+                break
+
+            if decision.action == ControlAction.RETRIEVE_MORE:
+                self._publish(
+                    EventType.RETRIEVAL_INSUFFICIENT, ctx, source="controlplane",
+                    payload={"reason": decision.reason, "attempt_number": decision.attempt_number},
+                )
+
+            spec = self._intervention_engine.plan(decision, current_model_role=current_role)
+            self._publish(
+                EventType.INTERVENTION_TRIGGERED, ctx, source="controlplane",
+                payload={"intervention_type": spec.intervention_type.value, "reason": spec.reason},
+            )
+            intervention_id = self._record_intervention(ctx, decision_id, spec)
+
+            new_role = spec.new_model_role or current_role
+            plan_changed = spec.intervention_type in (InterventionType.RETRIEVE_MORE, InterventionType.CHANGE_MODEL)
+            if plan_changed:
+                self._publish(
+                    EventType.REPLAN_TRIGGERED, ctx, source="controlplane",
+                    payload={"intervention_type": spec.intervention_type.value, "reason": spec.reason},
+                )
+                self._record_replan(ctx, capability_route, spec)
+            if spec.intervention_type == InterventionType.CHANGE_MODEL:
+                self._publish(
+                    EventType.MODEL_ESCALATION, ctx, source="controlplane",
+                    payload={"from_role": current_role, "to_role": new_role, "reason": spec.reason},
+                )
+
             try:
-                result = self._invoke_model(ctx, settings, query, role=role)
+                if spec.intervention_type == InterventionType.RETRIEVE_MORE:
+                    rag_node = next((n for n in capability_route.graph.nodes if n.capability == "RAG"), None)
+                    if rag_node is not None:
+                        rag_node.output_ref = self._rag_capability.execute(query, k=spec.new_rag_k)
+                prompt = self._build_generation_prompt(query, capability_route.graph)
+                new_result = self._invoke_model(ctx, settings, prompt, role=new_role)
+                actual_effect = {"status": "EXECUTED", "new_content_preview": new_result["content"][:200]}
+            except ControlPlaneError as exc:
+                logger.warning(
+                    "intervention_execution_failed",
+                    extra={"cp_fields": {"intervention_type": spec.intervention_type.value, "error": str(exc)}},
+                )
+                actual_effect = {"status": "FAILED", "error": str(exc)}
+                self._record_intervention_outcome(intervention_id, actual_effect)
+                break  # keep the previous (pre-intervention) result/evaluation rather than crashing the request
+            self._record_intervention_outcome(intervention_id, actual_effect)
+
+            if plan_changed:
+                self._publish(
+                    EventType.REPLAN_COMPLETED, ctx, source="controlplane",
+                    payload={"intervention_type": spec.intervention_type.value},
+                )
+
+            result = new_result
+            current_role = new_role
+            evaluation_results = self._run_evaluation(ctx, capability_route, fingerprint, risk, query, result["content"])
+            attempt += 1
+            decision = self._decision_engine.decide(evaluation_results, risk, model_decision, attempt_number=attempt)
+            decision_id = self._record_decision(ctx, decision)
+
+        verification = self._verification_engine.verify(evaluation_results, decision)
+        with session_scope() as session:
+            session.add(
+                VerificationRecord(
+                    id=new_id("verif"),
+                    request_id=ctx.request_id,
+                    trajectory_id=ctx.trajectory_id,
+                    status=verification.status.value,
+                    reason=verification.reason,
+                    checked_evaluators=verification.checked_evaluators,
+                )
+            )
+        if verification.status in (VerificationStatus.NOT_VERIFIED, VerificationStatus.REJECTED):
+            self._publish(
+                EventType.VERIFICATION_FAILED, ctx, source="controlplane",
+                payload={"status": verification.status.value, "reason": verification.reason},
+            )
+
+        final_answer = result["content"]
+        if decision.action == ControlAction.ASK_CLARIFICATION:
+            final_answer = None
+
+        return final_answer, result, current_role, evaluation_results, decision, verification
+
+    def _record_decision(self, ctx: RequestContext, decision: ControlDecision) -> str:
+        from controlplane.db.engine import session_scope
+
+        decision_id = new_id("dec")
+        with session_scope() as session:
+            session.add(
+                DecisionRecord(
+                    id=decision_id,
+                    request_id=ctx.request_id,
+                    trajectory_id=ctx.trajectory_id,
+                    action=decision.action.value,
+                    reason=decision.reason,
+                    triggering_evaluator=decision.triggering_evaluator,
+                    attempt_number=decision.attempt_number,
+                    can_retry=decision.can_retry,
+                )
+            )
+        self._trajectory_store.append_step(
+            trajectory_id=ctx.trajectory_id,
+            step_type=f"decision:{decision.attempt_number}",
+            status="COMPLETED",
+            output_ref={"action": decision.action.value, "reason": decision.reason},
+            completed=True,
+        )
+        return decision_id
+
+    def _record_intervention(self, ctx: RequestContext, decision_id: str, spec: InterventionSpec) -> str:
+        from controlplane.db.engine import session_scope
+
+        intervention_id = new_id("interv")
+        with session_scope() as session:
+            session.add(
+                InterventionRecord(
+                    id=intervention_id,
+                    request_id=ctx.request_id,
+                    trajectory_id=ctx.trajectory_id,
+                    decision_id=decision_id,
+                    intervention_type=spec.intervention_type.value,
+                    reason=spec.reason,
+                    spec=spec.model_dump(mode="json"),
+                    expected_effect=spec.expected_effect,
+                )
+            )
+        return intervention_id
+
+    def _record_intervention_outcome(self, intervention_id: str, actual_effect: dict) -> None:
+        from controlplane.db.engine import session_scope
+
+        with session_scope() as session:
+            record = session.get(InterventionRecord, intervention_id)
+            if record is not None:
+                record.actual_effect = actual_effect
+
+    def _record_replan(self, ctx: RequestContext, capability_route: CapabilityRoute, spec: InterventionSpec) -> None:
+        from sqlalchemy import desc, select
+
+        from controlplane.db.engine import session_scope
+
+        with session_scope() as session:
+            latest = session.execute(
+                select(RouteDecisionRecord)
+                .where(RouteDecisionRecord.request_id == ctx.request_id)
+                .order_by(desc(RouteDecisionRecord.plan_version))
+                .limit(1)
+            ).scalar_one_or_none()
+            from_version = latest.plan_version if latest else 1
+            to_version = from_version + 1
+            if latest is not None:
+                session.add(
+                    RouteDecisionRecord(
+                        id=new_id("route"),
+                        request_id=latest.request_id,
+                        trajectory_id=latest.trajectory_id,
+                        query_profile_id=latest.query_profile_id,
+                        capability_router_version=latest.capability_router_version,
+                        selected_capabilities=latest.selected_capabilities,
+                        restricted_capabilities=latest.restricted_capabilities,
+                        capability_reason=latest.capability_reason,
+                        execution_graph=capability_route.graph.to_dict(),
+                        model_router_version=latest.model_router_version,
+                        model_action=latest.model_action,
+                        model_role=spec.new_model_role or latest.model_role,
+                        require_verification=latest.require_verification,
+                        human_approval_required=latest.human_approval_required,
+                        model_reason=f"replanned: {spec.reason}",
+                        expected_cost_class=latest.expected_cost_class,
+                        expected_latency_class=latest.expected_latency_class,
+                        plan_version=to_version,
+                    )
+                )
+            session.add(
+                ReplanRecord(
+                    id=new_id("replan"),
+                    request_id=ctx.request_id,
+                    trajectory_id=ctx.trajectory_id,
+                    trigger=spec.intervention_type.value,
+                    from_plan_version=from_version,
+                    to_plan_version=to_version,
+                    reason=spec.reason,
+                )
+            )
+
+    def _generation_handler(
+        self, ctx: RequestContext, settings: Settings, query: str, role: str, captured: dict, graph: ExecutionGraph
+    ):
+        def handler(node) -> dict:
+            prompt = self._build_generation_prompt(query, graph)
+            try:
+                result = self._invoke_model(ctx, settings, prompt, role=role)
             except ControlPlaneError as exc:
                 # GraphExecutor only records str(exc) on the node; stash the
                 # real exception so _execute_graph can re-raise the correct
@@ -437,7 +753,42 @@ class Runtime:
 
         return handler
 
-    def _invoke_model(self, ctx: RequestContext, settings: Settings, query: str, role: str = "STRONG") -> dict:
+    @staticmethod
+    def _build_generation_prompt(query: str, graph: ExecutionGraph) -> str:
+        """Milestone 5 fix (found during that milestone's mandatory
+        architecture audit -- CRITICAL severity): through Milestone 4,
+        the "generation" node called ``provider.generate(prompt=query)``
+        with the raw query only, completely ignoring any SQL/RAG evidence
+        retrieved by sibling nodes in the same graph. SQL/RAG ran, were
+        evaluated (Grounding/Factuality), and were persisted -- but the
+        model never actually saw them, so the RAG/SQL pipeline could not
+        have been influencing real generated answers at all. This builds
+        an evidence-augmented prompt from whichever SQL/RAG nodes
+        actually completed; falls back to the bare query when neither
+        ran (unchanged behavior for GENERAL/REASONING-only requests)."""
+        import json
+
+        context_blocks: list[str] = []
+        for n in graph.nodes:
+            if n.capability == "RAG" and n.status == NodeStatus.COMPLETED:
+                for item in n.output_ref.get("evidence", []):
+                    context_blocks.append(f"[{item['document']}]: {item['text']}")
+            if n.capability == "SQL" and n.status == NodeStatus.COMPLETED:
+                rows = n.output_ref.get("rows", [])
+                if rows:
+                    context_blocks.append(f"[SQL result -- {n.output_ref.get('template')}]: {json.dumps(rows[:10], default=str)}")
+
+        if not context_blocks:
+            return query
+
+        context_text = "\n".join(context_blocks)
+        return (
+            "Answer the user's question using the context below where it is relevant. "
+            "If the context does not fully answer the question, say so explicitly rather than guessing.\n\n"
+            f"Context:\n{context_text}\n\nQuestion: {query}"
+        )
+
+    def _invoke_model(self, ctx: RequestContext, settings: Settings, prompt: str, role: str = "STRONG") -> dict:
         from controlplane.db.engine import session_scope
         from controlplane.db.models import ModelInvocationRecord
 
@@ -447,7 +798,7 @@ class Runtime:
 
         try:
             provider = self._provider_factory(settings, role=role)
-            result = provider.generate(prompt=query)
+            result = provider.generate(prompt=prompt)
         except ConfigurationError:
             self._record_invocation_failure(
                 invocation_id=invocation_id,
@@ -495,7 +846,7 @@ class Runtime:
                     latency_ms=result.latency_ms,
                     input_tokens=result.input_tokens,
                     output_tokens=result.output_tokens,
-                    input_text=query,
+                    input_text=prompt,
                     output_text=result.content,
                 )
             )
@@ -630,6 +981,7 @@ def build_default_runtime(
     policy=None,
     capability_router=None,
     model_router=None,
+    evaluation_suite=None,
 ) -> Runtime:
     trajectory_store = TrajectoryStore()
     ledger = ExecutionLedger()
@@ -645,4 +997,5 @@ def build_default_runtime(
         policy=policy,
         capability_router=capability_router,
         model_router=model_router,
+        evaluation_suite=evaluation_suite,
     )

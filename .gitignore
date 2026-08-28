@@ -4,3 +4,12 @@ __pycache__/
 .venv/
 *.egg-info/
 .env
+
+# Regenerable build artifact (controlplane/capabilities/sql_setup.py) --
+# deterministically derived from the committed
+# data/synthetic_enterprise/nexaconsult_enterprise.sql, so not committed
+# itself (unlike data/cache/*.npz, which IS committed -- see
+# controlplane/models/embedding_cache.py / BLOCKERS.md B9).
+data/synthetic_enterprise/nexaconsult.db
+data/synthetic_enterprise/nexaconsult.db-shm
+data/synthetic_enterprise/nexaconsult.db-wal

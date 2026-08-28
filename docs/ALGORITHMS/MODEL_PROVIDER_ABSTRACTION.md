@@ -72,3 +72,13 @@ v1 — 2026-08-27, Milestone 1.
 ## 16. Results
 
 Live-validated against the real Groq API on 2026-08-27 (see `tests/manual_groq_live_check.py` and `docs/PROJECT_STATE/PROGRESS.md`): model `allam-2-7b` (chosen from Groq's live `/models` list, not hard-coded), latency 405-625ms, token usage recorded correctly, response content normalized correctly, no secrets or chain-of-thought persisted.
+
+## 17. Milestone 4 Update — Gemini Provider + FAST/STRONG Roles
+
+`controlplane/models/gemini_provider.py` (`GeminiProvider`, using the official `google-genai==2.20.0` SDK — verified live against PyPI, not `google-generativeai`, which is stale) is the second real `ModelProvider` implementation, exactly matching this document's §13 prediction: introduced without changing the `ModelProvider` interface. Supports two API keys (`GEMINI_API_KEY_1`/`_2`) for quota headroom, falling back to the second key on an HTTP 429.
+
+**Deliberately never the default route** (bootstrap: "Use Gemini conservatively... never the default model"): `controlplane.routing.model_router` never selects Gemini; it is reachable only via `controlplane.models.registry.get_gemini_provider(settings)`, called by comparison experiments (`controlplane/experiments/compare_groq_vs_gemini.py`) and nothing else.
+
+Live-validated 2026-08-28 (`tests/manual_gemini_live_check.py`): model `gemini-2.5-flash` (chosen from Gemini's live model list, not hard-coded), latency ~1.4-1.8s for simple queries, real generation confirmed via the actual `GeminiProvider` class end-to-end, both API keys confirmed valid, neither ever logged/printed/persisted.
+
+FAST/STRONG roles (`controlplane.routing.model_router`) both currently resolve to Groq (`GROQ_MODEL_FAST`/`GROQ_MODEL_STRONG`, Milestone 3) — Gemini was deliberately kept out of the FAST/STRONG role resolution to preserve the "never the default" constraint; a role-based provider *selection* (not just role-based *model* selection within one provider) remains future work, see `docs/PROJECT_STATE/DECISIONS.md`.

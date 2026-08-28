@@ -1,12 +1,15 @@
 """Model provider abstraction.
 
 The rest of ControlPlane depends on ``ModelProvider``/``ModelResult``
-only -- never on a specific SDK (e.g. the ``groq`` package). Only
-controlplane/models/groq_provider.py may import that SDK. See
+only -- never on a specific SDK (e.g. the ``groq`` or ``google-genai``
+packages). Only controlplane/models/groq_provider.py and
+controlplane/models/gemini_provider.py may import those SDKs. See
 docs/ALGORITHMS/MODEL_PROVIDER_ABSTRACTION.md.
 
-No model routing exists yet (Layer 10) -- one explicitly configured
-provider/model is used for the whole request.
+Model routing (Layer 10) selects a *role* (FAST/STRONG); Gemini is a
+separate, conservatively-used comparison provider, never the default
+route -- see controlplane/models/registry.py and
+docs/PROJECT_STATE/DECISIONS.md.
 """
 
 from __future__ import annotations

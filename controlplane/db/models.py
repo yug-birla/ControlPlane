@@ -275,6 +275,106 @@ class RouteDecisionRecord(Base):
     model_reason: Mapped[str] = mapped_column(Text, nullable=False)
     expected_cost_class: Mapped[str | None] = mapped_column(Text, nullable=True)
     expected_latency_class: Mapped[str | None] = mapped_column(Text, nullable=True)
+    plan_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    """New this milestone -- incremented when a Replan creates a new
+    RouteDecisionRecord for the same request after an intervention
+    (controlplane/decision/, controlplane/intervention/,
+    controlplane/verification/). Version 1 is always the original,
+    pre-intervention route."""
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class ResponseEvaluationRecord(Base):
+    """New this milestone -- per-request Evaluation layer results
+    (controlplane/evaluation/evaluators.py), distinct from
+    ``evaluation_results`` (aggregate experiment/benchmark metrics).
+    One row per evaluator per request, including NOT_IMPLEMENTED ones,
+    so the record of "what was and wasn't evaluated" is complete, not
+    just the successful evaluations."""
+
+    __tablename__ = "response_evaluations"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    request_id: Mapped[str] = mapped_column(ForeignKey("requests.id"), nullable=False)
+    trajectory_id: Mapped[str] = mapped_column(ForeignKey("trajectories.id"), nullable=False)
+    evaluator: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    label: Mapped[str | None] = mapped_column(Text, nullable=True)
+    score: Mapped[float | None] = mapped_column(Numeric, nullable=True)
+    result: Mapped[dict] = mapped_column(JSONB, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class DecisionRecord(Base):
+    """New this milestone -- controlplane/decision/engine.py's
+    ``ControlDecision``, persisted per attempt (so a request that
+    retries once has two rows: attempt_number=1 and attempt_number=2)."""
+
+    __tablename__ = "decisions"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    request_id: Mapped[str] = mapped_column(ForeignKey("requests.id"), nullable=False)
+    trajectory_id: Mapped[str] = mapped_column(ForeignKey("trajectories.id"), nullable=False)
+    action: Mapped[str] = mapped_column(Text, nullable=False)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    triggering_evaluator: Mapped[str | None] = mapped_column(Text, nullable=True)
+    attempt_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    can_retry: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class InterventionRecord(Base):
+    """New this milestone -- controlplane/intervention/engine.py's
+    ``InterventionSpec``, plus ``actual_effect`` filled in by
+    ``controlplane.runtime`` after the intervention actually re-executes
+    (bootstrap SS35: dashboard must show "expected effect" vs. "actual
+    effect")."""
+
+    __tablename__ = "interventions"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    request_id: Mapped[str] = mapped_column(ForeignKey("requests.id"), nullable=False)
+    trajectory_id: Mapped[str] = mapped_column(ForeignKey("trajectories.id"), nullable=False)
+    decision_id: Mapped[str] = mapped_column(ForeignKey("decisions.id"), nullable=False)
+    intervention_type: Mapped[str] = mapped_column(Text, nullable=False)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    spec: Mapped[dict] = mapped_column(JSONB, default=dict)
+    expected_effect: Mapped[str] = mapped_column(Text, nullable=False)
+    actual_effect: Mapped[dict] = mapped_column(JSONB, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class ReplanRecord(Base):
+    """New this milestone -- one row per new plan version created after
+    an intervention. Never overwrites/deletes the previous
+    RouteDecisionRecord (``plan_version=1`` stays in the table)."""
+
+    __tablename__ = "replans"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    request_id: Mapped[str] = mapped_column(ForeignKey("requests.id"), nullable=False)
+    trajectory_id: Mapped[str] = mapped_column(ForeignKey("trajectories.id"), nullable=False)
+    trigger: Mapped[str] = mapped_column(Text, nullable=False)
+    from_plan_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    to_plan_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class VerificationRecord(Base):
+    """New this milestone -- controlplane/verification/engine.py's
+    ``VerificationResult``, one row per request (the final, post-retry
+    verification -- not one per attempt, since verification only runs
+    once the control loop reaches a terminal decision)."""
+
+    __tablename__ = "verifications"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    request_id: Mapped[str] = mapped_column(ForeignKey("requests.id"), nullable=False)
+    trajectory_id: Mapped[str] = mapped_column(ForeignKey("trajectories.id"), nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    checked_evaluators: Mapped[dict] = mapped_column(JSONB, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 

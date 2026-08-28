@@ -1,0 +1,62 @@
+{
+  "experiment_id": "exp_5840874d-f720-444b-9423-cdc942d99747",
+  "metrics": {
+    "sample_count": 3,
+    "groq_configured": false,
+    "gemini_configured": true,
+    "rows": [
+      {
+        "category": "simple_factual",
+        "query": "What is the capital of France?",
+        "groq": {
+          "status": "NOT_MEASURED",
+          "reason": "GROQ_API_KEY/GROQ_MODEL not set"
+        },
+        "gemini": {
+          "status": "EXECUTED",
+          "model": "gemini-2.5-flash",
+          "content": "The capital of France is **Paris**.",
+          "latency_ms": 1656,
+          "input_tokens": 8,
+          "output_tokens": 8,
+          "wall_clock_ms": 1656.9999999992433
+        }
+      },
+      {
+        "category": "reasoning",
+        "query": "If a train leaves at 3pm travelling 60mph and another leaves at 4pm travelling 90mph on the same route, when does the second train catch up? Explain your reasoning.",
+        "groq": {
+          "status": "NOT_MEASURED",
+          "reason": "GROQ_API_KEY/GROQ_MODEL not set"
+        },
+        "gemini": {
+          "status": "EXECUTED",
+          "model": "gemini-2.5-flash",
+          "content": "Let's break this down step-by-step:\n\n1.  **Train 1's Head Start:**\n    When the second train leaves at 4 pm, the first train has already been travelling for 1 hour (from 3 pm to 4 pm).\n    In that hour, Train 1 travels: 60 mph * 1 hour = **60 miles**.\n    So, at 4 pm, Train 1 is 60 miles ahead of the starting point.\n\n2.  **Relative Speed:**\n    Now, both trains are moving. Train 2 is faster than Train 1. The rate at which Train 2 closes the gap on Train 1 is the difference in their speeds.\n    Relative speed = Speed of Train 2 - Speed of Train 1\n    Relative speed = 90 mph - 60 mph = **30 mph**.\n    This means Train 2 gains 30 miles on Train 1 every hour.\n\n3.  **Time to Catch Up:**\n    Train 2 needs to close a 60-mile gap (Train 1's head start) at a rate of 30 mph.\n    Time = Distance / Speed\n    Time to catch up = 60 miles / 30 mph = **2 hours**.\n\n4.  **When They Catch Up:**\n    This 2 hours of catching up starts from when Train 2 leaves (4 pm).\n    Catch-up time = 4 pm + 2 hours = **6 pm**.\n\n**Reasoning:**\n\nThe first train has a one-hour head start, covering 60 miles. The second train is faster, so it will eventually catch up. To determine when, we calculate the \"relative speed\" \u2013 how quickly the second train closes the distance between them. Since the second train travels 90 mph and the first travels 60 mph, the second train gains 30 miles per hour on the first. With a 60-mile gap to close, it will take 2 hours (60 miles / 30 mph) for the second train to cover that distance. Adding these 2 hours to the second train's departure time of 4 pm gives us 6 pm.\n\n**Answer:** The second train catches up at **6:00 PM**.",
+          "latency_ms": 6171,
+          "input_tokens": 43,
+          "output_tokens": 496,
+          "wall_clock_ms": 6171.0000000020955
+        }
+      },
+      {
+        "category": "enterprise_style",
+        "query": "Summarize, in one sentence, the key considerations for a company deciding whether to migrate its core database to the cloud.",
+        "groq": {
+          "status": "NOT_MEASURED",
+          "reason": "GROQ_API_KEY/GROQ_MODEL not set"
+        },
+        "gemini": {
+          "status": "EXECUTED",
+          "model": "gemini-2.5-flash",
+          "content": "The decision hinges on meticulously balancing the potential for enhanced scalability, agility, and operational efficiency against critical concerns like data security, regulatory compliance, performance guarantees, total cost of ownership, and the complexities of migration and vendor lock-in.",
+          "latency_ms": 7781,
+          "input_tokens": 25,
+          "output_tokens": 46,
+          "wall_clock_ms": 7781.999999999243
+        }
+      }
+    ],
+    "note": "Deliberately small sample per bootstrap instruction to use Gemini conservatively (limited/non-free quota)."
+  }
+}

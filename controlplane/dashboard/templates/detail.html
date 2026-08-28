@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}{{ detail.request.id }} -- ControlPlane Dashboard{% endblock %}
+{% block content %}
+<p><a class="reqlink" href="/dashboard">&larr; back to requests</a></p>
+
+<div class="panel">
+  <h2>Query</h2>
+  <p>{{ detail.request.query_text }}</p>
+  <p class="note">request_id={{ detail.request.id }} &middot; status=<span class="badge status-{{ detail.request.status }}">{{ detail.request.status }}</span>
+    &middot; created_at={{ detail.request.created_at }}
+    {% if detail.trajectory %} &middot; trajectory final_status={{ detail.trajectory.final_status }}{% endif %}</p>
+</div>
+
+{% if detail.query_profile %}
+<div class="panel">
+  <h2>Query Profile</h2>
+  <p>intent=<code>{{ detail.query_profile.intent }}</code> domain=<code>{{ detail.query_profile.domain or "-" }}</code>
+     complexity=<code>{{ detail.query_profile.complexity }}</code> sensitivity=<code>{{ detail.query_profile.sensitivity }}</code>
+     actionability=<code>{{ detail.query_profile.actionability }}</code> source=<code>{{ detail.query_profile.source }}</code></p>
+  <p class="note">capability_hints={{ detail.query_profile.capability_hints }}</p>
+</div>
+{% endif %}
+
+{% if detail.query_profile and detail.query_profile.risk_vector %}
+<div class="panel">
+  <h2>Risk</h2>
+  <p>severity=<span class="badge severity-{{ detail.query_profile.risk_vector.severity }}">{{ detail.query_profile.risk_vector.severity }}</span>
+     recommended_control_depth=<code>{{ detail.query_profile.risk_vector.recommended_control_depth }}</code></p>
+  <p class="note">trigger_signals: {{ detail.query_profile.risk_vector.trigger_signals }}</p>
+</div>
+{% endif %}
+
+{% if detail.route_decision %}
+<div class="panel">
+  <h2>Capability &amp; Model Decision -- Why?</h2>
+  <div class="why"><b>Capability Router:</b> {{ detail.route_decision.capability_reason }}</div>
+  <div class="why"><b>Model Router:</b> {{ detail.route_decision.model_reason }}</div>
+  <p>selected_capabilities={{ (detail.route_decision.selected_capabilities or {}).values }}
+     restricted={{ (detail.route_decision.restricted_capabilities or {}).values }}</p>
+  <p>model_action=<code>{{ detail.route_decision.model_action }}</code> model_role=<code>{{ detail.route_decision.model_role or "-" }}</code>
+     require_verification=<code>{{ detail.route_decision.require_verification }}</code>
+     human_approval_required=<code>{{ detail.route_decision.human_approval_required }}</code></p>
+  <h2>Execution Graph</h2>
+  <table>
+  <tr><th>Node</th><th>Capability</th><th>Depends On</th><th>Status</th><th>Latency</th></tr>
+  {% for n in detail.route_decision.execution_graph.nodes %}
+  <tr><td>{{ n.node_id }}</td><td>{{ n.capability }}</td><td class="note">{{ n.depends_on|join(", ") or "-" }}</td>
+      <td>{{ n.status }}</td><td class="note">{{ "%.1f"|format(n.latency_ms) + "ms" if n.latency_ms else "-" }}</td></tr>
+  {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+{% if detail.decisions %}
+<div class="panel">
+  <h2>Decision -&gt; Intervention -&gt; Replan -- Why?</h2>
+  {% for d in detail.decisions %}
+  <div class="why"><b>Decision (attempt {{ d.attempt_number }}):</b> {{ d.action }} &mdash; {{ d.reason }}
+    {% if d.triggering_evaluator %}<span class="note">(triggered by: {{ d.triggering_evaluator }})</span>{% endif %}</div>
+  {% endfor %}
+  {% if detail.interventions %}
+  <table>
+  <tr><th>Intervention</th><th>Reason</th><th>Expected Effect</th><th>Actual Effect</th></tr>
+  {% for iv in detail.interventions %}
+  <tr><td>{{ iv.intervention_type }}</td><td class="note">{{ iv.reason }}</td><td class="note">{{ iv.expected_effect }}</td>
+      <td class="note">{{ iv.actual_effect.status if iv.actual_effect else "-" }}</td></tr>
+  {% endfor %}
+  </table>
+  {% endif %}
+  {% if detail.replans %}
+  <p class="note">Replans: {% for rp in detail.replans %}v{{ rp.from_plan_version }}&rarr;v{{ rp.to_plan_version }} ({{ rp.trigger }}){% if not loop.last %}, {% endif %}{% endfor %}</p>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if detail.verification %}
+<div class="panel">
+  <h2>Verification</h2>
+  <p>status=<span class="badge status-{{ 'COMPLETED' if detail.verification.status == 'VERIFIED' else 'FAILED' }}">{{ detail.verification.status }}</span></p>
+  <p class="note">{{ detail.verification.reason }}</p>
+  <p class="note">checked: {{ detail.verification.checked_evaluators|join(", ") }}</p>
+</div>
+{% endif %}
+
+<div class="panel">
+  <h2>Final Answer</h2>
+  {% if detail.answer %}<p>{{ detail.answer }}</p>{% else %}<p class="note">No answer generated
+     {% if detail.route_decision and detail.route_decision.model_action == "ABSTAIN" %} -- the Model Router abstained (see reason above), not a failure{% endif %}
+     {% if detail.decisions and detail.decisions[-1].action == "ASK_CLARIFICATION" %} -- the Decision Engine asked for clarification after the retry budget was exhausted (see Decision panel above), not a failure{% endif %}.</p>{% endif %}
+  {% if detail.model %}<p class="note">provider={{ detail.model.provider }} model={{ detail.model.model }} latency_ms={{ detail.model.latency_ms }}
+     input_tokens={{ detail.model.input_tokens }} output_tokens={{ detail.model.output_tokens }}</p>{% endif %}
+</div>
+
+{% if detail.evaluations %}
+<div class="panel">
+  <h2>Evaluation</h2>
+  <table>
+  <tr><th>Evaluator</th><th>Status</th><th>Label</th><th>Score</th></tr>
+  {% for e in detail.evaluations %}
+  <tr><td>{{ e.evaluator }}</td><td>{{ e.status }}</td><td>{{ e.label or "-" }}</td><td>{{ "%.2f"|format(e.score) if e.score is not none else "-" }}</td></tr>
+  {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+<div class="panel">
+  <h2>Trajectory Steps</h2>
+  <table>
+  <tr><th>#</th><th>Step</th><th>Status</th><th>Started</th></tr>
+  {% for s in detail.trajectory_steps %}
+  <tr><td>{{ s.sequence_number }}</td><td>{{ s.step_type }}</td><td>{{ s.status }}</td><td class="note">{{ s.started_at }}</td></tr>
+  {% endfor %}
+  </table>
+</div>
+
+<div class="panel">
+  <h2>Events</h2>
+  <table>
+  <tr><th>Type</th><th>Severity</th><th>Time</th></tr>
+  {% for e in detail.events %}
+  <tr><td>{{ e.event_type }}</td><td>{{ e.severity }}</td><td class="note">{{ e.observed_at }}</td></tr>
+  {% endfor %}
+  </table>
+</div>
+
+{% if detail.ledger %}
+<div class="panel">
+  <h2>Execution Ledger (consequential facts)</h2>
+  <table>
+  <tr><th>Action</th><th>Consequence Class</th><th>Resource</th><th>Time</th></tr>
+  {% for l in detail.ledger %}
+  <tr><td>{{ l.action_type }}</td><td>{{ l.consequence_class }}</td><td>{{ l.resource_id }}</td><td class="note">{{ l.occurred_at }}</td></tr>
+  {% endfor %}
+  </table>
+</div>
+{% endif %}
+{% endblock %}

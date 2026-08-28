@@ -1,7 +1,7 @@
 [project]
 name = "controlplane"
-version = "0.3.0"
-description = "ControlPlane.ai - adaptive control plane for AI execution (Milestone 3: Adaptive Execution - Execution Graph, Capability Router, Model Router)"
+version = "0.5.0"
+description = "ControlPlane.ai - adaptive control plane for AI execution (Milestones 4+5: RAG/SQL/Evaluation/Gemini/Dashboard, then Decision/Intervention/Replan/Verification)"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115",
@@ -11,8 +11,19 @@ dependencies = [
     "psycopg2-binary>=2.9",
     "alembic>=1.13",
     "groq>=0.11",
-    "huggingface_hub>=0.24",
-    "sentence-transformers>=3.0",
+    "google-genai==2.20.0",
+    "jinja2>=3.1",
+    # Exact pins below (not >=) per docs/PROJECT_STATE/BLOCKERS.md B9: an
+    # embedding-model-library version difference between sessions was the
+    # leading hypothesis for k-NN-dependent metrics not reproducing exactly
+    # across sessions. The primary fix is the committed embedding cache
+    # (controlplane/models/embedding_cache.py, data/cache/*.npz), which
+    # makes results independent of library version entirely; these pins are
+    # a secondary measure to keep the environment itself reproducible too.
+    "huggingface_hub==1.29.0",
+    "sentence-transformers==6.0.0",
+    "torch==2.13.0",
+    "numpy==2.4.6",
 ]
 
 [project.optional-dependencies]

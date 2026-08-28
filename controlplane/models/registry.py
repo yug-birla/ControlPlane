@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from controlplane.config import Settings
 from controlplane.errors import ConfigurationError
+from controlplane.models.gemini_provider import GeminiProvider
 from controlplane.models.groq_provider import GroqProvider
 from controlplane.models.provider import ModelProvider
 
@@ -44,3 +45,19 @@ def get_configured_provider(settings: Settings, role: str = "STRONG") -> ModelPr
             "-- the model name is never hard-coded, see docs/PROJECT_STATE/DECISIONS.md"
         )
     return GroqProvider(api_key=settings.groq_api_key, model=model)
+
+
+def get_gemini_provider(settings: Settings) -> ModelProvider:
+    """A separate, conservatively-used comparison provider -- never called
+    from ``controlplane.routing.model_router``'s FAST/STRONG path. Used
+    only by explicit comparison/benchmark scripts in
+    ``controlplane/experiments/`` (bootstrap instruction: "Do NOT use
+    Gemini automatically as the default model")."""
+    keys = [k for k in (settings.gemini_api_key_1, settings.gemini_api_key_2) if k]
+    if not keys:
+        raise ConfigurationError("neither GEMINI_API_KEY_1 nor GEMINI_API_KEY_2 is set")
+    if not settings.gemini_model:
+        raise ConfigurationError(
+            "GEMINI_MODEL is not set -- the model name is never hard-coded, see docs/PROJECT_STATE/DECISIONS.md"
+        )
+    return GeminiProvider(api_keys=keys, model=settings.gemini_model)

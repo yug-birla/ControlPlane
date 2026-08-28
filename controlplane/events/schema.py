@@ -44,6 +44,40 @@ class EventType(str, Enum):
     policy-restricted)."""
     MODEL_CALLED = "MODEL_CALLED"
     MODEL_FAILURE = "MODEL_FAILURE"
+    EVALUATION_COMPLETED = "EVALUATION_COMPLETED"
+    """docs/architecture/EVENT_MODEL.md SS14/16.4 -- emitted once the
+    Evaluation layer (controlplane/evaluation/) has scored a response
+    (every attempt, not just the final one)."""
+    RETRIEVAL_INSUFFICIENT = "RETRIEVAL_INSUFFICIENT"
+    """docs/architecture/EVENT_MODEL.md SS14 canonical event -- emitted
+    when Grounding=UNSUPPORTED leads the Decision Engine to choose
+    RETRIEVE_MORE (Milestone 5's RAG self-healing loop)."""
+    INTERVENTION_TRIGGERED = "INTERVENTION_TRIGGERED"
+    """docs/architecture/EVENT_MODEL.md SS14/15.26 -- emitted once per
+    intervention (controlplane/intervention/)."""
+    MODEL_ESCALATION = "MODEL_ESCALATION"
+    """Not in EVENT_MODEL.md's original ~29-event list -- added this
+    milestone per its own bootstrap SS34, as a narrower, dashboard-
+    filterable specialization of INTERVENTION_TRIGGERED specifically for
+    a CHANGE_MODEL intervention (FAST -> STRONG escalation)."""
+    REPLAN_TRIGGERED = "REPLAN_TRIGGERED"
+    """docs/architecture/EVENT_MODEL.md SS14/15.27."""
+    REPLAN_COMPLETED = "REPLAN_COMPLETED"
+    """Not in EVENT_MODEL.md's original list -- added this milestone per
+    bootstrap SS34, marking when a replan's re-execution actually
+    finished (REPLAN_TRIGGERED marks the decision to replan)."""
+    RISK_ESCALATION = "RISK_ESCALATION"
+    """Declared per bootstrap SS34 but **not yet emitted by any code
+    path** this milestone -- ControlPlane's current risk assessment
+    happens once, up front (RISK_DETECTED), not as a re-assessment
+    during execution. Kept here as a documented placeholder for when a
+    future milestone adds mid-execution risk re-evaluation, per
+    docs/PROJECT_STATE/DECISIONS.md's "never pre-declare an event
+    nothing produces yet" -- reused here as an explicit, stated exception
+    because the bootstrap itself names it, not silently invented."""
+    VERIFICATION_FAILED = "VERIFICATION_FAILED"
+    """docs/architecture/EVENT_MODEL.md SS14 -- emitted when
+    ``VerificationEngine`` returns NOT_VERIFIED or REJECTED."""
     FINAL_RESPONSE_GENERATED = "FINAL_RESPONSE_GENERATED"
 
 
@@ -69,6 +103,14 @@ _DEFAULT_SEVERITY = {
     EventType.HUMAN_REVIEW_REQUIRED: Severity.HIGH,
     EventType.MODEL_CALLED: Severity.INFO,
     EventType.MODEL_FAILURE: Severity.HIGH,
+    EventType.EVALUATION_COMPLETED: Severity.INFO,
+    EventType.RETRIEVAL_INSUFFICIENT: Severity.WARNING,
+    EventType.INTERVENTION_TRIGGERED: Severity.NOTICE,
+    EventType.MODEL_ESCALATION: Severity.NOTICE,
+    EventType.REPLAN_TRIGGERED: Severity.NOTICE,
+    EventType.REPLAN_COMPLETED: Severity.INFO,
+    EventType.RISK_ESCALATION: Severity.HIGH,
+    EventType.VERIFICATION_FAILED: Severity.WARNING,
     EventType.FINAL_RESPONSE_GENERATED: Severity.INFO,
 }
 

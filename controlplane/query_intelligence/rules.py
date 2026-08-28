@@ -51,6 +51,28 @@ _CODING_KEYWORDS = ("function", "python", "code", "script", "bug", "compile", "s
 _REASONING_KEYWORDS = ("why", "explain", "analyze", "compare", "trade-off", "should we", "recommend", "evaluate whether")
 _PII_KEYWORDS = ("ssn", "social security", "credit card", "date of birth", "home address", "phone number", "email address")
 
+# Milestone 5 fix (found during the milestone's mandatory architecture
+# audit, listed there as a named regression: "semantic actionability
+# false-positive"): an action keyword immediately followed by one of
+# these nouns is a topic/policy REFERENCE ("the refund policy", "our
+# cancellation terms"), not a command to perform the action. Root cause
+# (bootstrap SS4's error-driven checklist): a weak algorithm -- pure
+# keyword presence cannot distinguish a verb usage from a noun-phrase
+# usage of the same word -- not bad data or bad taxonomy. This is a
+# targeted syntactic-position check, not a broader semantic model,
+# consistent with keeping this baseline a zero-model baseline; see
+# docs/ALGORITHMS/QUERY_PROFILER_BASELINE.md for why a full
+# semantic/small-model upgrade was not attempted this milestone.
+_TOPIC_REFERENCE_FOLLOWERS = (
+    "policy", "policies", "document", "documents", "guideline", "guidelines",
+    "terms", "procedure", "procedures", "rules", "form", "faq",
+)
+
+
+def _is_topic_reference(query_lower: str, keyword: str) -> bool:
+    match = re.search(rf"\b{re.escape(keyword)}\b\s+(\w+)", query_lower)
+    return bool(match and match.group(1) in _TOPIC_REFERENCE_FOLLOWERS)
+
 
 class RuleBasedQueryProfiler:
     name = "rules"
@@ -75,6 +97,8 @@ class RuleBasedQueryProfiler:
         impact = Impact.LOW
 
         action_hit = _has_any(q, *_ACTION_KEYWORDS)
+        if action_hit and _is_topic_reference(q, action_hit):
+            action_hit = None
         if action_hit:
             intent = Intent.ACTION_REQUEST
             actionability = Actionability.AGENTIC

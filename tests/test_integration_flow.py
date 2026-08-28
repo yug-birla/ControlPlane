@@ -35,7 +35,8 @@ def test_full_flow_persists_trajectory_ledger_and_events(monkeypatch):
 
     history = TrajectoryStore().get_history(trajectory_id)
     assert [h["step_type"] for h in history] == [
-        "received", "query_profiling", "risk_assessment", "routing", "route:generation", "completed",
+        "received", "query_profiling", "risk_assessment", "routing", "route:generation", "evaluation",
+        "decision:1", "completed",
     ]
     assert all(h["status"] in ("COMPLETED",) for h in history)
 
@@ -56,6 +57,7 @@ def test_full_flow_persists_trajectory_ledger_and_events(monkeypatch):
         "MODEL_CALLED",
         "ROUTE_STARTED",
         "ROUTE_COMPLETED",
+        "EVALUATION_COMPLETED",
         "FINAL_RESPONSE_GENERATED",
     ]
 
@@ -68,6 +70,8 @@ def test_full_flow_persists_trajectory_ledger_and_events(monkeypatch):
     assert body["metadata"]["policy"]["tier"]
     assert body["metadata"]["capability_route"]["selected_capabilities"]
     assert body["metadata"]["model_route"]["action"] in ("USE_FAST_MODEL", "USE_STRONG_MODEL", "HUMAN_REVIEW", "ABSTAIN")
+    assert body["metadata"]["decision"]["action"] == "CONTINUE"
+    assert body["metadata"]["verification"]["status"] == "VERIFIED"
 
 
 def test_failed_model_invocation_still_persists_trajectory_and_ledger(monkeypatch):

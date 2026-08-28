@@ -1,0 +1,21 @@
+{
+  "experiment_id": "exp_769d3911-3422-4835-9105-9ad0e7cb13b9",
+  "metrics": {
+    "sample_count": 10,
+    "query": "What was our Q4 department revenue, and according to the travel policy document what are the meal expense limits?",
+    "capabilities": "SQL (SQLite, real) + RAG (dense+BM25 retrieval over 30 real documents, real)",
+    "sequential_latency_ms": {
+      "mean": 32.80000000013388,
+      "min": 14.999999999417923,
+      "max": 61.99999999807915
+    },
+    "parallel_latency_ms": {
+      "mean": 21.80000000007567,
+      "min": 14.999999999417923,
+      "max": 31.9999999992433
+    },
+    "speedup": 1.5045871559642214,
+    "failure_rate": 0.0,
+    "note": "Real capability latency (SQLite query + dense/BM25 retrieval), not simulated -- see module docstring."
+  }
+}

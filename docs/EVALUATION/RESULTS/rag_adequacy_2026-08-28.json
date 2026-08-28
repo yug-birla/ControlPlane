@@ -1,0 +1,188 @@
+{
+  "experiment_id": "exp_073e955b-0d01-4277-ae2a-d7130ca7c5db",
+  "dataset_id": "rag_cases",
+  "dataset_version": "v0.1",
+  "metrics": {
+    "sample_count": 150,
+    "accuracy": 0.8,
+    "macro_f1": 0.7743370724846489,
+    "per_class": {
+      "SUFFICIENT": {
+        "precision": 0.8313253012048193,
+        "recall": 0.92,
+        "f1": 0.8734177215189873,
+        "support": 75
+      },
+      "PARTIALLY_SUFFICIENT": {
+        "precision": 0.6363636363636364,
+        "recall": 0.7368421052631579,
+        "f1": 0.6829268292682926,
+        "support": 38
+      },
+      "INSUFFICIENT": {
+        "precision": 1.0,
+        "recall": 0.6216216216216216,
+        "f1": 0.7666666666666667,
+        "support": 37
+      }
+    },
+    "confusion_matrix": {
+      "SUFFICIENT": {
+        "SUFFICIENT": 69,
+        "PARTIALLY_SUFFICIENT": 6,
+        "INSUFFICIENT": 0
+      },
+      "PARTIALLY_SUFFICIENT": {
+        "SUFFICIENT": 10,
+        "PARTIALLY_SUFFICIENT": 28,
+        "INSUFFICIENT": 0
+      },
+      "INSUFFICIENT": {
+        "SUFFICIENT": 4,
+        "PARTIALLY_SUFFICIENT": 10,
+        "INSUFFICIENT": 23
+      }
+    },
+    "error_count": 30,
+    "errors_sample": [
+      {
+        "case_id": "RC-004",
+        "query": "What is the exact financial threshold for SLA Commitments?",
+        "expected": "INSUFFICIENT",
+        "actual": "PARTIALLY_SUFFICIENT",
+        "coverage": 0.2,
+        "rag_category": "INSUFFICIENT",
+        "failure_mode": "conflicting_evidence"
+      },
+      {
+        "case_id": "RC-024",
+        "query": "What is the exact financial threshold for SLA Commitments?",
+        "expected": "INSUFFICIENT",
+        "actual": "PARTIALLY_SUFFICIENT",
+        "coverage": 0.2,
+        "rag_category": "INSUFFICIENT",
+        "failure_mode": "conflicting_evidence"
+      },
+      {
+        "case_id": "RC-027",
+        "query": "According to Procurement Playbook v2, what is the specific rule regarding Vendor Onboarding?",
+        "expected": "SUFFICIENT",
+        "actual": "PARTIALLY_SUFFICIENT",
+        "coverage": 0.25,
+        "rag_category": "ANSWERABLE",
+        "failure_mode": null
+      },
+      {
+        "case_id": "RC-035",
+        "query": "What was our Remote Equipment policy version in 2017?",
+        "expected": "INSUFFICIENT",
+        "actual": "PARTIALLY_SUFFICIENT",
+        "coverage": 0.2,
+        "rag_category": "INSUFFICIENT",
+        "failure_mode": "stale_evidence"
+      },
+      {
+        "case_id": "RC-036",
+        "query": "What are all conditions and edge cases for Data Retention according to Data Governance Manual Section 7?",
+        "expected": "PARTIALLY_SUFFICIENT",
+        "actual": "SUFFICIENT",
+        "coverage": 0.4,
+        "rag_category": "PARTIALLY_ANSWERABLE",
+        "failure_mode": "incomplete_retrieval"
+      },
+      {
+        "case_id": "RC-039",
+        "query": "What was our Annual Bonus policy version in 2017?",
+        "expected": "INSUFFICIENT",
+        "actual": "PARTIALLY_SUFFICIENT",
+        "coverage": 0.2,
+        "rag_category": "INSUFFICIENT",
+        "failure_mode": "stale_evidence"
+      },
+      {
+        "case_id": "RC-041",
+        "query": "What are all conditions and edge cases for Expense Reimbursement according to Travel and Expense Policy v3?",
+        "expected": "PARTIALLY_SUFFICIENT",
+        "actual": "SUFFICIENT",
+        "coverage": 0.3333333333333333,
+        "rag_category": "PARTIALLY_ANSWERABLE",
+        "failure_mode": "incomplete_retrieval"
+      },
+      {
+        "case_id": "RC-046",
+        "query": "What are all conditions and edge cases for Data Retention according to Data Governance Manual Section 7?",
+        "expected": "PARTIALLY_SUFFICIENT",
+        "actual": "SUFFICIENT",
+        "coverage": 0.4,
+        "rag_category": "PARTIALLY_ANSWERABLE",
+        "failure_mode": "incomplete_retrieval"
+      },
+      {
+        "case_id": "RC-047",
+        "query": "According to Procurement Playbook v2, what is the specific rule regarding Vendor Onboarding?",
+        "expected": "SUFFICIENT",
+        "actual": "PARTIALLY_SUFFICIENT",
+        "coverage": 0.25,
+        "rag_category": "ANSWERABLE",
+        "failure_mode": null
+      },
+      {
+        "case_id": "RC-048",
+        "query": "What is the exact financial threshold for Gift Acceptance?",
+        "expected": "INSUFFICIENT",
+        "actual": "PARTIALLY_SUFFICIENT",
+        "coverage": 0.2,
+        "rag_category": "INSUFFICIENT",
+        "failure_mode": "conflicting_evidence"
+      },
+      {
+        "case_id": "RC-051",
+        "query": "What was our Expense Reimbursement policy version in 2017?",
+        "expected": "INSUFFICIENT",
+        "actual": "SUFFICIENT",
+        "coverage": 0.4,
+        "rag_category": "INSUFFICIENT",
+        "failure_mode": "stale_evidence"
+      },
+      {
+        "case_id": "RC-055",
+        "query": "What was our Remote Equipment policy version in 2017?",
+        "expected": "INSUFFICIENT",
+        "actual": "PARTIALLY_SUFFICIENT",
+        "coverage": 0.2,
+        "rag_category": "INSUFFICIENT",
+        "failure_mode": "stale_evidence"
+      },
+      {
+        "case_id": "RC-057",
+        "query": "According to Procurement Playbook v2, what is the specific rule regarding Vendor Onboarding?",
+        "expected": "SUFFICIENT",
+        "actual": "PARTIALLY_SUFFICIENT",
+        "coverage": 0.25,
+        "rag_category": "ANSWERABLE",
+        "failure_mode": null
+      },
+      {
+        "case_id": "RC-064",
+        "query": "What is the exact financial threshold for SLA Commitments?",
+        "expected": "INSUFFICIENT",
+        "actual": "PARTIALLY_SUFFICIENT",
+        "coverage": 0.2,
+        "rag_category": "INSUFFICIENT",
+        "failure_mode": "conflicting_evidence"
+      },
+      {
+        "case_id": "RC-067",
+        "query": "According to Procurement Playbook v2, what is the specific rule regarding Vendor Onboarding?",
+        "expected": "SUFFICIENT",
+        "actual": "PARTIALLY_SUFFICIENT",
+        "coverage": 0.25,
+        "rag_category": "ANSWERABLE",
+        "failure_mode": null
+      }
+    ],
+    "not_measured": {
+      "CONFLICTING label": "no ground-truth example carries this label in this dataset -- see docs/EVALUATION/RAG_RESULTS.md"
+    }
+  }
+}
