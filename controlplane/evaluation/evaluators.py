@@ -13,14 +13,15 @@
   language + answer length) used by the Decision Engine as an escalation
   trigger -- not a substitute for true model-calibrated confidence.
 
-Reasoning and Bias evaluators are declared but not implemented
-(``NotImplementedEvaluator``) -- per bootstrap SS46 ("Never return
-fabricated... If something is heuristic, mark it as heuristic. If
-something is mocked, mark it as mocked."), these report
-``EvaluationStatus.NOT_IMPLEMENTED`` rather than a fabricated score. See
-docs/ALGORITHMS/EVALUATION_LAYER.md for why (Reasoning needs a
-multi-step trace the current single-shot generation doesn't produce;
-Bias needs paired demographic test cases that don't exist yet).
+Reasoning: a narrow deterministic self-contradiction check (real, but not
+general logical-validity checking -- see ``ReasoningEvaluator``'s
+docstring). Bias is declared but not implemented as a single-context
+``Evaluator`` (``NotImplementedEvaluator("bias")``) -- it is inherently
+comparative/paired, so it lives as a standalone module,
+``controlplane.evaluation.bias``, instead. Per bootstrap SS46 ("Never
+return fabricated... If something is heuristic, mark it as heuristic."),
+nothing here reports a fabricated score. See
+docs/ALGORITHMS/EVALUATION_LAYER.md for the full per-evaluator rationale.
 """
 
 from __future__ import annotations
@@ -67,6 +68,14 @@ class EvaluationContext:
     from ``evidence_texts`` (RAG's unstructured text) because numeric
     claims are checked against structured values, not lexical overlap
     (see ``FactualityEvaluator``)."""
+    rag_adequacy: str | None = None
+    """The RAG node's own ``controlplane.rag.adequacy.AdequacyLabel``
+    (SUFFICIENT/PARTIALLY_SUFFICIENT/INSUFFICIENT/CONFLICTING), passed
+    through so the Decision Engine can react to CONFLICTING specifically
+    -- distinct from ``GroundingEvaluator``'s answer-vs-evidence overlap,
+    this is about the evidence disagreeing with ITSELF, which retrieving
+    more of the same evidence or regenerating from it cannot fix the same
+    way an UNSUPPORTED grounding failure can."""
     fingerprint: QueryFingerprint | None = None
     risk: RiskProfile | None = None
 
@@ -132,6 +141,31 @@ class ActionRiskEvaluator(Evaluator):
             evidence={"action_dimension": action_severity.value if action_severity else None, "trigger_signals": ctx.risk.trigger_signals},
             rationale=f"derived directly from Risk Profiler severity={ctx.risk.severity.value}",
             recommended_signal="FLAG_FOR_REVIEW" if ctx.risk.severity.value in ("HIGH_RISK", "CRITICAL") else "OK",
+        )
+
+
+class RAGAdequacyPassthroughEvaluator(Evaluator):
+    """Deterministic passthrough of ``EvaluationContext.rag_adequacy`` --
+    same pattern as Privacy/ActionRisk/Safety (bootstrap SS3: "one cheap
+    inference, not N independent ones"). Exists mainly so the Decision
+    Engine has a normal ``EvaluationResult`` to key off of for CONFLICTING
+    evidence (bootstrap SS29), rather than reaching around the Evaluation
+    layer into raw graph node output."""
+
+    name = "rag_adequacy"
+
+    def evaluate(self, ctx: EvaluationContext) -> EvaluationResult:
+        if ctx.rag_adequacy is None:
+            return EvaluationResult(
+                evaluator=self.name, status=EvaluationStatus.IMPLEMENTED, label="NOT_APPLICABLE",
+                rationale="no RAG node ran for this request",
+            )
+        return EvaluationResult(
+            evaluator=self.name,
+            status=EvaluationStatus.IMPLEMENTED,
+            label=ctx.rag_adequacy,
+            rationale=f"passthrough of the RAG capability's own adequacy assessment: {ctx.rag_adequacy}",
+            recommended_signal="FLAG_FOR_REVIEW" if ctx.rag_adequacy in ("INSUFFICIENT", "CONFLICTING") else "OK",
         )
 
 
@@ -356,10 +390,65 @@ class FactualityEvaluator(Evaluator):
         )
 
 
+_CONTRADICTION_PAIRS = [
+    ("is allowed", "is not allowed"), ("is required", "is not required"),
+    ("is permitted", "is not permitted"), ("can be", "cannot be"), ("must", "must not"),
+    ("is mandatory", "is optional"), ("is eligible", "is not eligible"),
+]
+
+
+class ReasoningEvaluator(Evaluator):
+    """Deterministic self-contradiction check -- the only reasoning-quality
+    signal available without either a multi-step trace (single-shot
+    generation doesn't produce one to check "verifiable calculations"/
+    "constraint satisfaction" against, per bootstrap SS18) or a live judge
+    call (measured 30-90s/call on this CPU-only machine -- too slow for
+    the live per-request suite, see docs/ALGORITHMS/EVALUATION_LAYER.md).
+
+    Deliberately reports ``NO_CONTRADICTION_DETECTED``, not "CONSISTENT"
+    or "SOUND" -- this checks for one narrow failure pattern (the answer
+    asserting both a claim and its direct polarity opposite about the
+    same subject), not general logical validity. A judge-backed
+    evaluator for deeper reasoning-quality checks exists
+    (``controlplane.evaluation.judge_evaluators.JudgeBackedEvaluator``
+    with ``task="reasoning"``) and is measured in
+    docs/EVALUATION/EVALUATOR_RESULTS.md, but is not part of this live
+    default suite for the same latency reason."""
+
+    name = "reasoning"
+
+    def evaluate(self, ctx: EvaluationContext) -> EvaluationResult:
+        if not ctx.answer:
+            return EvaluationResult(
+                evaluator=self.name, status=EvaluationStatus.IMPLEMENTED, label="NOT_APPLICABLE",
+                rationale="no answer to check",
+            )
+        lowered = ctx.answer.lower()
+        contradictions = [f"{pos!r} and {neg!r}" for pos, neg in _CONTRADICTION_PAIRS if pos in lowered and neg in lowered]
+        if contradictions:
+            return EvaluationResult(
+                evaluator=self.name,
+                status=EvaluationStatus.IMPLEMENTED,
+                label="SELF_CONTRADICTORY",
+                issues=contradictions,
+                rationale=f"answer asserts both sides of a direct polarity pair: {contradictions}",
+                recommended_signal="FLAG_FOR_REVIEW",
+            )
+        return EvaluationResult(
+            evaluator=self.name,
+            status=EvaluationStatus.IMPLEMENTED,
+            label="NO_CONTRADICTION_DETECTED",
+            rationale="no direct polarity self-contradiction found (narrow deterministic check only, not general reasoning validity)",
+            recommended_signal="OK",
+        )
+
+
 class NotImplementedEvaluator(Evaluator):
-    """Placeholder for Factuality/Reasoning/Safety/Bias -- deferred this
-    milestone (see docs/PROJECT_STATE/FUTURE_WORK.md). Never fabricates a
-    score; reports its own absence explicitly."""
+    """Placeholder for Bias -- deferred (see docs/PROJECT_STATE/FUTURE_WORK.md
+    for the standalone ``controlplane.evaluation.bias`` module, which is
+    real but is a paired/comparative evaluator, not a fit for this
+    single-context ``Evaluator`` interface). Never fabricates a score;
+    reports its own absence explicitly."""
 
     def __init__(self, name: str) -> None:
         self.name = name
@@ -385,7 +474,8 @@ class EvaluationSuite:
             GroundingEvaluator(),
             FactualityEvaluator(),
             ResponseConfidenceEvaluator(),
-            NotImplementedEvaluator("reasoning"),
+            ReasoningEvaluator(),
+            RAGAdequacyPassthroughEvaluator(),
             NotImplementedEvaluator("bias"),
         ]
 

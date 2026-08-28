@@ -7,6 +7,7 @@ from controlplane.evaluation.evaluators import (
     GroundingEvaluator,
     NotImplementedEvaluator,
     PrivacyPIIEvaluator,
+    ReasoningEvaluator,
     ResponseConfidenceEvaluator,
     SafetyEvaluator,
 )
@@ -138,7 +139,28 @@ def test_evaluation_suite_runs_every_evaluator_and_keeps_not_implemented_visible
     names = {r.evaluator for r in results}
     assert {
         "privacy_pii", "action_risk", "safety", "grounding", "factuality",
-        "response_confidence", "reasoning", "bias",
+        "response_confidence", "reasoning", "rag_adequacy", "bias",
     } == names
     not_implemented = {r.evaluator for r in results if r.status == EvaluationStatus.NOT_IMPLEMENTED}
-    assert {"reasoning", "bias"} == not_implemented
+    assert {"bias"} == not_implemented
+
+
+def test_reasoning_evaluator_flags_a_direct_self_contradiction():
+    result = ReasoningEvaluator().evaluate(
+        EvaluationContext(query="q", answer="Remote work is allowed for new hires, but remote work is not allowed for new hires.")
+    )
+    assert result.label == "SELF_CONTRADICTORY"
+    assert result.recommended_signal == "FLAG_FOR_REVIEW"
+
+
+def test_reasoning_evaluator_reports_no_contradiction_detected_for_a_normal_answer():
+    result = ReasoningEvaluator().evaluate(
+        EvaluationContext(query="q", answer="Remote work is allowed after six months of tenure with manager approval.")
+    )
+    assert result.label == "NO_CONTRADICTION_DETECTED"
+    assert result.status == EvaluationStatus.IMPLEMENTED
+
+
+def test_reasoning_evaluator_is_not_applicable_with_no_answer():
+    result = ReasoningEvaluator().evaluate(EvaluationContext(query="q", answer=None))
+    assert result.label == "NOT_APPLICABLE"

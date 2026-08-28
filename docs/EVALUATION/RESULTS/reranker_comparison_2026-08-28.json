@@ -1,0 +1,37 @@
+{
+  "experiment_id": "exp_9454041d-e713-478d-bfce-ff9e9e8b957f",
+  "dataset_id": "rag_retrieval_relevance_cases",
+  "dataset_version": "v0.1",
+  "results": {
+    "A_dense_only": {
+      "sample_count": 26,
+      "recall_at_1": 0.9615384615384616,
+      "recall_at_3": 1.0,
+      "mrr": 0.9807692307692307,
+      "not_found_count": 0,
+      "cold_start_ms": 20437,
+      "warm_latency_ms_mean": 44.11538461538461,
+      "warm_latency_ms_max": 63
+    },
+    "B_dense_plus_lexical_fusion": {
+      "sample_count": 26,
+      "recall_at_1": 0.9615384615384616,
+      "recall_at_3": 1.0,
+      "mrr": 0.9807692307692307,
+      "not_found_count": 0,
+      "cold_start_ms": 47,
+      "warm_latency_ms_mean": 41.73076923076923,
+      "warm_latency_ms_max": 47
+    },
+    "C_dense_plus_lexical_plus_cross_encoder": {
+      "sample_count": 26,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "mrr": 1.0,
+      "not_found_count": 0,
+      "cold_start_ms": 1358,
+      "warm_latency_ms_mean": 1087.7307692307693,
+      "warm_latency_ms_max": 1968
+    }
+  }
+}

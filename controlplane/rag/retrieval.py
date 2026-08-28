@@ -1,4 +1,5 @@
-"""Dense + lexical retrieval, and a V0 score-fusion "reranker".
+"""Dense + lexical retrieval, a V0 score-fusion "reranker", and (new this
+milestone) a real cross-encoder reranking stage.
 
 Baseline choice (per bootstrap SS17/SS50/SS51 -- "choose a small
 practical baseline," "do not implement every paper"):
@@ -8,13 +9,17 @@ practical baseline," "do not implement every paper"):
 - Lexical: BM25, implemented from scratch (~40 lines) rather than adding
   a dependency -- consistent with this codebase's existing
   dependency-free-metrics precedent (``controlplane/experiments/metrics.py``).
-- "Reranking": min-max-normalized score fusion (0.5 dense + 0.5 lexical),
-  NOT a learned cross-encoder. A cross-encoder (e.g.
-  ``cross-encoder/ms-marco-MiniLM-L-6-v2``) was considered and explicitly
-  deferred this milestone -- see docs/PROJECT_STATE/DECISIONS.md -- given
-  the number of other P0 items in this milestone; score fusion is a real,
-  measurable improvement over either signal alone (see
-  docs/EVALUATION/RAG_RESULTS.md) even though it is not a learned model.
+- Score fusion: min-max-normalized 0.5 dense + 0.5 lexical -- the
+  candidate-generation stage. Previously mislabeled "reranking"; a real
+  cross-encoder (``controlplane.rag.reranker``) now does that job when
+  ``rerank=True``, per the decision to no longer defer it -- see
+  docs/PROJECT_STATE/DECISIONS.md and docs/EVALUATION/RAG_RESULTS.md for
+  the measured comparison (dense vs dense+lexical vs dense+lexical+cross-encoder).
+
+``retrieve()`` defaults to ``rerank=False`` (unchanged fusion-only
+behavior, e.g. for existing callers/tests); ``RAGCapability`` -- the path
+actually used by the runtime -- passes ``rerank=True`` so the
+cross-encoder is a real, live stage, not decorative unused code.
 """
 
 from __future__ import annotations
@@ -101,9 +106,32 @@ class RetrievedChunk:
     dense_score: float
     lexical_score: float
     fused_score: float
+    cross_encoder_score: float | None = None
+    """Set only when ``retrieve(..., rerank=True)`` -- sigmoid-normalized
+    cross-encoder relevance score, distinct from ``fused_score`` (see
+    ``controlplane.rag.reranker``)."""
 
 
-def retrieve(query: str, k: int = 5, dense_weight: float = 0.5) -> list[RetrievedChunk]:
+@lru_cache(maxsize=1)
+def _reranker():
+    from controlplane.rag.reranker import get_reranker
+
+    return get_reranker()
+
+
+def retrieve(
+    query: str,
+    k: int = 5,
+    dense_weight: float = 0.5,
+    rerank: bool = False,
+    candidate_multiplier: int = 3,
+) -> list[RetrievedChunk]:
+    """``rerank=True`` adds a second stage: widen candidate generation to
+    ``max(k * candidate_multiplier, 10)`` chunks via fusion, then
+    re-score/re-sort that candidate set with the real cross-encoder
+    (``controlplane.rag.reranker``), truncating to ``k``. Default
+    ``False`` keeps existing callers' behavior (fusion-ranked top-k)
+    unchanged; ``RAGCapability`` opts in."""
     chunks = load_chunks()
     if not chunks:
         return []
@@ -116,8 +144,12 @@ def retrieve(query: str, k: int = 5, dense_weight: float = 0.5) -> list[Retrieve
     lexical_norm = _min_max_normalize(lexical_scores)
     fused = [dense_weight * d + (1 - dense_weight) * l for d, l in zip(dense_norm, lexical_norm)]
 
-    order = sorted(range(len(chunks)), key=lambda i: fused[i], reverse=True)[:k]
-    return [
+    candidate_k = min(len(chunks), max(k * candidate_multiplier, 10)) if rerank else k
+    order = sorted(range(len(chunks)), key=lambda i: fused[i], reverse=True)[:candidate_k]
+    candidates = [
         RetrievedChunk(chunk=chunks[i], dense_score=dense_scores[i], lexical_score=lexical_scores[i], fused_score=fused[i])
         for i in order
     ]
+    if not rerank:
+        return candidates
+    return _reranker().rerank(query, candidates, top_k=k)

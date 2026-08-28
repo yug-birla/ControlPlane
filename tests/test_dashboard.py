@@ -119,6 +119,17 @@ def test_dashboard_shows_control_loop_for_an_intervened_request():
     assert list_row["verification_status"] == "VERIFIED"
 
 
+def test_dashboard_detail_shows_a_derived_trust_level():
+    request_id = _create_request()
+    resp = client.get(f"/dashboard/requests/{request_id}")
+    assert resp.status_code == 200
+    assert "Trust" in resp.text
+
+    api_detail = client.get(f"/dashboard/api/requests/{request_id}").json()
+    assert api_detail["trust"] is not None
+    assert api_detail["trust"]["level"] in ("HIGH", "MEDIUM", "LOW")
+
+
 def test_dashboard_never_exposes_secrets():
     # Generic env-var-name and provider-prefix markers only -- deliberately
     # never a literal fragment of any real key, even a truncated one, so

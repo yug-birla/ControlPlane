@@ -45,13 +45,18 @@ python -m venv .venv
 .venv/Scripts/python -m controlplane.models.model_download   # one-time: caches the local embedding model (~91MB)
 .venv/Scripts/python -m controlplane.models.registry_seed    # seeds model_registry
 .venv/Scripts/python -m controlplane.capabilities.sql_setup  # one-time: builds the SQLite demo DB (not committed, regenerable)
-.venv/Scripts/python -m pytest       # 186 tests, no live external API required (local model must be downloaded first)
+# One-time: RAG reranker (~90MB, cross-encoder/ms-marco-MiniLM-L-6-v2) and Local Judge (~3GB, Qwen2.5-1.5B-Instruct)
+.venv/Scripts/python -c "from huggingface_hub import snapshot_download; snapshot_download('cross-encoder/ms-marco-MiniLM-L-6-v2', revision='c5ee24cb16019beea0893ab7796b1df96625c6b8')"
+.venv/Scripts/python -c "from huggingface_hub import snapshot_download; snapshot_download('Qwen/Qwen2.5-1.5B-Instruct', revision='989aa7980e4cf806f80c7fef2b1adb7bc71aa306')"
+.venv/Scripts/python -m pytest       # 200+ tests, no live external API required (local models must be downloaded first)
 GROQ_API_KEY=... GROQ_MODEL=... .venv/Scripts/python -m uvicorn controlplane.main:app
 # Optional: GROQ_MODEL_FAST / GROQ_MODEL_STRONG override GROQ_MODEL per Model Router role
 # Optional (comparison-only, never the default route): GEMINI_API_KEY_1 / GEMINI_API_KEY_2 / GEMINI_MODEL
 ```
 
-Visit `/dashboard` once the app is running for a read-only view of every request's profile/risk/route/graph/decision/intervention/verification trail.
+Visit `/dashboard` once the app is running for a read-only view of every request's profile/risk/route/graph/decision/intervention/verification/**trust** trail.
+
+The Local Judge (`Qwen2.5-1.5B-Instruct`) is CPU-only and slow (measured 30-90s per structured judgment on this hardware) — it is used for offline calibration/comparison experiments (`controlplane/experiments/evaluate_judge_calibration.py`, `evaluate_bias.py`), never in the live request path. See `docs/ALGORITHMS/LLM_JUDGE.md`.
 
 See `controlplane/README.md` for the interface and current scope, `docs/PROJECT_STATE/CURRENT_STATE.md` for exactly what is and isn't implemented, and `docs/EVALUATION/` for measured results.
 
@@ -123,7 +128,9 @@ Everything related to the dataset workstream.
 | `rag_cases.json` | 150 | RAG retrieval cases with sufficiency labels |
 | `intervention_cases.json` | 150 | Intervention decision cases with expected outcomes |
 | `counterfactual_cases.json` | 75 | Counterfactual route and model swap cases |
-| `agent_trajectories.json` | 75 | Multi-step agentic execution trajectories |
+| `agent_trajectories.json` | 75 | Multi-step agentic execution trajectories — used by `controlplane/experiments/evaluate_agent_governance.py` (Milestone 6) |
+| `rag_retrieval_relevance_cases.json` | 26 | NEW (Milestone 6, provenance HUMAN) — query → known-correct real-corpus document, for reranker Recall@k/MRR evaluation |
+| `bias_paired_cases.json` | 8 | NEW (Milestone 6, provenance HUMAN) — paired counterfactual queries (name/gender/ethnicity variation) for the Bias evaluator |
 
 ### `data/annotations/`
 | File | Records | Description |

@@ -109,6 +109,58 @@ def test_low_confidence_fast_response_escalates_to_strong_model():
     assert first_decision["output_ref"]["action"] == ControlAction.CHANGE_MODEL.value
 
 
+class _ScriptedConflictingRAG:
+    """A fake RAG capability that always reports CONFLICTING adequacy --
+    used because the real 30-document corpus doesn't happen to contain a
+    genuine same-topic contradiction, so this exercises the Decision
+    Engine's CONFLICTING-evidence branch (controlplane/decision/engine.py)
+    deterministically rather than relying on the real corpus to produce
+    one by chance."""
+
+    def __init__(self, evidence_texts: list[str]) -> None:
+        self._evidence_texts = evidence_texts
+        self.calls = 0
+
+    def execute(self, query_text: str, k: int | None = None) -> dict:
+        self.calls += 1
+        return {
+            "status": "EXECUTED",
+            "retrieved_count": len(self._evidence_texts),
+            "reranked": False,
+            "evidence": [
+                {"document": f"Doc{i}", "text": t, "dense_score": 0.5, "lexical_score": 0.5, "fused_score": 0.5, "cross_encoder_score": None}
+                for i, t in enumerate(self._evidence_texts)
+            ],
+            "adequacy": {"label": "CONFLICTING", "coverage": 0.8, "reason": "evidence items disagree on a polarity term (test fixture)"},
+            "source": "test-fixture",
+        }
+
+
+def test_conflicting_evidence_asks_for_clarification_instead_of_picking_one_value():
+    """Bootstrap SS29: conflicting evidence must not be silently resolved
+    by picking one of the disputed values -- the loop should retry once
+    (in case a wider retrieval surfaces an authoritative source), then
+    disclose the conflict rather than assert either figure."""
+    fake_rag = _ScriptedConflictingRAG(["[Annex B]: Threshold is $5,000.", "[Finance Addendum]: Threshold is $10,000."])
+    provider = _ScriptedProvider(["The threshold is $5,000 per the Annex B policy document."])
+    rt = build_default_runtime(provider_factory=lambda settings, role="STRONG": provider, rag_capability=fake_rag)
+    ctx = RequestContext.new()
+    with ctx.bind():
+        state = ExecutionState.initial(ctx=ctx, query="What is the exact financial threshold for SLA commitments per our policy documents?")
+        state = rt.handle(ctx, state)
+
+    assert fake_rag.calls == 2  # widened-k retry really did re-run retrieval, not just re-evaluate
+    assert state.metadata["answer"] is None  # never silently asserts $5,000 or $10,000
+    assert state.metadata["decision"]["action"] == ControlAction.ASK_CLARIFICATION.value
+    assert state.metadata["decision"]["triggering_evaluator"] == "rag_adequacy"
+    assert state.metadata["verification"]["status"] == VerificationStatus.NOT_VERIFIED.value
+
+    events = [e["event_type"] for e in EventStore().get_by_trajectory(ctx.trajectory_id)]
+    assert "INTERVENTION_TRIGGERED" in events
+    first_decision = next(d for d in TrajectoryStore().get_history(ctx.trajectory_id) if d["step_type"] == "decision:1")
+    assert first_decision["output_ref"]["action"] == ControlAction.RETRIEVE_MORE.value
+
+
 def test_high_risk_action_reaches_human_review_not_continue():
     """SCENARIO 7: a high-risk action must always terminate at
     HUMAN_REVIEW/REJECTED, never CONTINUE/VERIFIED, regardless of how

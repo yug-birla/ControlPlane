@@ -1,6 +1,6 @@
 # Evaluation Layer
 
-**Status:** PARTIALLY IMPLEMENTED (Milestone 4/5, 2026-08-28)
+**Status:** PARTIALLY IMPLEMENTED (Milestone 6 adds Reasoning + RAG-adequacy passthrough + a standalone Bias module, 2026-08-28; core set was Milestone 4/5)
 
 ## Problem
 
@@ -8,7 +8,7 @@ Score a completed response along multiple independent dimensions (bootstrap: "do
 
 ## Architecture Location
 
-`controlplane/evaluation/evaluators.py`. `EvaluationSuite` runs a fixed evaluator list; results are per-request-persisted (`response_evaluations` table) and fed to `controlplane/decision/engine.py`.
+`controlplane/evaluation/evaluators.py`. `EvaluationSuite` runs a fixed evaluator list; results are per-request-persisted (`response_evaluations` table) and fed to `controlplane/decision/engine.py`. `controlplane/evaluation/bias.py` and `controlplane/evaluation/judge_evaluators.py` are separate modules (see below for why).
 
 ## Evaluators
 
@@ -17,48 +17,52 @@ Score a completed response along multiple independent dimensions (bootstrap: "do
 | `privacy_pii` | Deterministic passthrough of Query Profiler `sensitivity` | IMPLEMENTED |
 | `action_risk` | Deterministic passthrough of Risk Profiler `action` dimension + severity | IMPLEMENTED |
 | `safety` | Deterministic passthrough of Risk Profiler `safety` dimension | IMPLEMENTED |
-| `grounding` | Lexical claim/evidence overlap (answer vs. RAG evidence text) | IMPLEMENTED (baseline) |
+| `grounding` | Lexical claim/evidence overlap (answer vs. RAG evidence text) | IMPLEMENTED (baseline); semantic (judge-backed) alternative measured separately, see `docs/ALGORITHMS/LLM_JUDGE.md` |
 | `factuality` | Deterministic numeric-claim check against SQL rows + RAG evidence text | IMPLEMENTED (narrow — numeric claims only) |
 | `response_confidence` | Hedging-language + length heuristic | IMPLEMENTED (surface signal, not calibrated model confidence) |
-| `reasoning` | — | NOT_IMPLEMENTED |
-| `bias` | — | NOT_IMPLEMENTED |
+| `reasoning` | Deterministic self-contradiction check (direct polarity-pair assertions about the same subject) | IMPLEMENTED (narrow — one failure pattern, not general logical validity; judge-backed alternative exists but is not live-wired, see `docs/ALGORITHMS/LLM_JUDGE.md`) |
+| `rag_adequacy` | Deterministic passthrough of the RAG capability's own adequacy label (incl. `CONFLICTING`) | IMPLEMENTED |
+| `bias` (in `EvaluationSuite`) | — | NOT_IMPLEMENTED (real, but comparative — see `controlplane.evaluation.bias` below) |
 
-None fabricate a score when inapplicable — `NOT_APPLICABLE` (grounding/factuality with no evidence) and `NOT_IMPLEMENTED` (reasoning/bias) are reported explicitly.
+None fabricate a score when inapplicable — `NOT_APPLICABLE`, `NOT_IMPLEMENTED`, `PARSE_FAILED` are reported explicitly rather than guessed.
 
-## Why Reasoning and Bias Remain Unimplemented
+## Bias — A Standalone Comparative Module
 
-**Reasoning:** bootstrap explicitly forbids inspecting hidden chain-of-thought; a real reasoning evaluator needs a *verifiable* intermediate trace (tool calls, sub-answers) the current single-shot generation doesn't produce. Adding one would require restructuring generation into multiple steps — a larger change than this milestone's scope, and not yet justified by a measured gap.
-**Bias:** requires paired demographic test cases (bootstrap §17: "paired demographic examples, consistency comparisons") that don't exist in this project's data yet. Fabricating pairs to fill the gap would risk a bias *measurement* method as unvalidated as the thing it measures.
+`controlplane/evaluation/bias.py::BiasEvaluator` is real and implemented, but is NOT one of the 9 evaluators in `EvaluationSuite()`'s per-request list: bias is inherently a PAIRED comparison (does the system treat two otherwise-identical inputs differently), and every other evaluator here scores exactly one `EvaluationContext`. Forcing bias into that single-context interface would mean either scoring each side alone (defeating the purpose) or threading a second context through every other evaluator's signature for one evaluator's sake. It is used by `controlplane/experiments/evaluate_bias.py` against a hand-authored 8-pair counterfactual dataset — see `docs/EVALUATION/EVALUATOR_RESULTS.md`.
+
+## Why Reasoning Was Upgraded, Not Left `NOT_IMPLEMENTED`
+
+The self-contradiction check needed no multi-step trace and no model call — a real, if narrow, signal was available without either of the blockers that kept it `NOT_IMPLEMENTED` through Milestone 5. It deliberately reports `NO_CONTRADICTION_DETECTED`, not `CONSISTENT`/`SOUND`, so it never overstates what a narrow keyword-pair check actually verified. A deeper, judge-backed reasoning evaluator also exists (`controlplane.evaluation.judge_evaluators.JudgeBackedEvaluator` with `task="reasoning"`) and is measured, but is not part of the live default suite (see `docs/ALGORITHMS/LLM_JUDGE.md` for the latency reason).
 
 ## Candidate Alternatives
 
-- **LLM-as-a-judge for grounding/factuality** — deferred; the deterministic baselines are measurably useful (Grounding: real end-to-end recovery scenario; Factuality: 0/1 → correctly SUPPORTED once RAG evidence is checked too, see the regression this fix addressed) and add no latency/cost/Gemini-quota consumption.
+- **LLM-as-a-judge for grounding/factuality/reasoning as the live default** — built and measured (`controlplane/judge/`), but not wired into `EvaluationSuite()`'s default list: measured Local Judge latency is 30-90s/call on this CPU-only machine, vs. the rest of the suite's sub-100ms total. Remote Judge (Gemini) is fast but explicitly never the default route (quota, bootstrap SS14).
 - **A dedicated small classifier for response_confidence** — deferred; no training data exists, and the heuristic is cheap and already drives a real, tested escalation path.
 
 ## Inputs / Outputs
 
-`EvaluationContext(query, answer, evidence_texts, sql_rows, fingerprint, risk) -> list[EvaluationResult]`.
+`EvaluationContext(query, answer, evidence_texts, sql_rows, rag_adequacy, fingerprint, risk) -> list[EvaluationResult]`.
 
 ## Dataset
 
-Grounding/Factuality validated via targeted unit tests and the real end-to-end control-loop scenarios (`tests/test_control_loop_scenarios.py`), not a large labeled benchmark (none exists for this specific corpus/task combination).
+Grounding/Factuality/Reasoning validated via targeted unit tests and the real end-to-end control-loop scenarios (`tests/test_control_loop_scenarios.py`). Judge calibration: a DERIVED 20-case grounding benchmark from `rag_cases.json` (see `docs/EVALUATION/EVALUATOR_RESULTS.md`). Bias: `data/raw/generated/bias_paired_cases.json` (NEW, 8 pairs, provenance HUMAN, SMOKE_TEST scale).
 
 ## Metrics
 
-See `docs/EVALUATION/CONTROL_LOOP_RESULTS.md` for the Decision Engine's use of these signals in practice.
+See `docs/EVALUATION/CONTROL_LOOP_RESULTS.md` for the Decision Engine's use of these signals in practice, and `docs/EVALUATION/EVALUATOR_RESULTS.md` for the judge calibration and bias results.
 
 ## Failure Modes
 
-Found and fixed during this milestone: `FactualityEvaluator` originally checked SQL rows only, causing a correct RAG-sourced number to be flagged `CONTRADICTED` simply for not being SQL data in a multi-source query — fixed to check both evidence sources (regression test: `test_factuality_checks_rag_evidence_too_not_only_sql_regression`).
+Found and fixed in Milestone 5: `FactualityEvaluator` originally checked SQL rows only, causing a correct RAG-sourced number to be flagged `CONTRADICTED` simply for not being SQL data in a multi-source query. Found and fixed this milestone: the Local Judge's JSON prompt template had a doubled-brace formatting bug causing every judge call to fail parsing (see `docs/ALGORITHMS/LLM_JUDGE.md`).
 
 ## Result
 
-6/8 evaluators real and wired into the live control loop; 2/8 explicitly and honestly not implemented.
+8/9 `EvaluationSuite` evaluators real and wired into the live control loop (only `bias` remains `NOT_IMPLEMENTED` there, by design — it lives as a standalone comparative module instead, also real). A working LLM-Judge subsystem exists and is measured, deliberately not defaulted into the live path.
 
 ## Final Decision
 
-Current evaluator set adopted as the runtime default.
+Current evaluator set adopted as the runtime default; judge-backed evaluators adopted for offline calibration/comparison use only.
 
 ## Version
 
-v2 — 2026-08-28 (v1 was Milestone 4's privacy/action_risk/grounding-only set).
+v3 — 2026-08-28 (v2 was Milestone 5's 6-implemented/2-not set; v1 was Milestone 4's privacy/action_risk/grounding-only set).

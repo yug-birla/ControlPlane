@@ -58,6 +58,7 @@ from controlplane.routing.capability_router import CapabilityRoute, CapabilityRo
 from controlplane.routing.model_router import ModelRouteAction, ModelRouteDecision, ModelRouter
 from controlplane.state import ExecutionState, ExecutionStatus
 from controlplane.trajectory.store import TrajectoryStore
+from controlplane.trust.engine import TrustEngine
 from controlplane.verification.engine import VerificationEngine, VerificationResult, VerificationStatus
 
 logger = get_logger("controlplane.runtime")
@@ -97,6 +98,7 @@ class Runtime:
         decision_engine=None,
         intervention_engine=None,
         verification_engine=None,
+        trust_engine=None,
     ) -> None:
         self._trajectory_store = trajectory_store
         self._ledger = ledger
@@ -115,6 +117,7 @@ class Runtime:
         self._decision_engine = decision_engine or DecisionEngine()
         self._intervention_engine = intervention_engine or InterventionEngine()
         self._verification_engine = verification_engine or VerificationEngine()
+        self._trust_engine = trust_engine or TrustEngine()
 
     def _publish(
         self, event_type: EventType, ctx: RequestContext, *, source: str, payload: dict, severity: Severity | None = None
@@ -213,12 +216,18 @@ class Runtime:
         state.metadata["evaluation"] = [r.model_dump(mode="json") for r in final_evaluation]
         state.metadata["decision"] = decision.model_dump(mode="json")
         state.metadata["verification"] = verification.model_dump(mode="json")
+        trust = self._trust_engine.assess(verification, decision, risk)
+        state.metadata["trust"] = trust.model_dump(mode="json")
 
         self._publish(
             EventType.FINAL_RESPONSE_GENERATED,
             ctx,
             source="controlplane",
-            payload={"model_invocation_id": final_result["invocation_id"], "verification_status": verification.status.value},
+            payload={
+                "model_invocation_id": final_result["invocation_id"],
+                "verification_status": verification.status.value,
+                "trust_level": trust.level.value,
+            },
         )
         self._trajectory_store.append_step(
             trajectory_id=ctx.trajectory_id,
@@ -469,15 +478,17 @@ class Runtime:
 
         evidence_texts: list[str] = []
         sql_rows: list[dict] = []
+        rag_adequacy: str | None = None
         for node in capability_route.graph.nodes:
             if node.capability == "RAG" and node.status == NodeStatus.COMPLETED:
                 evidence_texts.extend(item["text"] for item in node.output_ref.get("evidence", []))
+                rag_adequacy = node.output_ref.get("adequacy", {}).get("label")
             if node.capability == "SQL" and node.status == NodeStatus.COMPLETED:
                 sql_rows.extend(node.output_ref.get("rows", []))
 
         eval_ctx = EvaluationContext(
             query=query, answer=answer, evidence_texts=evidence_texts, sql_rows=sql_rows,
-            fingerprint=fingerprint, risk=risk,
+            rag_adequacy=rag_adequacy, fingerprint=fingerprint, risk=risk,
         )
         results = self._evaluation_suite.run(eval_ctx)
 
@@ -982,6 +993,7 @@ def build_default_runtime(
     capability_router=None,
     model_router=None,
     evaluation_suite=None,
+    rag_capability=None,
 ) -> Runtime:
     trajectory_store = TrajectoryStore()
     ledger = ExecutionLedger()
@@ -998,4 +1010,5 @@ def build_default_runtime(
         capability_router=capability_router,
         model_router=model_router,
         evaluation_suite=evaluation_suite,
+        rag_capability=rag_capability,
     )

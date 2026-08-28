@@ -23,8 +23,21 @@ Grid search was run on this same 150-example set — no separate held-out split 
 
 **Critical finding (Milestone 5 architecture audit):** through Milestone 4, `provider.generate(prompt=query)` used the raw query only — SQL/RAG evidence was retrieved, evaluated, and persisted, but **never actually shown to the model**. Fixed in `controlplane/runtime.py::_build_generation_prompt` to construct an evidence-augmented prompt whenever SQL/RAG nodes completed. Verified via manual trace: a travel-policy question's prompt now literally contains the retrieved policy text before the question. See `docs/PROJECT_STATE/DECISIONS.md` for the full finding.
 
+## Reranker Comparison (NEW, Milestone 6)
+
+**Run:** `controlplane/experiments/evaluate_reranker.py`, 2026-08-28. Ground truth: `data/raw/generated/rag_retrieval_relevance_cases.json` (26 cases, provenance HUMAN, SMOKE_TEST scale — hand-authored by reading all 30 real corpus documents). Real retrieval pipeline, real corpus, not mocked.
+
+| Config | Recall@1 | Recall@3 | MRR | Cold Start | Warm Latency (mean) |
+|---|---|---|---|---|---|
+| A: Dense only | 0.962 | 1.000 | 0.981 | 20,437ms (model load) | 44.1ms |
+| B: Dense + lexical fusion (V0, unchanged) | 0.962 | 1.000 | 0.981 | 47ms | 41.7ms |
+| C: Dense + lexical + cross-encoder (NEW) | **1.000** | 1.000 | **1.000** | 1,358ms (reranker load) | **1,087.7ms** |
+
+**Honest interpretation:** this small, mostly single-relevant-document corpus makes both baselines already near-ceiling (a real finding, not a favorable cherry-pick) — the cross-encoder closes the one remaining gap (1 of 26 queries) but at ~25x the per-query latency. The gain is real and measured, not fabricated, but modest given how easy this particular 26-query set already is for the cheaper baselines; a larger, harder relevance set would likely show a bigger gap. `RAGCapability` still defaults `use_reranker=True` because the latency (~1.1s) remains acceptable for this prototype's per-request budget and the correctness gain, however small on this sample, is real.
+
 ## Known Limitations
 
 - Chunking is sentence-grouped with a 60-word cap — not benchmarked against alternative chunk sizes (the corpus is small enough, 784 words total, that this mattered less than it would for a larger corpus).
 - Score fusion (0.5/0.5 dense/lexical) is not tuned — a fixed, documented default, not a grid-searched one (unlike the adequacy thresholds).
-- No cross-encoder reranker (deferred, see algorithm doc).
+- Reranker comparison set (26 cases) is SMOKE_TEST scale and mostly easy (near-ceiling baselines) — see above.
+- `CONFLICTING` adequacy had a real false-positive regression this milestone (naive substring match on "not" matching inside "notice") — found via a real end-to-end trace at a widened retry `k`, fixed with word-boundary matching, regression-tested. See `docs/ALGORITHMS/RAG_PIPELINE.md`.

@@ -1,0 +1,86 @@
+{
+  "experiment_id": "exp_455fe0aa-2c3c-42c8-abf9-2168d207c376",
+  "dataset_id": "rag_cases_derived_grounding_calibration",
+  "dataset_version": "v0.1",
+  "results": {
+    "deterministic_lexical": {
+      "scorer": "deterministic_lexical",
+      "sample_count": 20,
+      "accuracy": 1.0,
+      "macro_f1": 1.0,
+      "per_class": {
+        "SUPPORTED": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 10
+        },
+        "UNSUPPORTED": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 10
+        }
+      },
+      "confusion_matrix": {
+        "SUPPORTED": {
+          "SUPPORTED": 10,
+          "UNSUPPORTED": 0
+        },
+        "UNSUPPORTED": {
+          "SUPPORTED": 0,
+          "UNSUPPORTED": 10
+        }
+      },
+      "raw_label_distribution": {
+        "SUPPORTED": 10,
+        "UNSUPPORTED": 10
+      },
+      "status_distribution": {
+        "IMPLEMENTED": 20
+      },
+      "latency_ms_mean": 0.8,
+      "latency_ms_max": 16
+    },
+    "local_judge": {
+      "scorer": "local_judge",
+      "sample_count": 20,
+      "accuracy": 0.95,
+      "macro_f1": 0.949874686716792,
+      "per_class": {
+        "SUPPORTED": {
+          "precision": 1.0,
+          "recall": 0.9,
+          "f1": 0.9473684210526316,
+          "support": 10
+        },
+        "UNSUPPORTED": {
+          "precision": 0.9090909090909091,
+          "recall": 1.0,
+          "f1": 0.9523809523809523,
+          "support": 10
+        }
+      },
+      "confusion_matrix": {
+        "SUPPORTED": {
+          "SUPPORTED": 9,
+          "UNSUPPORTED": 1
+        },
+        "UNSUPPORTED": {
+          "SUPPORTED": 0,
+          "UNSUPPORTED": 10
+        }
+      },
+      "raw_label_distribution": {
+        "SUPPORTED": 9,
+        "UNSUPPORTED": 11
+      },
+      "status_distribution": {
+        "IMPLEMENTED": 20
+      },
+      "latency_ms_mean": 88958.1,
+      "latency_ms_max": 116843
+    },
+    "remote_judge_gemini": "NOT_MEASURED -- no GEMINI_API_KEY_1/2 or GEMINI_MODEL set this session"
+  }
+}

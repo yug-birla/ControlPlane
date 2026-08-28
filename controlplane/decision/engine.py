@@ -76,6 +76,7 @@ class DecisionEngine:
         grounding = _find(evaluation_results, "grounding")
         factuality = _find(evaluation_results, "factuality")
         confidence = _find(evaluation_results, "response_confidence")
+        rag_adequacy = _find(evaluation_results, "rag_adequacy")
 
         # Hard constraint, checked first and unconditionally: a high-risk
         # action always needs a human, retry budget or not -- this is not
@@ -87,6 +88,31 @@ class DecisionEngine:
                 triggering_evaluator="action_risk",
                 attempt_number=attempt_number,
                 can_retry=can_retry,
+            )
+
+        # CONFLICTING is a distinct failure from UNSUPPORTED grounding:
+        # the evidence disagrees with ITSELF, not with the answer. A
+        # RETRIEVE_MORE retry can still legitimately help here (a wider
+        # candidate set might surface a resolving/authoritative document
+        # not in the first pass) -- but bootstrap SS29 explicitly warns
+        # against "INSUFFICIENT -> always retry" as the *only* mechanism,
+        # so once the retry budget is spent this asks for clarification
+        # rather than silently picking one of the conflicting values.
+        if rag_adequacy and rag_adequacy.label == "CONFLICTING":
+            if can_retry:
+                return ControlDecision(
+                    action=ControlAction.RETRIEVE_MORE,
+                    reason="rag_adequacy=CONFLICTING -- retrieved evidence disagrees with itself; a wider retrieval may surface an authoritative source",
+                    triggering_evaluator="rag_adequacy",
+                    attempt_number=attempt_number,
+                    can_retry=can_retry,
+                )
+            return ControlDecision(
+                action=ControlAction.ASK_CLARIFICATION,
+                reason="rag_adequacy remained CONFLICTING after the retry budget was exhausted -- asking rather than silently picking one of the conflicting values",
+                triggering_evaluator="rag_adequacy",
+                attempt_number=attempt_number,
+                can_retry=False,
             )
 
         if grounding and grounding.label == "UNSUPPORTED":

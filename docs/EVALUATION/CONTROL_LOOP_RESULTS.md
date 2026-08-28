@@ -54,8 +54,20 @@ Query: *"What is the capital of France?"* Attempt 1 (FAST role, scripted): "I'm 
 
 Query: the QP-190 governance/decision-support case (permanent HIGH_RISK regression from Milestone 3). Risk severity `HIGH_RISK` → `action_risk` evaluator confirms `HIGH_RISK` → Decision Engine: `HUMAN_REVIEW` (hard constraint, checked first, regardless of grounding/confidence) → Verification: `REJECTED` (not final until a human approves) — but a draft answer is still returned (graceful degradation, not a withheld response). Test: `test_high_risk_action_reaches_human_review_not_continue`.
 
+## Real End-to-End Trace — Conflicting Evidence (NEW, Milestone 6)
+
+Query: *"What is the exact financial threshold for SLA commitments per our policy documents?"* A fake RAG capability (the real 30-document corpus doesn't happen to contain a genuine same-topic contradiction) returns two evidence items disagreeing on a figure ("$5,000" vs. "$10,000") with `rag_adequacy=CONFLICTING`.
+
+1. Attempt 1: Decision Engine sees `rag_adequacy=CONFLICTING` (checked before grounding/factuality) → `RETRIEVE_MORE` (in case a wider retrieval surfaces an authoritative source).
+2. RAG re-executed at k=10 (still returns the same two conflicting items — this fixture's corpus genuinely has no resolving document).
+3. Attempt 2: still `CONFLICTING`, retry budget exhausted → `ASK_CLARIFICATION`.
+4. Final answer: `None` — the system never silently asserts either $5,000 or $10,000. Verification: `NOT_VERIFIED`.
+
+Permanently regression-tested: `tests/test_control_loop_scenarios.py::test_conflicting_evidence_asks_for_clarification_instead_of_picking_one_value`.
+
 ## Known Limitations
 
-- 5-scenario sample — a controlled demonstration of the mechanism, not a statistically powered benchmark.
+- 5 before/after scenarios + 1 additional CONFLICTING scenario (not included in the before/after counterfactual table, since it's a fixture-driven test of a decision branch rather than a graded quality comparison) — a controlled demonstration of the mechanism, not a statistically powered benchmark.
 - No live-model statistics (NOT MEASURED — no budget for a larger real-model comparison this milestone).
 - `max_attempts=2` means every scenario here resolves in at most one retry; higher budgets are untested.
+- The CONFLICTING scenario uses a scripted RAG capability rather than the real corpus, because the real corpus has no genuine same-topic contradiction to retrieve — stated plainly, not disguised as an organic finding.

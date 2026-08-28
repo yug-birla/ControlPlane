@@ -12,8 +12,11 @@ Human-written summaries of experiments that are actually run, per the Milestone 
 | `MODEL_BENCHMARKS.md` | Local embedding model latency (cold/warm, p50/p95/p99) and the local-vs-remote comparison |
 | `ROUTING_RESULTS.md` | Capability Router restriction/coverage results, Model Router action distribution + safety invariant (Milestone 3) |
 | `EXECUTION_GRAPH_RESULTS.md` | Sequential vs. parallel Graph Executor benchmark, simulated latency (Milestone 3) |
-| `RAG_RESULTS.md` | RAG adequacy calibration, retrieval verification, the prompt-grounding fix (Milestone 4/5) |
-| `CONTROL_LOOP_RESULTS.md` | Decision/Intervention/Replan/Verification before-after + counterfactual results, real end-to-end scenario traces (Milestone 5) |
+| `RAG_RESULTS.md` | RAG adequacy calibration, retrieval verification, the prompt-grounding fix (Milestone 4/5), cross-encoder reranker comparison (Milestone 6) |
+| `CONTROL_LOOP_RESULTS.md` | Decision/Intervention/Replan/Verification before-after + counterfactual results, real end-to-end scenario traces (Milestone 5); CONFLICTING-evidence scenario (Milestone 6) |
+| `EVALUATOR_RESULTS.md` | Deterministic vs. Local Judge vs. Remote Judge calibration, Bias paired-comparison results (Milestone 6) |
+| `AGENT_GOVERNANCE_RESULTS.md` | Agent/Tool Governance gate accuracy against real trajectory labels (Milestone 6) |
+| `TRUST_RESULTS.md` | Why the Trust Layer has no accuracy benchmark, and what was unit-tested instead (Milestone 6) |
 | `RESULTS/` | Raw JSON exports, named `<experiment>_<date>.json`, one file per experiment per day (a same-day re-run overwrites that day's file — a real limitation of the current date-only naming, not yet fixed). |
 
 **Reproduce any result:**
@@ -28,7 +31,12 @@ docker compose up -d postgres
 .venv/Scripts/python -m controlplane.experiments.benchmark_graph_execution
 .venv/Scripts/python -m controlplane.experiments.benchmark_real_capability_execution
 .venv/Scripts/python -m controlplane.experiments.evaluate_rag_adequacy
+.venv/Scripts/python -m controlplane.experiments.evaluate_reranker
 .venv/Scripts/python -m controlplane.experiments.evaluate_control_loop_before_after
+.venv/Scripts/python -m controlplane.experiments.evaluate_agent_governance
+# Slow (~15-25 min each -- CPU-only Local Judge inference):
+.venv/Scripts/python -m controlplane.experiments.evaluate_judge_calibration
+.venv/Scripts/python -m controlplane.experiments.evaluate_bias
 # Requires live keys, otherwise NOT_MEASURED:
 GEMINI_API_KEY_1=... .venv/Scripts/python -m controlplane.experiments.compare_groq_vs_gemini
 ```

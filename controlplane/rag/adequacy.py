@@ -104,6 +104,18 @@ class RAGAdequacyEvaluator:
         # of the query but disagreeing on a polarity-flipping word pair
         # -- checked only for this one common pattern (not a general
         # contradiction detector).
+        #
+        # Regression (found via Milestone 6's mandatory architecture
+        # audit, real end-to-end trace of the RAG self-healing scenario
+        # at a widened retry k): a naive ``pos in text`` substring check
+        # matched "not" inside the unrelated word "notice" (HR Policy's
+        # "Resignation **not**ice is 30 days"), so two completely
+        # unrelated documents -- one containing "must", the other just
+        # containing the word "notice" -- were flagged as CONFLICTING
+        # even though neither is actually about the query or about each
+        # other. Same root cause as Milestone 3's actionability
+        # false-positive: a keyword-presence check with no word-boundary
+        # awareness. Fixed the same way: match whole words only.
         _POLARITY_PAIRS = [
             ("required", "optional"), ("mandatory", "optional"), ("mandatory", "exempt"),
             ("allowed", "prohibited"), ("must", "not"),
@@ -112,8 +124,9 @@ class RAGAdequacyEvaluator:
         if len(evidence_texts) > 1:
             lowered = [t.lower() for t in evidence_texts]
             for pos, neg in _POLARITY_PAIRS:
-                has_pos = any(pos in t for t in lowered)
-                has_neg = any(neg in t for t in lowered)
+                pos_re, neg_re = re.compile(rf"\b{re.escape(pos)}\b"), re.compile(rf"\b{re.escape(neg)}\b")
+                has_pos = any(pos_re.search(t) for t in lowered)
+                has_neg = any(neg_re.search(t) for t in lowered)
                 if has_pos and has_neg:
                     conflicting = True
                     break

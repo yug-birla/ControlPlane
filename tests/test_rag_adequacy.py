@@ -34,3 +34,20 @@ def test_conflicting_polarity_evidence_is_flagged():
 def test_query_with_no_scorable_terms_is_insufficient():
     result = RAGAdequacyEvaluator().assess("the of to", ["some evidence text"])
     assert result.label == AdequacyLabel.INSUFFICIENT
+
+
+def test_polarity_word_inside_an_unrelated_word_is_not_flagged_as_conflicting_regression():
+    """Regression: found via a real end-to-end trace of the RAG
+    self-healing scenario at a widened retry k -- a naive substring check
+    matched "not" inside "notice" (HR Policy's "Resignation notice is 30
+    days"), flagging it as conflicting with an unrelated document
+    containing "must", even though neither document is about the query
+    or about each other. Fixed with word-boundary matching."""
+    result = RAGAdequacyEvaluator().assess(
+        "What is the meal reimbursement limit?",
+        [
+            "Resignation notice is 30 days for individual contributors.",
+            "Vendors processing customer PII must hold a valid certification.",
+        ],
+    )
+    assert result.label != AdequacyLabel.CONFLICTING

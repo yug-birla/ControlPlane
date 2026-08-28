@@ -71,6 +71,27 @@ def multilabel_micro_macro_f1(y_true: list[set[str]], y_pred: list[set[str]], la
     return {"per_label": per_label, "micro_f1": micro_f1, "macro_f1": macro}
 
 
+def reciprocal_rank(rank: int | None) -> float:
+    """``rank`` is the 1-indexed position of the (single) relevant item in
+    a ranked list, or ``None`` if it wasn't retrieved at all."""
+    return 1.0 / rank if rank else 0.0
+
+
+def mean_reciprocal_rank(ranks: list[int | None]) -> float:
+    if not ranks:
+        return 0.0
+    return sum(reciprocal_rank(r) for r in ranks) / len(ranks)
+
+
+def recall_at_k(ranks: list[int | None], k: int) -> float:
+    """Fraction of queries whose (single) relevant item was retrieved at
+    position <= k. Used for retrieval/reranker comparisons -- see
+    ``controlplane/experiments/evaluate_reranker.py``."""
+    if not ranks:
+        return 0.0
+    return sum(1 for r in ranks if r is not None and r <= k) / len(ranks)
+
+
 def false_negative_rate(y_true_positive: list[bool], y_pred_positive: list[bool]) -> float | str:
     """For "did we MISS a true positive" analysis (bootstrap SS19:
     "prioritize false-negative analysis" for high-risk categories)."""

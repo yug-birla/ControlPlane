@@ -82,6 +82,15 @@
 </div>
 {% endif %}
 
+{% if detail.trust %}
+<div class="panel">
+  <h2>Trust -- Why?</h2>
+  <p>level=<span class="badge trust-{{ detail.trust.level }}">{{ detail.trust.level }}</span></p>
+  <div class="why">{{ detail.trust.reason }}</div>
+  <p class="note">derived from: {{ detail.trust.contributing_factors|join("; ") }} -- computed fresh from the stored decision/verification/risk records above, not itself persisted (see docs/PROJECT_STATE/DECISIONS.md)</p>
+</div>
+{% endif %}
+
 <div class="panel">
   <h2>Final Answer</h2>
   {% if detail.answer %}<p>{{ detail.answer }}</p>{% else %}<p class="note">No answer generated

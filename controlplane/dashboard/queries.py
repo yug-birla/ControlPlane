@@ -23,6 +23,10 @@ from controlplane.db.models import (
     TrajectoryStepRecord,
     VerificationRecord,
 )
+from controlplane.decision.engine import ControlDecision
+from controlplane.risk.profile import RiskProfile
+from controlplane.trust.engine import TrustEngine
+from controlplane.verification.engine import VerificationResult
 
 _QUERY_PREVIEW_LEN = 120
 
@@ -172,6 +176,32 @@ def get_request_detail(request_id: str) -> dict | None:
             .limit(1)
         ).scalar_one_or_none()
 
+        trust = None
+        if decisions and verifications and profile and profile.risk_vector:
+            try:
+                last_decision = decisions[-1]
+                trust_result = TrustEngine().assess(
+                    verification=VerificationResult(
+                        status=verifications[-1].status, reason=verifications[-1].reason,
+                        checked_evaluators=verifications[-1].checked_evaluators or [],
+                    ),
+                    decision=ControlDecision(
+                        action=last_decision.action, reason=last_decision.reason,
+                        triggering_evaluator=last_decision.triggering_evaluator,
+                        attempt_number=last_decision.attempt_number, can_retry=last_decision.can_retry,
+                    ),
+                    risk=RiskProfile(**profile.risk_vector),
+                )
+                trust = {"level": trust_result.level.value, "reason": trust_result.reason, "contributing_factors": trust_result.contributing_factors}
+            except (TypeError, ValueError):
+                # Trust is derived, not stored -- recomputed here from
+                # already-persisted decision/verification/risk rows each
+                # time the detail page is viewed (see docs/PROJECT_STATE/DECISIONS.md
+                # for why no separate trust table exists). A malformed or
+                # missing upstream field should degrade to "not shown,"
+                # never a fabricated trust level.
+                trust = None
+
         return {
             "request": {
                 "id": req.id, "query_text": req.query_text, "status": req.status,
@@ -242,6 +272,7 @@ def get_request_detail(request_id: str) -> dict | None:
                 {"status": verifications[-1].status, "reason": verifications[-1].reason, "checked_evaluators": verifications[-1].checked_evaluators}
                 if verifications else None
             ),
+            "trust": trust,
         }
 
 
