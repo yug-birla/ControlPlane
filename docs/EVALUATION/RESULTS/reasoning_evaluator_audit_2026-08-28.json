@@ -1,0 +1,123 @@
+{
+  "experiment_id": "exp_596b3b56-e664-4517-92e5-cf139365c742",
+  "dataset_id": "reasoning_cases",
+  "dataset_version": "v0.1",
+  "metrics": {
+    "sample_count": 12,
+    "label_matches_expected_rate": 0.8333333333333334,
+    "in_scope_recall": 0.5,
+    "in_scope_sample_count": 2,
+    "out_of_scope_gap_confirmed_rate": 0.9,
+    "out_of_scope_sample_count": 10,
+    "per_case": [
+      {
+        "case_id": "RE-001",
+        "category": "easy_consistent",
+        "in_scope": false,
+        "expected_label": "NO_CONTRADICTION_DETECTED",
+        "actual_label": "NO_CONTRADICTION_DETECTED",
+        "matches_expected": true,
+        "note": ""
+      },
+      {
+        "case_id": "RE-002",
+        "category": "direct_self_contradiction",
+        "in_scope": false,
+        "expected_label": "NO_CONTRADICTION_DETECTED",
+        "actual_label": "SELF_CONTRADICTORY",
+        "matches_expected": false,
+        "note": "not a direct polarity pair on the SAME subject -- the evaluator's narrow pair list does not cover 'mandatory'+'optional' here since it is about different subjects (employees vs contractors); documents a real detection gap, not a false claim"
+      },
+      {
+        "case_id": "RE-003",
+        "category": "direct_self_contradiction_same_subject",
+        "in_scope": true,
+        "expected_label": "SELF_CONTRADICTORY",
+        "actual_label": "SELF_CONTRADICTORY",
+        "matches_expected": true,
+        "note": ""
+      },
+      {
+        "case_id": "RE-004",
+        "category": "arithmetic_correct",
+        "in_scope": false,
+        "expected_label": "NO_CONTRADICTION_DETECTED",
+        "actual_label": "NO_CONTRADICTION_DETECTED",
+        "matches_expected": true,
+        "note": "correct arithmetic (250*3=750); the evaluator has no arithmetic-checking logic, so it necessarily reports the same NO_CONTRADICTION_DETECTED label as an actually-wrong arithmetic answer would -- a real, structural detection gap for this category"
+      },
+      {
+        "case_id": "RE-005",
+        "category": "arithmetic_incorrect",
+        "in_scope": false,
+        "expected_label": "NO_CONTRADICTION_DETECTED",
+        "actual_label": "NO_CONTRADICTION_DETECTED",
+        "matches_expected": true,
+        "note": "arithmetically WRONG (250*3=750, not 650) but the evaluator has no arithmetic verification -- this case exists specifically to measure that gap: expected_label is what the CURRENT evaluator will report, not what a correct evaluator should report (recorded separately as arithmetic_error_caught=False in the results)"
+      },
+      {
+        "case_id": "RE-006",
+        "category": "comparison_correct",
+        "in_scope": false,
+        "expected_label": "NO_CONTRADICTION_DETECTED",
+        "actual_label": "NO_CONTRADICTION_DETECTED",
+        "matches_expected": true,
+        "note": ""
+      },
+      {
+        "case_id": "RE-007",
+        "category": "comparison_incorrect",
+        "in_scope": false,
+        "expected_label": "NO_CONTRADICTION_DETECTED",
+        "actual_label": "NO_CONTRADICTION_DETECTED",
+        "matches_expected": true,
+        "note": "logically inconsistent (30 is not longer than 60) but this is a numeric-comparison error, not a polarity self-contradiction -- another structural detection gap, measured not hidden"
+      },
+      {
+        "case_id": "RE-008",
+        "category": "constraint_satisfaction_correct",
+        "in_scope": false,
+        "expected_label": "NO_CONTRADICTION_DETECTED",
+        "actual_label": "NO_CONTRADICTION_DETECTED",
+        "matches_expected": true,
+        "note": ""
+      },
+      {
+        "case_id": "RE-009",
+        "category": "misleading_but_plausible",
+        "in_scope": false,
+        "expected_label": "NO_CONTRADICTION_DETECTED",
+        "actual_label": "NO_CONTRADICTION_DETECTED",
+        "matches_expected": true,
+        "note": "a non-sequitur / fabricated causal inference with no basis in any policy -- not a self-contradiction, a different failure mode (unsupported reasoning leap) this narrow evaluator was never designed to catch"
+      },
+      {
+        "case_id": "RE-010",
+        "category": "multi_step_correct",
+        "in_scope": false,
+        "expected_label": "NO_CONTRADICTION_DETECTED",
+        "actual_label": "NO_CONTRADICTION_DETECTED",
+        "matches_expected": true,
+        "note": ""
+      },
+      {
+        "case_id": "RE-011",
+        "category": "direct_self_contradiction_same_subject",
+        "in_scope": true,
+        "expected_label": "SELF_CONTRADICTORY",
+        "actual_label": "NO_CONTRADICTION_DETECTED",
+        "matches_expected": false,
+        "note": ""
+      },
+      {
+        "case_id": "RE-012",
+        "category": "easy_consistent",
+        "in_scope": false,
+        "expected_label": "NO_CONTRADICTION_DETECTED",
+        "actual_label": "NO_CONTRADICTION_DETECTED",
+        "matches_expected": true,
+        "note": ""
+      }
+    ]
+  }
+}

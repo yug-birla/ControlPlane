@@ -46,7 +46,27 @@ _DATA_SIGNALS: list[tuple[tuple[str, ...], DataRequirement, CapabilityHint]] = [
      DataRequirement.WEB_SEARCH, CapabilityHint.WEB),
 ]
 
-_ACTION_KEYWORDS = ("refund", "delete", "send", "execute", "approve", "transfer", "cancel", "issue a", "process the")
+_ACTION_KEYWORDS = (
+    "refund", "delete", "send", "execute", "approve", "transfer", "cancel", "issue a", "process the",
+    "truncate", "wipe", "purge",
+)
+
+# Milestone 7 finding (real end-to-end trace of the new AgentCapability
+# hard-block, controlplane/capabilities/agent_capability.py): "Please
+# drop the customers table from the database" never reached the AGENT
+# capability at all -- "drop" wasn't in _ACTION_KEYWORDS, so the query
+# was never even classified as agentic, and the carefully-built
+# destructive-operation hard block downstream was structurally
+# unreachable for this common phrasing. "drop" itself can't be a bare
+# keyword the way "truncate"/"wipe"/"purge" safely are ("a drop in
+# revenue," "price drop" are common non-destructive uses) -- this
+# requires it to appear near a data-object noun, the same "don't trust
+# bare keyword presence" lesson as _is_topic_reference above, applied to
+# a different false-positive direction (this time avoiding a false
+# NEGATIVE on a real safety-relevant phrase, not a false positive).
+_DESTRUCTIVE_DROP_PATTERN = re.compile(
+    r"\bdrop\b.{0,40}\b(table|database|schema|column|index|collection|records?|data)\b", re.IGNORECASE
+)
 _CODING_KEYWORDS = ("function", "python", "code", "script", "bug", "compile", "stack trace", "regex")
 _REASONING_KEYWORDS = ("why", "explain", "analyze", "compare", "trade-off", "should we", "recommend", "evaluate whether")
 _PII_KEYWORDS = ("ssn", "social security", "credit card", "date of birth", "home address", "phone number", "email address")
@@ -99,13 +119,15 @@ class RuleBasedQueryProfiler:
         action_hit = _has_any(q, *_ACTION_KEYWORDS)
         if action_hit and _is_topic_reference(q, action_hit):
             action_hit = None
-        if action_hit:
+        destructive_drop_match = _DESTRUCTIVE_DROP_PATTERN.search(q)
+        if action_hit or destructive_drop_match:
             intent = Intent.ACTION_REQUEST
             actionability = Actionability.AGENTIC
             impact = Impact.HIGH
             capability_hints.append(CapabilityHint.AGENT)
-            explanation["intent"] = f"matched action keyword {action_hit!r}"
-            explanation["actionability"] = f"matched action keyword {action_hit!r}"
+            trigger = action_hit or destructive_drop_match.group(0)
+            explanation["intent"] = f"matched action keyword {trigger!r}"
+            explanation["actionability"] = f"matched action keyword {trigger!r}"
             high_confidence.update({"intent", "actionability"})
 
         reasoning_hit = _has_any(q, *_REASONING_KEYWORDS)

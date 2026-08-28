@@ -77,6 +77,8 @@ class DecisionEngine:
         factuality = _find(evaluation_results, "factuality")
         confidence = _find(evaluation_results, "response_confidence")
         rag_adequacy = _find(evaluation_results, "rag_adequacy")
+        agent_governance = _find(evaluation_results, "agent_governance")
+        prompt_injection = _find(evaluation_results, "prompt_injection")
 
         # Hard constraint, checked first and unconditionally: a high-risk
         # action always needs a human, retry budget or not -- this is not
@@ -86,6 +88,34 @@ class DecisionEngine:
                 action=ControlAction.HUMAN_REVIEW,
                 reason=f"action_risk={action_risk.label} requires human sign-off regardless of evaluation outcome",
                 triggering_evaluator="action_risk",
+                attempt_number=attempt_number,
+                can_retry=can_retry,
+            )
+
+        # Hard constraint: a detected prompt-injection pattern is a
+        # security concern, never something a retry/regenerate can
+        # resolve (the malicious instruction is in the query itself).
+        if prompt_injection and prompt_injection.label == "INJECTION_PATTERN_DETECTED":
+            return ControlDecision(
+                action=ControlAction.HUMAN_REVIEW,
+                reason=f"prompt_injection detected known injection phrasing: {prompt_injection.issues}",
+                triggering_evaluator="prompt_injection",
+                attempt_number=attempt_number,
+                can_retry=can_retry,
+            )
+
+        # Hard constraint: a BLOCKed or human-review-pending agent tool
+        # proposal is never something a retry can fix (the tool simply
+        # didn't run) -- found via a real end-to-end trace where the
+        # query-level risk (MEDIUM_RISK) under-assessed a specific
+        # HIGH_RISK tool proposal, and nothing downstream reflected that
+        # the requested action had actually been withheld: Trust reported
+        # HIGH despite the response not doing what was asked.
+        if agent_governance and agent_governance.label in ("BLOCK", "HUMAN_REVIEW"):
+            return ControlDecision(
+                action=ControlAction.HUMAN_REVIEW,
+                reason=f"agent_governance={agent_governance.label} -- the proposed tool call was not executed and requires human sign-off",
+                triggering_evaluator="agent_governance",
                 attempt_number=attempt_number,
                 can_retry=can_retry,
             )

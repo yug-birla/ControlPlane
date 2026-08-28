@@ -1,6 +1,6 @@
 # Control Loop: Decision Engine, Intervention Engine, Replanner, Verification, Trust
 
-**Status:** IMPLEMENTED — V1 (Milestone 6 adds CONFLICTING-evidence handling + the Trust Layer, 2026-08-28; V0 baselines were Milestone 5)
+**Status:** IMPLEMENTED — V2 (Milestone 7 adds Agent-Governance + Prompt-Injection hard constraints, 2026-08-28; V1 added CONFLICTING-evidence handling + Trust in Milestone 6; V0 baselines were Milestone 5)
 
 ## Problem
 
@@ -14,7 +14,11 @@ Through Milestone 4, ControlPlane observed and evaluated a response but never ac
 
 An interpretable policy matrix (bootstrap §11), not a single risk number: checks (in order) a hard `action_risk` constraint, then `rag_adequacy` (CONFLICTING, new this milestone), then `grounding`, `factuality`, `response_confidence`, `require_verification` — each from the Evaluation layer, never re-derived. Actions: `CONTINUE`, `VERIFY`, `RETRIEVE_MORE`, `CHANGE_MODEL`, `REGENERATE`, `ASK_CLARIFICATION`, `HUMAN_REVIEW`. Bounded by `max_attempts` (default 2): once `attempt_number >= max_attempts`, every branch resolves to a terminal action, never another retry.
 
-**Conflicting evidence (new, bootstrap §29):** `rag_adequacy=CONFLICTING` (the RAG evidence disagrees with *itself*, a distinct failure from `grounding=UNSUPPORTED`, which is about the *answer* vs. evidence) → `RETRIEVE_MORE` while retry budget remains (a wider candidate set might surface a resolving/authoritative document not in the first pass), else `ASK_CLARIFICATION` — the system discloses the conflict rather than silently picking one of the disputed values. Never "always retry" (bootstrap explicitly warns against that as the *only* mechanism); once the budget is spent it defers to the user instead of guessing.
+**Agent governance (NEW, Milestone 7):** `agent_governance in (BLOCK, HUMAN_REVIEW)` → `HUMAN_REVIEW`, unconditionally (a blocked or human-review-pending tool proposal is never something a retry can fix). Found via a real end-to-end trace where the query-level Risk Profiler under-assessed a HIGH_RISK tool proposal as only MEDIUM_RISK, and nothing downstream reflected that mismatch until this branch was added — see `docs/ALGORITHMS/AGENT_GOVERNANCE.md`.
+
+**Prompt injection (NEW, Milestone 7):** `prompt_injection=INJECTION_PATTERN_DETECTED` → `HUMAN_REVIEW`, unconditionally (the malicious instruction is in the query itself; nothing about regenerating the response addresses that).
+
+**Conflicting evidence (bootstrap §29):** `rag_adequacy=CONFLICTING` (the RAG evidence disagrees with *itself*, a distinct failure from `grounding=UNSUPPORTED`, which is about the *answer* vs. evidence) → `RETRIEVE_MORE` while retry budget remains (a wider candidate set might surface a resolving/authoritative document not in the first pass), else `ASK_CLARIFICATION` — the system discloses the conflict rather than silently picking one of the disputed values. Never "always retry" (bootstrap explicitly warns against that as the *only* mechanism); once the budget is spent it defers to the user instead of guessing.
 
 ## Intervention Engine — Baseline
 
@@ -65,12 +69,12 @@ If the intervention's re-execution itself fails (e.g. model provider error), the
 
 ## Result
 
-The RAG self-healing, model-escalation, and high-risk scenarios all pass as real, permanent end-to-end tests (`tests/test_control_loop_scenarios.py`) — the control loop measurably changes execution, not just observes it.
+The RAG self-healing, model-escalation, high-risk, conflicting-evidence, agent-governance (3 scenarios), and prompt-injection scenarios all pass as real, permanent end-to-end tests (`tests/test_control_loop_scenarios.py`, 9 scenarios total) — the control loop measurably changes execution, not just observes it.
 
 ## Final Decision
 
-V0 baselines adopted as the runtime default (`controlplane/runtime.py`).
+V2 adopted as the runtime default (`controlplane/runtime.py`).
 
 ## Version
 
-v1 — 2026-08-28.
+v2 — 2026-08-28 (v1 was Milestone 6's CONFLICTING-evidence + Trust addition).

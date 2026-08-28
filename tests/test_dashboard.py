@@ -130,6 +130,26 @@ def test_dashboard_detail_shows_a_derived_trust_level():
     assert api_detail["trust"]["level"] in ("HIGH", "MEDIUM", "LOW")
 
 
+def test_dashboard_shows_agent_governance_and_permission_lineage():
+    provider = FakeModelProvider(content="Database query completed successfully.")
+    prev = routes_module._runtime._provider_factory
+    routes_module._runtime._provider_factory = lambda settings, role="STRONG": provider
+    try:
+        resp = client.post("/v1/requests", json={"query": "Please execute a database query to count support tickets"})
+    finally:
+        routes_module._runtime._provider_factory = prev
+    request_id = resp.json()["request_id"]
+
+    detail_resp = client.get(f"/dashboard/requests/{request_id}")
+    assert detail_resp.status_code == 200
+    assert "Permission Lineage" in detail_resp.text
+
+    api_detail = client.get(f"/dashboard/api/requests/{request_id}").json()
+    assert api_detail["permission_lineage"] is not None
+    assert api_detail["permission_lineage"]["requested_tool"] == "sql_read_query"
+    assert api_detail["permission_lineage"]["authorization"] == "ALLOW"
+
+
 def test_dashboard_never_exposes_secrets():
     # Generic env-var-name and provider-prefix markers only -- deliberately
     # never a literal fragment of any real key, even a truncated one, so

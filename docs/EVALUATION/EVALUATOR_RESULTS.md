@@ -1,8 +1,8 @@
 # Evaluator Results: Judge Calibration + Bias
 
-**Run:** `controlplane/experiments/evaluate_judge_calibration.py` and `evaluate_bias.py`, 2026-08-28. See `docs/ALGORITHMS/LLM_JUDGE.md` and `docs/ALGORITHMS/EVALUATION_LAYER.md` for method.
+**Run:** `controlplane/experiments/evaluate_judge_calibration.py`, `evaluate_judge_hard_benchmark.py`, and `evaluate_bias.py`, 2026-08-28. See `docs/ALGORITHMS/LLM_JUDGE.md` and `docs/ALGORITHMS/EVALUATION_LAYER.md` for method.
 
-## Judge Calibration: Deterministic vs. Local Judge vs. Remote Judge
+## Judge Calibration (EASY benchmark): Deterministic vs. Local Judge vs. Remote Judge
 
 Ground truth: a DERIVED 20-case grounding benchmark (10 SUPPORTED, 10 UNSUPPORTED) built from `rag_cases.json`'s SUFFICIENT records — SUPPORTED cases use a record's own (query, evidence, `expected_answer`); UNSUPPORTED cases pair one record's evidence with a different, unrelated record's `expected_answer`. See the experiment script's docstring for the full construction rationale and its limits.
 
@@ -12,11 +12,59 @@ Ground truth: a DERIVED 20-case grounding benchmark (10 SUPPORTED, 10 UNSUPPORTE
 | Local Judge (Qwen2.5-1.5B-Instruct) | 0.950 | 0.950 | 88,958ms (~89s) | Real |
 | Remote Judge (Gemini) | — | — | — | **NOT_MEASURED** — no `GEMINI_API_KEY_1`/`GEMINI_API_KEY_2` set this session |
 
-**Honest finding, not oversold:** the deterministic lexical baseline reaches ceiling (1.0/1.0) on this benchmark and the Local Judge does not beat it — it makes exactly one real mistake (a true SUPPORTED case scored UNSUPPORTED; confusion matrix: `SUPPORTED→SUPPORTED=9, SUPPORTED→UNSUPPORTED=1, UNSUPPORTED→UNSUPPORTED=10`). This is **not** evidence the judge is useless — it's evidence this particular calibration set is easy: negatives are constructed from completely off-topic evidence/answer pairs, which lexical overlap already separates almost perfectly. A harder calibration set (paraphrased-but-unsupported claims, subtle numeric near-misses) would be needed to see where semantic judgment actually earns its much higher cost, and is stated as future work rather than assumed.
+**Honest finding:** the deterministic lexical baseline reaches ceiling (1.0/1.0) on this benchmark because negatives are completely off-topic evidence/answer pairs, which lexical overlap already separates almost perfectly. This benchmark could not show where semantic judgment earns its cost — flagged explicitly as a limitation, then actually addressed (see below), not left as a caveat.
 
-All 20 Local Judge calls returned parseable, well-formed JSON (`status_distribution: {"IMPLEMENTED": 20}`) — the doubled-brace prompt-template bug found and fixed earlier this milestone (`docs/ALGORITHMS/LLM_JUDGE.md`) is confirmed fixed, not just believed fixed.
+## Judge HARD Benchmark (NEW, Milestone 7): Deterministic vs. Local Judge
 
-**Latency (bootstrap SS15: "measure disagreement, do not blindly trust the judge"):** 88.9s mean per call is >100,000x the deterministic evaluator's cost for a result that, on this benchmark, is measurably worse — directly substantiates the architecture decision to keep judges out of the live per-request path.
+Built specifically to fix the easy benchmark's blind spot: 24 hand-authored cases (provenance HUMAN, `data/raw/generated/judge_hard_cases.json`) targeting failure modes lexical overlap structurally cannot handle — paraphrased-but-correct answers, hallucinated additions to an otherwise-correct answer, subtly wrong numbers, and conflicting evidence. 3-way labeled (SUPPORTED/PARTIALLY_SUPPORTED/UNSUPPORTED), built from the real 30-document corpus's actual facts.
+
+| Scorer | Accuracy | Macro-F1 | Mean Latency |
+|---|---|---|---|
+| Deterministic (`GroundingEvaluator`) | 0.292 | 0.301 | ~1ms |
+| Local Judge (Qwen2.5-1.5B-Instruct) | **0.375** | 0.300 | 32,558ms (~32.6s) |
+
+**This time the benchmark is genuinely hard for both scorers** — a real, unfabricated result, not a favorable cherry-pick (0.292/0.375 are both far from ceiling, honestly reported even though they're unflattering).
+
+**By category** (correct/total):
+
+| Category | Deterministic | Local Judge |
+|---|---|---|
+| paraphrased_correct | 0/5 | **3/5** |
+| subtly_incorrect_number | 0/4 | **2/4** |
+| hallucinated_detail | 1/3 | 0/3 |
+| incomplete_but_not_wrong | 1/2 | 0/2 |
+| conflicting_evidence | 0/2 | 0/2 |
+| correct_direct_match | 2/2 | 2/2 |
+| fully_unsupported_unrelated | 2/2 | 2/2 |
+
+**Real, meaningful gap found (not oversold either direction):** the Local Judge measurably beats the deterministic baseline exactly where hypothesized — recognizing paraphrased-but-correct answers (0/5→3/5) and catching some subtly-wrong numbers (0/4→2/4), both requiring semantic/numeric understanding lexical overlap cannot do. But it does **not** generalize: it did *worse* than the deterministic baseline on hallucinated-detail and incomplete-answer cases.
+
+**A striking, specific finding, not hidden:** the Local Judge **never once predicted `PARTIALLY_SUPPORTED`** across all 24 cases (confusion matrix shows zero predictions in that column) — despite the prompt explicitly offering that label. Precision/recall/F1 for `PARTIALLY_SUPPORTED` are all exactly 0.0. This 1.5B model appears to collapse the requested 3-way judgment into an effectively binary SUPPORTED/UNSUPPORTED choice, which directly explains the pattern above: cases whose correct label is the binary extremes (SUPPORTED or UNSUPPORTED) are where it can do better than lexical overlap; the 8 cases whose correct label is the middle category (`PARTIALLY_SUPPORTED`) it *cannot get right by construction*, regardless of reasoning quality. This is a real, measured limitation of this specific model size for this specific 3-way task, most plausibly fixable with few-shot examples or a larger model — neither attempted this milestone (documented as future work, not assumed to require fine-tuning without first trying the cheaper fix).
+
+**Latency:** 32.6s mean per call (faster than the earlier 89s figure — likely less background CPU contention during this run, not a code change) remains far too slow for the live per-request path, but the accuracy gap above is now real evidence *for* offline use (calibration, spot-checks, judge-assisted labeling), not just evidence to keep it out of the hot path.
+
+## Reasoning Evaluator Capability Audit (NEW, Milestone 7)
+
+**Run:** `controlplane/experiments/evaluate_reasoning.py`. Not a conventional accuracy benchmark — `ReasoningEvaluator` (`controlplane/evaluation/evaluators.py`) is an explicitly narrow deterministic self-contradiction check, not a general reasoning evaluator. 12 hand-authored cases (`data/raw/generated/reasoning_cases.json`) spanning easy/direct-contradiction/arithmetic/comparison/constraint-satisfaction/misleading-inference categories.
+
+| Metric | Value |
+|---|---|
+| In-scope recall (same-subject polarity contradictions) | **0.5** (1/2) |
+| Out-of-scope "gap confirmed" rate (arithmetic/comparison/causal-leap errors correctly *not* caught, as expected of this narrow check) | 0.9 (9/10) |
+
+**A real recall gap found even within the evaluator's own claimed scope:** one same-subject contradiction ("must be required... but are not required") was missed because the fixed pair list requires the exact phrase `"must not"` adjacent, not `"must"` and `"not"` appearing separately with different phrasing ("must be required" / "are not required"). Not patched with another keyword variant (bootstrap SS5: "do not patch individual failures with endless keyword rules") — documented as a genuine, measured limitation of the fixed-pair-list approach, reinforcing that a judge-based approach is needed for robust reasoning-consistency checking, consistent with why `JudgeBackedEvaluator(task="reasoning")` exists as the (offline-only) alternative.
+
+## Safety / Prompt Injection Evaluator (NEW, Milestone 7)
+
+**Run:** `controlplane/experiments/evaluate_safety.py`. 12 hand-authored cases (`data/raw/generated/prompt_injection_cases.json`), deliberately including near-miss negatives (queries containing part of a trigger phrase in an unrelated, benign sense) to test for false positives, not just true positives.
+
+| Metric | Value |
+|---|---|
+| Accuracy | **1.000** |
+| Macro-F1 | **1.000** |
+| False positives on near-miss negatives | 0/2 |
+
+A real, clean result (not a too-easy benchmark this time — the near-miss negatives were specifically designed to be hard) — the fixed-phrase-list approach correctly avoided both intended traps ("ignore the noise in this dataset," "my previous instructions from my manager were unclear"). Live-verified end-to-end: `tests/test_control_loop_scenarios.py::test_prompt_injection_forces_human_review_end_to_end`.
 
 ## Bias: Paired Counterfactual Comparison
 

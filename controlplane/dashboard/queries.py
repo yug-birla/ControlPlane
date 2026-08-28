@@ -176,6 +176,28 @@ def get_request_detail(request_id: str) -> dict | None:
             .limit(1)
         ).scalar_one_or_none()
 
+        # Permission Lineage (bootstrap SS25/SS33: USER -> AGENT -> PERMISSION
+        # -> DATA -> TOOL -> DESTINATION -> ACTION) -- derived from the
+        # AGENT capability node's own trajectory step, not a separate
+        # table (same "derive, don't duplicate" reasoning as Trust above):
+        # every field here is already recorded by
+        # controlplane.capabilities.agent_capability.AgentCapability's
+        # output, just not previously surfaced anywhere.
+        permission_lineage = None
+        agent_step = next((s for s in steps if s.step_type == "route:agent_action"), None)
+        if agent_step is not None and agent_step.output_ref:
+            out = agent_step.output_ref
+            permission_lineage = {
+                "requested_tool": out.get("proposed_tool"),
+                "tool_call": out.get("tool_call"),
+                "authorization": out.get("governance_action"),
+                "authorization_reason": out.get("governance_reason"),
+                "consequence_class": out.get("consequence_class"),
+                "execution_status": out.get("execution_status"),
+                "destination": (out.get("tool_result") or {}).get("destination"),
+                "accessed_resource": (out.get("tool_result") or {}).get("path") or (out.get("tool_result") or {}).get("template"),
+            }
+
         trust = None
         if decisions and verifications and profile and profile.risk_vector:
             try:
@@ -273,6 +295,7 @@ def get_request_detail(request_id: str) -> dict | None:
                 if verifications else None
             ),
             "trust": trust,
+            "permission_lineage": permission_lineage,
         }
 
 

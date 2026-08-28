@@ -1,38 +1,36 @@
 # ControlPlane.ai — Current State
 
-**Last updated:** 2026-08-28 (Milestone 6)
+**Last updated:** 2026-08-28 (Milestone 7)
 **Context:** Accenture Innovation Challenge 2026, Round 2 — Prototype Development (Problem Track 1, "ControlPlane.ai"). See `Problem_Statement/` for the original brief (partially captured as screenshots; not yet transcribed to text — see `BLOCKERS.md`).
 
 ## What Exists
 
 **Documentation:**
-- `docs/ALGORITHMS/` — 12 prior files plus 3 new: `LLM_JUDGE.md`, `AGENT_GOVERNANCE.md`, `TRUST_LAYER.md`. `RAG_PIPELINE.md`, `EVALUATION_LAYER.md`, `CONTROL_LOOP.md` updated for the reranker, Reasoning upgrade, and CONFLICTING-evidence handling.
-- `docs/EVALUATION/` — 3 new: `EVALUATOR_RESULTS.md`, `AGENT_GOVERNANCE_RESULTS.md`, `TRUST_RESULTS.md`. `RAG_RESULTS.md`, `CONTROL_LOOP_RESULTS.md`, `README.md` updated.
-- `docs/PROJECT_STATE/` — this folder, updated.
+- `docs/ALGORITHMS/` — 15 prior files plus 1 new: `BEHAVIORAL_DRIFT.md`. `AGENT_GOVERNANCE.md`, `EVALUATION_LAYER.md`, `CONTROL_LOOP.md` updated for the real Agent/Tool wiring, Prompt-Injection evaluator, and the new hard-constraint decision branches.
+- `docs/EVALUATION/` — 1 new: `BEHAVIORAL_DRIFT_RESULTS.md`. `EVALUATOR_RESULTS.md` (Judge HARD benchmark, Reasoning audit, Safety results), `AGENT_GOVERNANCE_RESULTS.md`, `CONTROL_LOOP_RESULTS.md`, `README.md` updated.
+- `docs/PROJECT_STATE/` — this folder, updated; `BLOCKERS.md` gained B10 (low disk space causing environment-wide slowdowns, not a code defect).
 
-**Application code (Milestone 6 — Cross-Encoder Reranker + LLM Judge + Reasoning/Bias Evaluators + Agent Governance + Trust Layer + Conflicting-Evidence Handling — complete 2026-08-28):**
+**Application code (Milestone 7 — Real Agent/Tool Governance, Behavioral Drift, Permission Lineage, Prompt-Injection Detection, Hard Judge Benchmark — complete 2026-08-28):**
 
-- **New packages:** `controlplane/judge/` (Local Judge — Qwen2.5-1.5B-Instruct — and Remote Judge — Gemini — sharing one structured-output contract), `controlplane/trust/` (derived HIGH/MEDIUM/LOW trust verdict), `controlplane/governance/` (standalone Agent/Tool gate).
-- **`controlplane/rag/` extended:** `reranker.py` — a real cross-encoder (`cross-encoder/ms-marco-MiniLM-L-6-v2`, already cached locally), wired live into `RAGCapability` (`use_reranker=True` by default). `adequacy.py`'s `CONFLICTING` check fixed (word-boundary matching, was a real false-positive bug).
-- **`controlplane/evaluation/` extended:** `ReasoningEvaluator` upgraded from `NOT_IMPLEMENTED` to a real (narrow) deterministic self-contradiction check; `RAGAdequacyPassthroughEvaluator` added (surfaces `CONFLICTING` to the Decision Engine); `bias.py` (standalone comparative `BiasEvaluator`); `judge_evaluators.py` (`JudgeBackedEvaluator`, real but not in the live default suite).
-- **`controlplane/decision/engine.py` extended:** a new `rag_adequacy=CONFLICTING` branch — `RETRIEVE_MORE` while budget remains, else `ASK_CLARIFICATION` (never silently picks one disputed value).
-- **`controlplane/runtime.py` extended:** computes `TrustEngine.assess(...)` after Verification; `EvaluationContext` gained `rag_adequacy`; `build_default_runtime`/`Runtime.__init__` gained `rag_capability`/`trust_engine` injection points (used by the new conflicting-evidence test).
-- **`controlplane/dashboard/` extended:** a Trust panel (derived, not stored, in the per-request detail view).
-- **No new DB tables/migrations this milestone** — Trust is derived (not persisted, a deliberate decision, see `DECISIONS.md`); Judge/Agent-Governance/Bias are evaluated via the existing experiment-tracking tables, not new per-request tables.
-- **Local models added:** `cross-encoder/ms-marco-MiniLM-L-6-v2` (already cached, no download) and `Qwen/Qwen2.5-1.5B-Instruct` (tokenizer was already partially staged; full ~3GB weights downloaded this milestone, pinned revision).
-- **Three real bugs found and fixed, not assumed away:** (1) the Local Judge's JSON prompt template had a doubled-brace formatting bug causing every call to fail parsing; (2) `AutoModelForCausalLM.from_pretrained` raised a real Windows `OSError: paging file is too small` on default settings, fixed with explicit `dtype=torch.bfloat16`; (3) the RAG adequacy `CONFLICTING` check's naive substring match flagged two unrelated documents as conflicting because "not" matched inside "notice" — found via a real end-to-end regression at a widened retry `k`, same root-cause class as Milestone 3's actionability false-positive, fixed with word-boundary matching.
-- **Real, measured results:** reranker comparison (dense/fusion/cross-encoder: recall@1 0.962→0.962→1.000, MRR 0.981→0.981→1.000, cross-encoder costs ~1.1s/query vs ~44ms); judge calibration (deterministic 1.0/1.0 accuracy/F1 vs. Local Judge 0.95/0.95 on a 20-case derived grounding benchmark — the judge does not beat the baseline on this easy set, reported honestly); Agent Governance gate (0.72 accuracy, 0.756 macro-F1, perfect on the safety-critical BLOCK/HUMAN_REVIEW classes) against 75 real trajectory labels.
-- `tests/` — 222 automated tests (up from 186), all passing, all DB-backed except pure-logic modules, no live external API dependency.
-- **Explicitly not implemented / deferred:** Behavioral Drift, Permission Lineage, Partial Execution states, Shadow Mode (Layers 19-20 — no existing real data to ground them, unlike Agent Governance); the Agent Governance gate is real but not wired into any live execution path (the `AGENT` capability itself is still `MOCKED`); Remote Judge (Gemini) not live-validated this session (no key); a local generative model pool distinct from the judge; fine-tuning of anything.
+- **`controlplane/capabilities/agent_capability.py` (NEW):** the `AGENT` capability's real handler — 3 real tools (`sql_read_query`, `write_report`, `send_notification`) plus a hard-blocked `destructive_operation`, each gated live by `AgentGate` before running. Replaces the `MOCKED` handler used through Milestone 6.
+- **`controlplane/governance/behavioral_drift.py` (NEW):** a real, tested frequency-based drift detector — standalone, demonstrated on a synthetic baseline (no real historical volume exists yet to validate against live).
+- **`controlplane/dashboard/` extended:** a Permission Lineage panel, derived from the `AGENT` node's own trajectory step (same "derive, don't duplicate" pattern as Trust).
+- **`controlplane/evaluation/evaluators.py` extended:** `AgentGovernancePassthroughEvaluator`, `PromptInjectionEvaluator` — both wired into the live default `EvaluationSuite` and into new Decision Engine hard-constraint branches.
+- **Three real architectural bugs found and fixed making Agent Governance actually reachable, not assumed away:** (1) Policy blanket-restricted `AGENT` at `HIGH_RISK`, and the Risk Profiler always assigns agentic queries at least `HIGH_RISK` — so the capability was structurally unreachable; fixed by moving the hard restriction to `CRITICAL_ACTION` only. (2) "drop the customers table" never reached the AGENT capability because `"drop"` wasn't a recognized action keyword; fixed with a proximity-aware regex (`drop` near a data-object noun) plus new safe keywords (`truncate`/`wipe`/`purge`). (3) Trust reported HIGH for a response whose HIGH_RISK tool proposal was actually withheld pending human review, because Decision/Verification/Trust never consumed the AGENT node's own governance outcome; fixed with the new `agent_governance` evaluator + Decision Engine branch.
+- **A genuinely harder LLM Judge benchmark built and run:** 24 hand-authored cases targeting paraphrase, hallucination, subtle numeric errors, and conflicting evidence — Milestone 6's 20-case benchmark was too easy (deterministic reached 1.0 accuracy). Real result: deterministic 0.292 accuracy, Local Judge 0.375 — a real, if partial, improvement concentrated in paraphrase-recognition and subtle-number categories, with a striking honest finding that the Local Judge never once predicted the middle `PARTIALLY_SUPPORTED` label across all 24 cases (0.0 precision/recall/F1 for that class) — it behaves as an effectively binary classifier at this model size.
+- **Reasoning and Safety capability audits, both reported honestly including unflattering results:** `ReasoningEvaluator`'s in-scope recall measured at only 0.5 (missed a same-subject contradiction due to exact-phrase matching); `PromptInjectionEvaluator` measured at 1.0 accuracy including two deliberately-hard near-miss negative cases.
+- `tests/` — 252 automated tests (up from 222), all passing.
+- **A real environmental finding, not a code bug:** wall-clock test-suite time ballooned to 76+ minutes during this milestone (individual test durations remained sub-second) — traced to only ~4.5GB free disk space (likely from this milestone's ~3GB Local Judge model download), not a code regression. Documented as `BLOCKERS.md` B10, not "fixed" (freeing disk space is a user/environment decision).
+- **Explicitly not implemented / deferred:** Shadow Mode (Layer 20); Behavioral Drift live-wiring (no real historical volume yet); multi-agent composition tracking; Bias dataset expansion beyond 8 pairs; fine-tuning of anything (the Judge's PARTIALLY_SUPPORTED gap is a real candidate, but few-shot prompting wasn't tried first).
 
 **What does NOT exist:**
 - No root-level `AGENTS.md` (`BLOCKERS.md` B1) — unchanged.
 - No single `docs/ARCHITECTURE.md` file (`BLOCKERS.md` B2) — unchanged.
 - Redis and Qdrant remain unused placeholders.
-- No live agent/tool execution (Layer 5's `AGENT` capability is still `MOCKED`), so the new governance gate has nothing live to gate yet.
-- No Behavioral Drift (Layer 19), no Shadow Mode (Layer 20).
-- No live Groq-vs-Gemini benchmark at scale, and no live Gemini validation at all this session (no API key present).
+- No Shadow Mode (Layer 20).
+- No live Groq-vs-Gemini benchmark at scale, and no live Gemini/Groq validation at all this session (no API keys present).
+- No multi-step agent tool-calling loop (one `AGENT` node per graph) — Behavioral Drift and Permission Lineage are correspondingly single-hop.
 
 ## Phase
 
-**Milestone 6 (Cross-Encoder Reranker + LLM Judge + Reasoning/Bias Evaluators + Agent Governance + Trust Layer + Conflicting-Evidence Handling) complete.** Sequence: documentation audit (`4ae6a76`) → Layer 0 (`ac2f243`) → Layer 1 (`008231e`) → Milestone 1 (`463979e`) → Milestone 2 (`d396acb`) → Milestone 3 (`ba4896e`) → Milestones 4+5 (`7dc76a9`) → Milestone 6 (this commit). Awaiting explicit instruction before continuing — see `FUTURE_WORK.md`.
+**Milestone 7 (Real Agent/Tool Governance + Behavioral Drift + Permission Lineage + Prompt-Injection Detection + Hard Judge Benchmark) complete.** Sequence: documentation audit (`4ae6a76`) → Layer 0 (`ac2f243`) → Layer 1 (`008231e`) → Milestone 1 (`463979e`) → Milestone 2 (`d396acb`) → Milestone 3 (`ba4896e`) → Milestones 4+5 (`7dc76a9`) → Milestone 6 (`a543f8c`) → Milestone 7 (pending commit). Awaiting explicit instruction before continuing — see `FUTURE_WORK.md`.

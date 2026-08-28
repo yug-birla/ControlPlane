@@ -91,6 +91,20 @@
 </div>
 {% endif %}
 
+{% if detail.permission_lineage %}
+<div class="panel">
+  <h2>Agent Governance &amp; Permission Lineage</h2>
+  <p>requested_tool=<code>{{ detail.permission_lineage.requested_tool }}</code>
+     authorization=<span class="badge trust-{{ 'HIGH' if detail.permission_lineage.authorization == 'ALLOW' else ('LOW' if detail.permission_lineage.authorization in ('BLOCK', 'HUMAN_REVIEW') else 'MEDIUM') }}">{{ detail.permission_lineage.authorization }}</span>
+     execution_status=<code>{{ detail.permission_lineage.execution_status }}</code></p>
+  <div class="why">{{ detail.permission_lineage.authorization_reason }}</div>
+  <p class="note">tool_call: {{ detail.permission_lineage.tool_call }}</p>
+  <p class="note">consequence_class=<code>{{ detail.permission_lineage.consequence_class }}</code>
+     {% if detail.permission_lineage.accessed_resource %} &middot; accessed=<code>{{ detail.permission_lineage.accessed_resource }}</code>{% endif %}
+     {% if detail.permission_lineage.destination %} &middot; destination=<code>{{ detail.permission_lineage.destination }}</code>{% endif %}</p>
+</div>
+{% endif %}
+
 <div class="panel">
   <h2>Final Answer</h2>
   {% if detail.answer %}<p>{{ detail.answer }}</p>{% else %}<p class="note">No answer generated

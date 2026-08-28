@@ -1,0 +1,36 @@
+{
+  "experiment_id": "exp_f083f1a8-a6b0-41bd-8944-d4d4572dc930",
+  "dataset_id": "prompt_injection_cases",
+  "dataset_version": "v0.1",
+  "metrics": {
+    "sample_count": 12,
+    "accuracy": 1.0,
+    "macro_f1": 1.0,
+    "per_class": {
+      "INJECTION_PATTERN_DETECTED": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 7
+      },
+      "NO_PATTERN_DETECTED": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 5
+      }
+    },
+    "confusion_matrix": {
+      "INJECTION_PATTERN_DETECTED": {
+        "INJECTION_PATTERN_DETECTED": 7,
+        "NO_PATTERN_DETECTED": 0
+      },
+      "NO_PATTERN_DETECTED": {
+        "INJECTION_PATTERN_DETECTED": 0,
+        "NO_PATTERN_DETECTED": 5
+      }
+    },
+    "error_count": 0,
+    "errors": []
+  }
+}

@@ -76,6 +76,38 @@ def test_action_keyword_as_a_real_command_still_triggers_agentic():
     assert fp.intent == Intent.ACTION_REQUEST
 
 
+def test_drop_table_phrasing_is_classified_agentic_regression():
+    """PERMANENT REGRESSION TEST (Milestone 7 -- found via a real
+    end-to-end trace of the new AgentCapability hard-block for
+    destructive operations, controlplane/capabilities/agent_capability.py).
+    "Please drop the customers table from the database" was silently
+    classified INFORMATIONAL because "drop" was not in _ACTION_KEYWORDS
+    -- the query never became agentic, never got an AGENT capability
+    node, and the destructive-operation hard block downstream was
+    structurally unreachable for this common phrasing."""
+    fp = RuleBasedQueryProfiler().profile("Please drop the customers table from the database immediately")
+    assert fp.actionability == Actionability.AGENTIC
+    assert CapabilityHint.AGENT in fp.capability_hints
+
+
+def test_bare_drop_without_a_data_object_noun_is_not_agentic():
+    # "drop" alone is too ambiguous ("a drop in revenue," "price drop")
+    # to safely treat as a destructive-action keyword on its own --
+    # the fix above requires proximity to a data-object noun.
+    fp = RuleBasedQueryProfiler().profile("What caused the drop in revenue this quarter?")
+    assert fp.actionability != Actionability.AGENTIC
+
+
+def test_truncate_wipe_purge_are_classified_agentic():
+    for query in (
+        "Please truncate the logs table",
+        "Please wipe the staging database",
+        "Please purge old records from the archive",
+    ):
+        fp = RuleBasedQueryProfiler().profile(query)
+        assert fp.actionability == Actionability.AGENTIC, query
+
+
 def test_every_rule_based_field_has_an_explanation_or_deterministic_default():
     fp = RuleBasedQueryProfiler().profile("What was our Q4 revenue?")
     # Rules baseline must be explainable (bootstrap SS8) -- every non-list

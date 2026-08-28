@@ -82,3 +82,35 @@ def test_high_risk_action_always_requires_human_review_regardless_of_grounding()
 def test_model_router_required_verification_without_other_signals_still_verifies():
     decision = DecisionEngine().decide([], _risk(), _model_decision(require_verification=True), attempt_number=1)
     assert decision.action == ControlAction.VERIFY
+
+
+def test_agent_governance_block_forces_human_review():
+    results = [_eval("agent_governance", "BLOCK")]
+    decision = DecisionEngine().decide(results, _risk(), _model_decision(), attempt_number=1)
+    assert decision.action == ControlAction.HUMAN_REVIEW
+    assert decision.triggering_evaluator == "agent_governance"
+
+
+def test_agent_governance_human_review_forces_human_review():
+    results = [_eval("agent_governance", "HUMAN_REVIEW")]
+    decision = DecisionEngine().decide(results, _risk(), _model_decision(), attempt_number=1)
+    assert decision.action == ControlAction.HUMAN_REVIEW
+
+
+def test_agent_governance_allow_does_not_force_human_review():
+    results = [_eval("agent_governance", "ALLOW"), _eval("grounding", "SUPPORTED", 0.9)]
+    decision = DecisionEngine().decide(results, _risk(), _model_decision(), attempt_number=1)
+    assert decision.action == ControlAction.CONTINUE
+
+
+def test_prompt_injection_detected_forces_human_review():
+    results = [_eval("prompt_injection", "INJECTION_PATTERN_DETECTED")]
+    decision = DecisionEngine().decide(results, _risk(), _model_decision(), attempt_number=1)
+    assert decision.action == ControlAction.HUMAN_REVIEW
+    assert decision.triggering_evaluator == "prompt_injection"
+
+
+def test_prompt_injection_not_detected_does_not_force_human_review():
+    results = [_eval("prompt_injection", "NO_PATTERN_DETECTED"), _eval("grounding", "SUPPORTED", 0.9)]
+    decision = DecisionEngine().decide(results, _risk(), _model_decision(), attempt_number=1)
+    assert decision.action == ControlAction.CONTINUE

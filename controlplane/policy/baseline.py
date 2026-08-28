@@ -46,10 +46,24 @@ class PolicyBaseline:
     scattered through the runtime (bootstrap Rule 5)."""
 
     def __init__(self) -> None:
+        # HIGH_RISK no longer blanket-restricts AGENT (changed this
+        # milestone): through Milestone 6, AgentGate existed but had no
+        # real tool-execution path to gate, so a HIGH_RISK agentic
+        # request could only be handled by removing AGENT here and
+        # having the Model Router ABSTAIN -- a coarse, all-or-nothing
+        # response. Now that controlplane.capabilities.agent_capability
+        # provides a real, graduated per-tool gate (ALLOW/RESTRICT/
+        # HUMAN_REVIEW/BLOCK), a HIGH_RISK agentic request should reach
+        # that gate instead of being abstained from wholesale -- the
+        # gate itself will typically resolve to HUMAN_REVIEW or BLOCK
+        # for a genuinely risky proposal anyway, but now with a real,
+        # auditable, per-tool reason instead of a blanket policy cutoff.
+        # CRITICAL_ACTION remains a true hard ceiling: AGENT is always
+        # removed there, no gate gets a chance to be nuanced about it.
         self._restricted_by_tier: dict[PolicyTier, list[str]] = {
             PolicyTier.LOW_RISK: [],
             PolicyTier.MEDIUM_RISK: [],
-            PolicyTier.HIGH_RISK: ["AGENT"],
+            PolicyTier.HIGH_RISK: [],
             PolicyTier.CRITICAL_ACTION: ["AGENT", "SQL"],
         }
 

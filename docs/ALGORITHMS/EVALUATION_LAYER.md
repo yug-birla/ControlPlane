@@ -1,6 +1,6 @@
 # Evaluation Layer
 
-**Status:** PARTIALLY IMPLEMENTED (Milestone 6 adds Reasoning + RAG-adequacy passthrough + a standalone Bias module, 2026-08-28; core set was Milestone 4/5)
+**Status:** PARTIALLY IMPLEMENTED (Milestone 7 adds Agent-Governance passthrough + Prompt-Injection detection, 2026-08-28; Reasoning/RAG-adequacy/Bias were Milestone 6; core set was Milestone 4/5)
 
 ## Problem
 
@@ -20,8 +20,10 @@ Score a completed response along multiple independent dimensions (bootstrap: "do
 | `grounding` | Lexical claim/evidence overlap (answer vs. RAG evidence text) | IMPLEMENTED (baseline); semantic (judge-backed) alternative measured separately, see `docs/ALGORITHMS/LLM_JUDGE.md` |
 | `factuality` | Deterministic numeric-claim check against SQL rows + RAG evidence text | IMPLEMENTED (narrow — numeric claims only) |
 | `response_confidence` | Hedging-language + length heuristic | IMPLEMENTED (surface signal, not calibrated model confidence) |
-| `reasoning` | Deterministic self-contradiction check (direct polarity-pair assertions about the same subject) | IMPLEMENTED (narrow — one failure pattern, not general logical validity; judge-backed alternative exists but is not live-wired, see `docs/ALGORITHMS/LLM_JUDGE.md`) |
+| `reasoning` | Deterministic self-contradiction check (direct polarity-pair assertions about the same subject) | IMPLEMENTED (narrow — one failure pattern, not general logical validity; measured recall even within scope is only 0.5, see `docs/EVALUATION/EVALUATOR_RESULTS.md`; judge-backed alternative exists but is not live-wired) |
 | `rag_adequacy` | Deterministic passthrough of the RAG capability's own adequacy label (incl. `CONFLICTING`) | IMPLEMENTED |
+| `agent_governance` (NEW, Milestone 7) | Deterministic passthrough of the AGENT capability's own governance decision | IMPLEMENTED |
+| `prompt_injection` (NEW, Milestone 7) | Deterministic fixed-phrase-list check for known injection phrasing in the query | IMPLEMENTED (narrow — verbatim known phrasings only, not paraphrases; measured 1.0 accuracy including near-miss negatives, see `docs/EVALUATION/EVALUATOR_RESULTS.md`) |
 | `bias` (in `EvaluationSuite`) | — | NOT_IMPLEMENTED (real, but comparative — see `controlplane.evaluation.bias` below) |
 
 None fabricate a score when inapplicable — `NOT_APPLICABLE`, `NOT_IMPLEMENTED`, `PARSE_FAILED` are reported explicitly rather than guessed.
@@ -57,7 +59,7 @@ Found and fixed in Milestone 5: `FactualityEvaluator` originally checked SQL row
 
 ## Result
 
-8/9 `EvaluationSuite` evaluators real and wired into the live control loop (only `bias` remains `NOT_IMPLEMENTED` there, by design — it lives as a standalone comparative module instead, also real). A working LLM-Judge subsystem exists and is measured, deliberately not defaulted into the live path.
+10/11 `EvaluationSuite` evaluators real and wired into the live control loop (only `bias` remains `NOT_IMPLEMENTED` there, by design — it lives as a standalone comparative module instead, also real). A working LLM-Judge subsystem exists and is measured, deliberately not defaulted into the live path -- and this milestone's HARD judge benchmark (`docs/EVALUATION/EVALUATOR_RESULTS.md`) finally gives it a benchmark where it shows a real, if partial, advantage over the deterministic baseline (paraphrase recognition, some subtle-number errors), not just parity or a loss.
 
 ## Final Decision
 
@@ -65,4 +67,4 @@ Current evaluator set adopted as the runtime default; judge-backed evaluators ad
 
 ## Version
 
-v3 — 2026-08-28 (v2 was Milestone 5's 6-implemented/2-not set; v1 was Milestone 4's privacy/action_risk/grounding-only set).
+v4 — 2026-08-28 (v3 was Milestone 6's Reasoning-upgrade/RAG-adequacy-passthrough set; v2 was Milestone 5's 6-implemented/2-not set; v1 was Milestone 4's privacy/action_risk/grounding-only set).

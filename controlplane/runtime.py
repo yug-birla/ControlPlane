@@ -1,28 +1,28 @@
-"""Traceable runtime -- Milestone 4 (Real RAG + SQL + Evaluation +
-Gemini + Dashboard).
+"""Traceable runtime -- current through Milestone 7 (Cross-Encoder
+Reranker, LLM Judge, real Agent/Tool Governance, Trust Layer).
 
 USER QUERY -> create request/trajectory -> QUERY_RECEIVED -> Query
 Profiler -> QUERY_PROFILED -> Risk Profiler + Policy -> RISK_DETECTED ->
 Capability Router + Model Router -> PLAN_CREATED (+ HUMAN_REVIEW_REQUIRED
 when applicable) -> Execution Graph run by the Graph Executor
-(ROUTE_STARTED/ROUTE_COMPLETED per node; "SQL" and "RAG" nodes now run
-real capabilities -- controlplane/capabilities/ -- and "generation"
-invokes the configured model provider for the routed role) -> model
-invocation record -> ledger entry -> FINAL_RESPONSE_GENERATED -> update
+(ROUTE_STARTED/ROUTE_COMPLETED per node; "SQL", "RAG", and "AGENT" nodes
+run real capabilities -- controlplane/capabilities/ -- and "generation"
+invokes the configured model provider for the routed role, with the
+prompt rebuilt from any completed SQL/RAG evidence) -> Evaluation
+(controlplane/evaluation/) -> Decide -> (Intervene -> Replan ->
+re-Evaluate)* -> Verify -> Trust -> FINAL_RESPONSE_GENERATED -> update
 trajectory -> structured response.
 
-Still no evaluation-driven intervention or replanning (the Evaluation
-layer, controlplane/evaluation/, exists and can score a response, but
-nothing yet acts on its output -- see docs/PROJECT_STATE/FUTURE_WORK.md).
-WEB/CHAT_HISTORY/MEMORY/AGENT capability nodes still run via the
-executor's explicit MOCKED handler (Layer 18 Agent/Tool Control and the
-Web/Chat/Memory capabilities are still future work).
+WEB/CHAT_HISTORY/MEMORY capability nodes still run via the executor's
+explicit MOCKED handler (AGENT became real in Milestone 7; Web/Chat/
+Memory are still future work, see docs/PROJECT_STATE/FUTURE_WORK.md).
 """
 
 from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from controlplane.capabilities.agent_capability import AgentCapability
 from controlplane.capabilities.rag_capability import RAGCapability
 from controlplane.capabilities.sql_capability import SQLCapability
 from controlplane.config import Settings, get_settings
@@ -94,6 +94,7 @@ class Runtime:
         graph_executor=None,
         sql_capability=None,
         rag_capability=None,
+        agent_capability=None,
         evaluation_suite=None,
         decision_engine=None,
         intervention_engine=None,
@@ -113,6 +114,7 @@ class Runtime:
         self._graph_executor = graph_executor or GraphExecutor(handlers={})
         self._sql_capability = sql_capability or SQLCapability()
         self._rag_capability = rag_capability or RAGCapability()
+        self._agent_capability = agent_capability or AgentCapability()
         self._evaluation_suite = evaluation_suite or EvaluationSuite()
         self._decision_engine = decision_engine or DecisionEngine()
         self._intervention_engine = intervention_engine or InterventionEngine()
@@ -435,6 +437,7 @@ class Runtime:
             ),
             "SQL": lambda node: self._sql_capability.execute(query),
             "RAG": lambda node: self._rag_capability.execute(query),
+            "AGENT": lambda node: self._agent_capability.execute(query),
         }
         executor = GraphExecutor(handlers=handlers)
         graph_result = executor.run(capability_route.graph, mode="parallel")
@@ -460,10 +463,65 @@ class Runtime:
                 source="execution_graph",
                 payload={"node_id": node.node_id, "status": node.status.value, "latency_ms": node.latency_ms},
             )
+            if node.capability == "AGENT" and node.status == NodeStatus.COMPLETED:
+                self._record_agent_action(ctx, node.output_ref)
 
         if "generation" in graph_result.failed:
             raise captured["error"]
         return captured["result"]
+
+    def _record_agent_action(self, ctx: RequestContext, agent_result: dict) -> None:
+        """Real audit trail for a governed tool proposal (bootstrap:
+        "TOOL RESULT -> TRAJECTORY -> LEDGER -> POST-ACTION CHECK ->
+        VERIFY") -- every proposal lands here, whatever the outcome,
+        never only the ones that actually ran."""
+        governance_action = agent_result.get("governance_action", "ALLOW")
+        consequence = agent_result.get("consequence_class", "READ_ONLY")
+
+        severity = {
+            "BLOCK": Severity.CRITICAL, "HUMAN_REVIEW": Severity.HIGH,
+            "RESTRICT": Severity.WARNING, "ALLOW": Severity.NOTICE,
+        }.get(governance_action, Severity.NOTICE)
+        self._publish(
+            EventType.AGENT_ACTION_GOVERNED,
+            ctx,
+            source="agent_capability",
+            severity=severity,
+            payload={
+                "proposed_tool": agent_result.get("proposed_tool"),
+                "governance_action": governance_action,
+                "execution_status": agent_result.get("execution_status"),
+                "consequence_class": consequence,
+            },
+        )
+        if governance_action == "HUMAN_REVIEW":
+            self._publish(
+                EventType.HUMAN_REVIEW_REQUIRED,
+                ctx,
+                source="agent_capability",
+                severity=Severity.HIGH,
+                payload={"reason": agent_result.get("governance_reason"), "proposed_tool": agent_result.get("proposed_tool")},
+            )
+
+        try:
+            consequence_class = ConsequenceClass(consequence)
+        except ValueError:
+            consequence_class = ConsequenceClass.READ_ONLY
+        self._ledger.append(
+            trajectory_id=ctx.trajectory_id,
+            actor_type="AGENT",
+            actor_id=agent_result.get("proposed_tool", "unknown_tool"),
+            action_type="AGENT_TOOL_PROPOSED",
+            consequence_class=consequence_class,
+            resource_type="tool",
+            resource_id=agent_result.get("proposed_tool", "unknown_tool"),
+            evidence_refs={"tool_call": agent_result.get("tool_call")},
+            metadata={
+                "governance_action": governance_action,
+                "governance_reason": agent_result.get("governance_reason"),
+                "execution_status": agent_result.get("execution_status"),
+            },
+        )
 
     def _run_evaluation(
         self,
@@ -479,16 +537,20 @@ class Runtime:
         evidence_texts: list[str] = []
         sql_rows: list[dict] = []
         rag_adequacy: str | None = None
+        agent_governance_action: str | None = None
         for node in capability_route.graph.nodes:
             if node.capability == "RAG" and node.status == NodeStatus.COMPLETED:
                 evidence_texts.extend(item["text"] for item in node.output_ref.get("evidence", []))
                 rag_adequacy = node.output_ref.get("adequacy", {}).get("label")
             if node.capability == "SQL" and node.status == NodeStatus.COMPLETED:
                 sql_rows.extend(node.output_ref.get("rows", []))
+            if node.capability == "AGENT" and node.status == NodeStatus.COMPLETED:
+                agent_governance_action = node.output_ref.get("governance_action")
 
         eval_ctx = EvaluationContext(
             query=query, answer=answer, evidence_texts=evidence_texts, sql_rows=sql_rows,
-            rag_adequacy=rag_adequacy, fingerprint=fingerprint, risk=risk,
+            rag_adequacy=rag_adequacy, agent_governance_action=agent_governance_action,
+            fingerprint=fingerprint, risk=risk,
         )
         results = self._evaluation_suite.run(eval_ctx)
 

@@ -84,7 +84,7 @@ def test_response_contains_real_evaluation_metadata():
     names = {e["evaluator"] for e in evaluations}
     assert {
         "privacy_pii", "action_risk", "safety", "grounding", "factuality",
-        "response_confidence", "reasoning", "rag_adequacy", "bias",
+        "response_confidence", "reasoning", "rag_adequacy", "agent_governance", "prompt_injection", "bias",
     } == names
     not_implemented = {e["evaluator"] for e in evaluations if e["status"] == "NOT_IMPLEMENTED"}
     assert {"bias"} == not_implemented

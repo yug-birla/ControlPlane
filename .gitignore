@@ -13,3 +13,7 @@ __pycache__/
 data/synthetic_enterprise/nexaconsult.db
 data/synthetic_enterprise/nexaconsult.db-shm
 data/synthetic_enterprise/nexaconsult.db-wal
+
+# Real runtime output of AgentCapability's write_report tool (Milestone 7)
+# -- generated artifacts, not source; sandboxed to this one directory.
+data/agent_reports/

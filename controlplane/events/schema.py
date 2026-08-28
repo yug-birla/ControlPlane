@@ -78,6 +78,14 @@ class EventType(str, Enum):
     VERIFICATION_FAILED = "VERIFICATION_FAILED"
     """docs/architecture/EVENT_MODEL.md SS14 -- emitted when
     ``VerificationEngine`` returns NOT_VERIFIED or REJECTED."""
+    AGENT_ACTION_GOVERNED = "AGENT_ACTION_GOVERNED"
+    """Not in EVENT_MODEL.md's original list -- added this milestone
+    (real Agent/Tool governance path, ``controlplane/capabilities/agent_capability.py``)
+    for every proposed tool call, whatever the outcome
+    (ALLOW/RESTRICT/HUMAN_REVIEW/BLOCK) -- ``HUMAN_REVIEW_REQUIRED`` is
+    additionally emitted when the outcome is specifically HUMAN_REVIEW,
+    reusing that existing event rather than inventing a second one for
+    the same meaning."""
     FINAL_RESPONSE_GENERATED = "FINAL_RESPONSE_GENERATED"
 
 
@@ -111,6 +119,7 @@ _DEFAULT_SEVERITY = {
     EventType.REPLAN_COMPLETED: Severity.INFO,
     EventType.RISK_ESCALATION: Severity.HIGH,
     EventType.VERIFICATION_FAILED: Severity.WARNING,
+    EventType.AGENT_ACTION_GOVERNED: Severity.NOTICE,  # overridden per-call to HIGH/CRITICAL for BLOCK/HUMAN_REVIEW -- see controlplane/runtime.py
     EventType.FINAL_RESPONSE_GENERATED: Severity.INFO,
 }
 

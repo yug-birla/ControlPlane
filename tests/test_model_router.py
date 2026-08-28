@@ -58,10 +58,14 @@ def test_high_risk_policy_tier_requires_human_review_regardless_of_complexity():
 
 
 def test_agentic_request_with_agent_restricted_abstains():
-    policy = PolicyBaseline().decide(RiskSeverity.HIGH_RISK)
+    """AGENT is only policy-restricted at CRITICAL_ACTION now (changed
+    this milestone -- see controlplane/policy/baseline.py: a real
+    per-tool AgentGate exists, so HIGH_RISK no longer needs a blanket
+    policy-level cutoff)."""
+    policy = PolicyBaseline().decide(RiskSeverity.CRITICAL)
     assert "AGENT" in policy.restricted_capabilities
     decision = ModelRouter().decide(
-        _fp(actionability=Actionability.AGENTIC, impact=Impact.HIGH), _risk(RiskSeverity.HIGH_RISK), policy
+        _fp(actionability=Actionability.AGENTIC, impact=Impact.CRITICAL), _risk(RiskSeverity.CRITICAL), policy
     )
     assert decision.action == ModelRouteAction.ABSTAIN
     assert decision.model_role is None
@@ -72,6 +76,19 @@ def test_agentic_request_with_agent_not_restricted_does_not_abstain():
     assert "AGENT" not in policy.restricted_capabilities
     decision = ModelRouter().decide(
         _fp(actionability=Actionability.AGENTIC, impact=Impact.LOW), _risk(RiskSeverity.LOW_RISK), policy
+    )
+    assert decision.action != ModelRouteAction.ABSTAIN
+
+
+def test_high_risk_agentic_request_no_longer_abstains_reaches_the_real_gate_instead():
+    """Regression-preventing companion to the CRITICAL-only test above:
+    a HIGH_RISK agentic request must now flow through to the real
+    AgentCapability/AgentGate path (controlplane/capabilities/agent_capability.py),
+    not be abstained from wholesale."""
+    policy = PolicyBaseline().decide(RiskSeverity.HIGH_RISK)
+    assert "AGENT" not in policy.restricted_capabilities
+    decision = ModelRouter().decide(
+        _fp(actionability=Actionability.AGENTIC, impact=Impact.HIGH), _risk(RiskSeverity.HIGH_RISK), policy
     )
     assert decision.action != ModelRouteAction.ABSTAIN
 

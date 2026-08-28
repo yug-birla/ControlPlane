@@ -65,9 +65,14 @@ Query: *"What is the exact financial threshold for SLA commitments per our polic
 
 Permanently regression-tested: `tests/test_control_loop_scenarios.py::test_conflicting_evidence_asks_for_clarification_instead_of_picking_one_value`.
 
+## Real End-to-End Traces — Agent Governance + Prompt Injection (NEW, Milestone 7)
+
+Four additional real, permanent end-to-end scenarios, all reachable via the live `/v1/requests` path (not injected fakes): a benign `sql_read_query` proposal (ALLOW → VERIFY → VERIFIED), a medium-risk `send_notification` (RESTRICT → VERIFY → VERIFIED), a high-stakes board/financial `send_notification` (HUMAN_REVIEW → HUMAN_REVIEW → REJECTED → Trust=LOW), a destructive database operation (hard BLOCK → HUMAN_REVIEW → REJECTED → Trust=LOW), and a prompt-injection attempt with no action keywords present at all (INJECTION_PATTERN_DETECTED → HUMAN_REVIEW → REJECTED → Trust=LOW). Full detail and the three real bugs found building this live path: `docs/ALGORITHMS/AGENT_GOVERNANCE.md`. Tests: `tests/test_control_loop_scenarios.py::test_agent_governed_*`, `test_prompt_injection_forces_human_review_end_to_end`.
+
 ## Known Limitations
 
 - 5 before/after scenarios + 1 additional CONFLICTING scenario (not included in the before/after counterfactual table, since it's a fixture-driven test of a decision branch rather than a graded quality comparison) — a controlled demonstration of the mechanism, not a statistically powered benchmark.
+- The 4 new agent-governance/prompt-injection scenarios are likewise not included in the before/after counterfactual table (they are control-decision demonstrations, not response-quality comparisons).
 - No live-model statistics (NOT MEASURED — no budget for a larger real-model comparison this milestone).
 - `max_attempts=2` means every scenario here resolves in at most one retry; higher budgets are untested.
 - The CONFLICTING scenario uses a scripted RAG capability rather than the real corpus, because the real corpus has no genuine same-topic contradiction to retrieve — stated plainly, not disguised as an organic finding.

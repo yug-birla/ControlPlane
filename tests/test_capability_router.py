@@ -56,15 +56,27 @@ def test_agent_capability_adds_a_node_after_generation():
     assert route.graph.get("agent_action").depends_on == ("generation",)
 
 
-def test_high_risk_policy_restricts_agent_capability_out_of_the_route():
+def test_critical_action_policy_restricts_agent_capability_out_of_the_route():
+    """AGENT is only policy-restricted at CRITICAL_ACTION now (changed
+    this milestone -- see controlplane/policy/baseline.py)."""
+    route = CapabilityRouter().route(
+        _fp([CapabilityHint.GENERAL, CapabilityHint.AGENT], actionability=Actionability.AGENTIC, impact=Impact.CRITICAL),
+        _risk(),
+        _policy_for(RiskSeverity.CRITICAL),
+    )
+    assert "AGENT" not in route.selected_capabilities
+    assert "AGENT" in route.restricted_removed
+    assert "agent_action" not in {n.node_id for n in route.graph.nodes}
+
+
+def test_high_risk_policy_no_longer_restricts_agent_capability():
     route = CapabilityRouter().route(
         _fp([CapabilityHint.GENERAL, CapabilityHint.AGENT], actionability=Actionability.AGENTIC, impact=Impact.HIGH),
         _risk(),
         _policy_for(RiskSeverity.HIGH_RISK),
     )
-    assert "AGENT" not in route.selected_capabilities
-    assert "AGENT" in route.restricted_removed
-    assert "agent_action" not in {n.node_id for n in route.graph.nodes}
+    assert "AGENT" in route.selected_capabilities
+    assert "agent_action" in {n.node_id for n in route.graph.nodes}
 
 
 def test_multi_source_hint_itself_never_becomes_a_graph_node():
