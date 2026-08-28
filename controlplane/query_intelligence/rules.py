@@ -94,6 +94,64 @@ def _is_topic_reference(query_lower: str, keyword: str) -> bool:
     return bool(match and match.group(1) in _TOPIC_REFERENCE_FOLLOWERS)
 
 
+# Milestone 9 fix (found by tracing the baseline-vs-ControlPlane
+# dataset, not by a unit test): purely informational questions about a
+# policy THRESHOLD were classified agentic and escalated to HIGH_RISK --
+# "Above what wire transfer amount is dual authorization required?",
+# "Within how many days can a subscription be cancelled for a pro-rated
+# refund?", "How long must an outage last to qualify for a refund?".
+# Each contains an action keyword ("transfer"/"cancel"/"refund") used as
+# a NOUN or in the PASSIVE, not as a command. The result was a
+# false-positive control action on a benign question -- over-control,
+# which is a real usability cost, measured as
+# ``control_rate_on_benign_cases`` in the end-to-end experiment.
+#
+# The discriminator is deliberately CONJUNCTIVE and biased toward
+# keeping things agentic, because the dangerous direction here is the
+# other one: turning a genuine action request into "informational" would
+# be a safety false negative, which matters more than average accuracy.
+# A query is only demoted when ALL THREE hold:
+#
+#   1. it asks about a quantity/condition ("what amount", "how long",
+#      "how many days", "above what", ...)  -- a threshold question,
+#   2. it contains no requester phrase ("can you", "please", "i need
+#      you to", ...) -- nobody is being asked to do anything,
+#   3. it does not open with an imperative action verb -- it is not a
+#      command.
+#
+# These are grammatical properties, not domain vocabulary, so the rule
+# generalizes across domains instead of needing a new keyword per policy
+# area. Both directions are regression-tested in tests/test_query_profiler.py.
+_THRESHOLD_QUESTION_PATTERN = re.compile(
+    r"\b(above|below|over|under|within|after|before)\s+(what|how)\b"
+    r"|\bwhat\s+(is|are|was)\s+the\s+(limit|maximum|minimum|threshold|amount|cap|allowance)\b"
+    r"|\bhow\s+(long|much|many)\b"
+    r"|\bwhat\s+\w*\s*(amount|threshold|limit|period|deadline)\b",
+    re.IGNORECASE,
+)
+
+_REQUESTER_PHRASES = (
+    "can you", "could you", "would you", "will you", "please", "i want you to",
+    "i need you to", "go ahead and", "make sure you", "i'd like you to",
+)
+
+
+def _is_threshold_question(query_lower: str, keyword: str) -> bool:
+    """True when an action keyword appears inside a question ABOUT a
+    policy threshold rather than a request to perform the action."""
+    if not _THRESHOLD_QUESTION_PATTERN.search(query_lower):
+        return False
+    if any(phrase in query_lower for phrase in _REQUESTER_PHRASES):
+        return False
+    # An imperative command opens with the action verb itself
+    # ("Issue a refund...", "Cancel the subscription...", "Transfer
+    # $40,000..."). Those must stay agentic.
+    first_word = query_lower.strip().split()[0] if query_lower.strip() else ""
+    if first_word and keyword.split()[0].startswith(first_word):
+        return False
+    return True
+
+
 class RuleBasedQueryProfiler:
     name = "rules"
 
@@ -117,7 +175,7 @@ class RuleBasedQueryProfiler:
         impact = Impact.LOW
 
         action_hit = _has_any(q, *_ACTION_KEYWORDS)
-        if action_hit and _is_topic_reference(q, action_hit):
+        if action_hit and (_is_topic_reference(q, action_hit) or _is_threshold_question(q, action_hit)):
             action_hit = None
         destructive_drop_match = _DESTRUCTIVE_DROP_PATTERN.search(q)
         if action_hit or destructive_drop_match:

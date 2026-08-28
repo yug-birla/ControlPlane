@@ -34,10 +34,36 @@ def resolve_model_name(settings: Settings, role: str = "STRONG") -> str | None:
 
 
 def get_configured_provider(settings: Settings, role: str = "STRONG") -> ModelProvider:
-    if not settings.groq_api_key:
-        raise ConfigurationError(
-            "GROQ_API_KEY is not set; no model provider is configured"
+    """Resolve a provider for ``role``.
+
+    Precedence (Milestone 9):
+      1. ``CONTROLPLANE_LOCAL_GENERATION=1`` -> the offline local model,
+         even if a Groq key is present (lets an experiment pin the
+         reproducible local model deliberately).
+      2. ``GROQ_API_KEY`` set -> Groq (the normal interactive path).
+      3. Neither -> the offline local model, if its weights are cached.
+
+    Step 3 is why this no longer raises when no API key exists: through
+    Milestone 8 a key-less environment had NO generative model at all, so
+    the entire system was unrunnable end-to-end offline and every
+    scenario fell back to scripted fakes. See
+    ``controlplane.models.local_generation_provider`` for the full
+    finding.
+    """
+    if settings.use_local_generation or not settings.groq_api_key:
+        from controlplane.models.local_generation_provider import (
+            get_local_generation_provider,
         )
+        from controlplane.models.provider import ModelProviderError
+
+        try:
+            return get_local_generation_provider(role)
+        except ModelProviderError as exc:
+            raise ConfigurationError(
+                "no remote model provider is configured (GROQ_API_KEY unset) and the "
+                f"local fallback model is unavailable: {exc}"
+            ) from exc
+
     model = resolve_model_name(settings, role)
     if not model:
         raise ConfigurationError(

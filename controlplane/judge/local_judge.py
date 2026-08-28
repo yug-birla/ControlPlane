@@ -12,14 +12,13 @@ was considered for speed but rejected without evidence the 1.5B model
 was actually too slow to use in a calibration/offline setting (bootstrap:
 "do not avoid local models because of CPU latency").
 
-Weights loaded with ``dtype=torch.bfloat16, low_cpu_mem_usage=True``
---not the ``from_pretrained`` default -- because the default (implicit
-float32 upcast during ``safe_open``'s memory-mapped load) failed on this
-machine with ``OSError: The paging file is too small`` (a real,
-reproduced Windows virtual-memory error, not a hypothetical). Loading in
-bf16 halves the resident footprint and loads successfully.
-
-Offline-first: ``local_files_only=True`` on both tokenizer and model.
+Model loading and raw chat generation live in
+``controlplane.models.local_llm`` (extracted in Milestone 9 when the
+offline ``ModelProvider`` became a second consumer of the same model --
+see that module for the bf16 / low_cpu_mem_usage / local_files_only /
+thread-count rationale, each of which fixes a real reproduced failure).
+This class owns only the judging concerns on top of it: the structured
+JSON contract, prompt construction, and parse-failure handling.
 
 MEASURED LATENCY (this machine, CPU-only, NO-GPU DEMONSTRATION
 ENVIRONMENT -- bootstrap's local model latency policy: CPU latency is
@@ -36,15 +35,14 @@ selectively," not a claim that every request is judge-scored.
 
 from __future__ import annotations
 
-import time
 from functools import lru_cache
 
 from controlplane.judge.parsing import extract_json_object, safe_float
 from controlplane.judge.prompts import build_judge_prompt
 from controlplane.judge.schema import JudgeResult, JudgeStatus
+from controlplane.models.local_llm import MODEL_REPO, MODEL_REVISION, LocalLLM, LocalLLMError
 
-MODEL_REPO = "Qwen/Qwen2.5-1.5B-Instruct"
-MODEL_REVISION = "989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
+__all__ = ["MODEL_REPO", "MODEL_REVISION", "LocalJudge", "LocalJudgeError", "get_local_judge"]
 
 
 class LocalJudgeError(Exception):
@@ -54,60 +52,20 @@ class LocalJudgeError(Exception):
 class LocalJudge:
     name = "local_qwen2.5-1.5b-instruct"
 
-    def __init__(self, max_new_tokens: int = 100) -> None:
+    def __init__(self, max_new_tokens: int = 100, llm: LocalLLM | None = None) -> None:
+        """``llm`` may be an already-loaded instance so a process that
+        needs both the judge and
+        ``controlplane.models.local_generation_provider`` shares one ~3GB
+        copy of the weights instead of loading it twice."""
         try:
-            import os
-
-            import torch
-            from transformers import AutoModelForCausalLM, AutoTokenizer
-        except ImportError as exc:
-            raise LocalJudgeError(
-                "transformers/torch are not installed; run pip install -e \".[dev]\""
-            ) from exc
-
-        # torch defaults to a conservative thread count (10 on this
-        # 16-core machine); using every available core is a real,
-        # measured ~35% latency reduction (88s -> 57s for one 80-token
-        # judgment) with no correctness tradeoff -- CPU-only inference is
-        # still slow (NO-GPU DEMONSTRATION ENVIRONMENT), just less
-        # unnecessarily slow.
-        torch.set_num_threads(os.cpu_count() or 4)
-
-        try:
-            self._tokenizer = AutoTokenizer.from_pretrained(
-                MODEL_REPO, revision=MODEL_REVISION, local_files_only=True
-            )
-            self._model = AutoModelForCausalLM.from_pretrained(
-                MODEL_REPO,
-                revision=MODEL_REVISION,
-                local_files_only=True,
-                dtype=torch.bfloat16,
-                low_cpu_mem_usage=True,
-            )
-        except Exception as exc:
-            raise LocalJudgeError(
-                f"local model {MODEL_REPO}@{MODEL_REVISION} is not cached locally -- "
-                "download it once via huggingface_hub.snapshot_download during setup, "
-                "never during a request"
-            ) from exc
+            self._llm = llm if llm is not None else LocalLLM()
+        except LocalLLMError as exc:
+            raise LocalJudgeError(str(exc)) from exc
         self._max_new_tokens = max_new_tokens
 
     def _run_generate(self, messages: list[dict], max_new_tokens: int) -> tuple[str, int]:
-        text = self._tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-        inputs = self._tokenizer([text], return_tensors="pt")
-
-        start = time.monotonic()
-        output_ids = self._model.generate(
-            **inputs,
-            max_new_tokens=max_new_tokens,
-            do_sample=False,
-            pad_token_id=self._tokenizer.eos_token_id,
-        )
-        latency_ms = int((time.monotonic() - start) * 1000)
-        output_text = self._tokenizer.decode(
-            output_ids[0][inputs["input_ids"].shape[1] :], skip_special_tokens=True
-        ).strip()
-        return output_text, latency_ms
+        text, latency_ms, _input_tokens, _output_tokens = self._llm.chat(messages, max_new_tokens)
+        return text, latency_ms
 
     def generate_answer(self, query: str, max_new_tokens: int | None = None) -> tuple[str, int]:
         """Plain free-text generation (not the judge's JSON contract) --

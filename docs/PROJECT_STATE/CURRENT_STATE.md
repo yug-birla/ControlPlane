@@ -1,15 +1,26 @@
 # ControlPlane.ai — Current State
 
-**Last updated:** 2026-08-28 (Milestone 8)
+**Last updated:** 2026-08-29 (Milestone 9)
 **Context:** Accenture Innovation Challenge 2026, Round 2 — Prototype Development (Problem Track 1, "ControlPlane.ai"). See `Problem_Statement/` for the original brief (partially captured as screenshots; not yet transcribed to text — see `BLOCKERS.md`).
 
 ## What Exists
 
 **Documentation:**
-- `docs/ALGORITHMS/` — 16 prior files plus 1 new: `PROMPT_INJECTION_DETECTION.md`. `RAG_PIPELINE.md`/retrieval module docstring updated for the RRF fusion-method default.
-- `docs/EVALUATION/` — `EVALUATOR_RESULTS.md` (Judge few-shot attempt, real 662-example prompt-injection benchmark + embedding k-NN upgrade), `RAG_RESULTS.md` (RRF vs. min-max fusion comparison) updated.
-- `docs/DATA/` — 1 new: `EXTERNAL_DATASETS.md` (the `deepset/prompt-injections` dataset, provenance, license, normalization pipeline).
-- `docs/PROJECT_STATE/` — this folder, updated; `BLOCKERS.md` B10 marked **FIXED** (E: drive migration — see below).
+- `docs/ALGORITHMS/` — 17 prior files plus 2 new: `CORPUS_AFFINITY_ROUTING.md`, `SHADOW_MODE.md`.
+- `docs/EVALUATION/` — 1 new: `BASELINE_VS_CONTROLPLANE.md` (the central product experiment, its methodology, its results, and the two bugs found in the harness itself).
+- `docs/DATA/` — `EXTERNAL_DATASETS.md` (Milestone 8). New dataset this milestone: `data/raw/generated/baseline_vs_controlplane_cases.json` (26 cases, provenance HUMAN).
+- `docs/PROJECT_STATE/` — this folder, updated.
+
+**Application code (Milestone 9 — Local Generative Model, Corpus-Affinity Routing, Shadow Mode, Baseline-vs-ControlPlane Evidence — complete 2026-08-29):**
+
+- **`controlplane/models/local_generation_provider.py` + `local_llm.py` (NEW):** a real offline generative `ModelProvider` (Qwen2.5-1.5B-Instruct, CPU). Closes a P0 gap: with only key-gated Groq/Gemini and no key in any session since Milestone 2, the runtime had **no generative model**, so every end-to-end scenario and the central product claim ran on scripted fakes. `LocalJudge` was refactored onto the shared loader rather than duplicating its configuration.
+- **`controlplane/query_intelligence/corpus_affinity.py` (NEW):** semantic RAG routing. Fixes the milestone's biggest finding — the deployed profiler retrieved on only **10/19 = 0.526** of corpus-answerable questions (the keyword rule alone: 1/19 = 0.053), so ControlPlane returned *byte-identical answers to an unmanaged model* on the cases it missed. End-to-end retrieval rate **0.526 → 1.000**; keyword-vs-affinity held-out routing F1 **0.100 → 0.947**. Threshold 0.41, calibrated on data disjoint from the reporting set.
+- **`controlplane/governance/shadow_mode.py` (NEW):** Shadow Mode — a specified-architecture gap `NOT_IMPLEMENTED` since Milestone 6, with zero prior references in the codebase. Observes and records `WOULD_*` verdicts (derived from the real Decision Engine, not reimplemented) while suppressing every consequence. Wired into `Runtime`/`build_default_runtime`, new `SHADOW_DECISION_RECORDED` event, 3 end-to-end scenarios.
+- **`controlplane/experiments/evaluate_baseline_vs_controlplane.py` + `evaluate_ablations.py` + `rescore_results.py` (NEW):** the central product experiment on real model output, plus component ablations and a deterministic re-scoring tool.
+- **Actionability over-control fixed:** informational threshold questions ("Above what wire transfer amount is dual authorization required?") were escalated to `HIGH_RISK` human review. Fixed with a conjunctive grammatical guard, regression-tested in **both** directions so a genuine action request can never be demoted.
+- **THE CENTRAL RESULT** (26 hand-authored cases, real local model, identical scoring, `DEVELOPMENT_TEST` scale): key-fact accuracy **0.105 → 0.947**, hallucination rate **0.316 → 0.000**, grounding supported **0.000 → 0.895**, appropriate abstention **0.500 → 1.000**, control on unsafe cases **0.000 → 1.000**; costs: over-control on benign cases 0.263 (pre-fix) and +40% latency.
+- **Two bugs found in the measurement harness itself**, both of which had been *understating* ControlPlane — found by reading per-case rows rather than trusting aggregates, fixed, regression-tested, and results re-scored deterministically from saved answers without re-running inference.
+- `tests/` — 281+ automated tests (up from 259), all passing.
 
 **Application code (Milestone 8 — E: Drive Migration, Judge Few-Shot, Real Public Injection Dataset + Embedding k-NN Detector, RRF Architecture Compliance — complete 2026-08-28):**
 
@@ -28,12 +39,14 @@
 - No root-level `AGENTS.md` (`BLOCKERS.md` B1) — unchanged.
 - No single `docs/ARCHITECTURE.md` file (`BLOCKERS.md` B2) — unchanged.
 - Redis and Qdrant remain unused placeholders.
-- No Shadow Mode (Layer 20).
-- No live Groq-vs-Gemini benchmark at scale, and no live Gemini/Groq validation at all this session (no API keys present).
+- ~~No Shadow Mode (Layer 20)~~ — **implemented Milestone 9**.
+- No live Groq-vs-Gemini benchmark at scale, and no live Gemini/Groq validation at all this session (no API keys present). The system is now fully runnable offline via the local generative provider.
+- No multi-agent composition tracking (specified, still NOT_IMPLEMENTED).
+- No judge model-comparison experiment (the justified next step after Milestone 8's few-shot attempt).
 - No multi-step agent tool-calling loop (one `AGENT` node per graph) — Behavioral Drift and Permission Lineage are correspondingly single-hop.
 - No BBQ (or other public) bias dataset integration yet — investigated, not adapted.
 - No local-generative-model comparison for the Judge's `PARTIALLY_SUPPORTED` collapse (the bootstrap's next-justified-step after few-shot).
 
 ## Phase
 
-**Milestone 8 (E: Drive Migration + Judge Few-Shot Attempt + Real Public Prompt-Injection Dataset + Embedding k-NN Detector + RRF Architecture Compliance) complete.** Sequence: documentation audit (`4ae6a76`) → Layer 0 (`ac2f243`) → Layer 1 (`008231e`) → Milestone 1 (`463979e`) → Milestone 2 (`d396acb`) → Milestone 3 (`ba4896e`) → Milestones 4+5 (`7dc76a9`) → Milestone 6 (`a543f8c`) → Milestone 7 (`e385ad9`) → Milestone 8 (pending commit). Awaiting explicit instruction before continuing — see `FUTURE_WORK.md`.
+**Milestone 9 (Local Generative Model + Corpus-Affinity Routing + Shadow Mode + Baseline-vs-ControlPlane Evidence) complete.** Sequence: documentation audit (`4ae6a76`) → Layer 0 (`ac2f243`) → Layer 1 (`008231e`) → Milestone 1 (`463979e`) → Milestone 2 (`d396acb`) → Milestone 3 (`ba4896e`) → Milestones 4+5 (`7dc76a9`) → Milestone 6 (`a543f8c`) → Milestone 7 (`e385ad9`) → Milestone 8 (`5c22e15`) -> Milestone 9 (pending commit). Awaiting explicit instruction before continuing — see `FUTURE_WORK.md`.

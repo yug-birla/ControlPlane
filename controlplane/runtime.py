@@ -1,5 +1,5 @@
-"""Traceable runtime -- current through Milestone 7 (Cross-Encoder
-Reranker, LLM Judge, real Agent/Tool Governance, Trust Layer).
+"""Traceable runtime -- current through Milestone 9 (real local
+generative provider, corpus-affinity RAG routing, Shadow Mode).
 
 USER QUERY -> create request/trajectory -> QUERY_RECEIVED -> Query
 Profiler -> QUERY_PROFILED -> Risk Profiler + Policy -> RISK_DETECTED ->
@@ -16,6 +16,19 @@ trajectory -> structured response.
 WEB/CHAT_HISTORY/MEMORY capability nodes still run via the executor's
 explicit MOCKED handler (AGENT became real in Milestone 7; Web/Chat/
 Memory are still future work, see docs/PROJECT_STATE/FUTURE_WORK.md).
+
+The generation node uses whatever ``provider_factory`` resolves for the
+routed role. Since Milestone 9 that falls back to a real LOCAL model
+(controlplane/models/local_generation_provider.py) when no API key is
+configured, so this whole path runs end-to-end offline -- previously it
+could not run at all without a key, which is why every end-to-end
+scenario in the project used scripted fakes.
+
+SHADOW MODE (``shadow_mode=True``): everything above runs unchanged --
+routing, retrieval, evaluation, and the Decision Engine all execute and
+are recorded -- but no consequence is applied: no intervention runs, no
+answer is withheld, and the pre-execution ABSTAIN refusal does not fire.
+See controlplane/governance/shadow_mode.py.
 """
 
 from __future__ import annotations
@@ -44,6 +57,7 @@ from controlplane.intervention.engine import InterventionEngine, InterventionSpe
 from controlplane.events.store import EventStore
 from controlplane.events.transport import EventTransport, InProcessEventTransport
 from controlplane.execution.executor import GraphExecutor
+from controlplane.governance.shadow_mode import verdict_for as shadow_mode_verdict_for
 from controlplane.execution.graph import ExecutionGraph, ExecutionNode, NodeStatus
 from controlplane.ledger.ledger import ConsequenceClass, ExecutionLedger
 from controlplane.logging_config import get_logger
@@ -100,6 +114,7 @@ class Runtime:
         intervention_engine=None,
         verification_engine=None,
         trust_engine=None,
+        shadow_mode: bool = False,
     ) -> None:
         self._trajectory_store = trajectory_store
         self._ledger = ledger
@@ -120,6 +135,10 @@ class Runtime:
         self._intervention_engine = intervention_engine or InterventionEngine()
         self._verification_engine = verification_engine or VerificationEngine()
         self._trust_engine = trust_engine or TrustEngine()
+        # Shadow Mode (Milestone 9): observe and record, never enforce.
+        # See controlplane/governance/shadow_mode.py for what is and is
+        # not suppressed.
+        self._shadow_mode = shadow_mode
 
     def _publish(
         self, event_type: EventType, ctx: RequestContext, *, source: str, payload: dict, severity: Severity | None = None
@@ -176,7 +195,7 @@ class Runtime:
         state.metadata["risk"] = risk.model_dump(mode="json")
         state.metadata["policy"] = policy_decision.model_dump(mode="json")
 
-        capability_route, model_decision = self._route(ctx, profile_id, fingerprint, risk, policy_decision)
+        capability_route, model_decision, route_record_id = self._route(ctx, profile_id, fingerprint, risk, policy_decision)
         state.metadata["model_route"] = model_decision.model_dump(mode="json")
         # capability_route.to_dict() (which includes per-node graph status)
         # is snapshotted after execution below, not here, so the caller sees
@@ -185,12 +204,17 @@ class Runtime:
         state.advance("routing", ExecutionStatus.PROCESSING)
         self._trajectory_store.update_trajectory_status(ctx.trajectory_id, "PROCESSING")
 
-        if model_decision.action == ModelRouteAction.ABSTAIN:
+        # Shadow Mode never refuses before execution: the point is to
+        # observe what the unmanaged system would have produced AND what
+        # ControlPlane would have done about it. Refusing here would
+        # destroy half of that observation.
+        if model_decision.action == ModelRouteAction.ABSTAIN and not self._shadow_mode:
             self._abstain(ctx, state, capability_route, model_decision)
             # Snapshotted after execution (here, after every node was marked
             # SKIPPED) so the graph the caller sees reflects final status,
             # not the PENDING placeholder it had before anything ran.
             state.metadata["capability_route"] = capability_route.to_dict()
+            self._persist_final_graph_snapshot(route_record_id, capability_route)
             state.advance("completed", ExecutionStatus.COMPLETED)
             return state
 
@@ -206,6 +230,7 @@ class Runtime:
             ctx, settings, query, capability_route, model_decision, risk, fingerprint, result, evaluation_results,
         )
         state.metadata["capability_route"] = capability_route.to_dict()
+        self._persist_final_graph_snapshot(route_record_id, capability_route)
         state.metadata["answer"] = final_answer
         state.metadata["model"] = {
             "provider": final_result["provider"],
@@ -331,16 +356,17 @@ class Runtime:
         fingerprint: QueryFingerprint,
         risk: RiskProfile,
         policy_decision: PolicyDecision,
-    ) -> tuple[CapabilityRoute, ModelRouteDecision]:
+    ) -> tuple[CapabilityRoute, ModelRouteDecision, str]:
         from controlplane.db.engine import session_scope
 
         capability_route = self._capability_router.route(fingerprint, risk, policy_decision)
         model_decision = self._model_router.decide(fingerprint, risk, policy_decision)
 
+        route_record_id = new_id("route")
         with session_scope() as session:
             session.add(
                 RouteDecisionRecord(
-                    id=new_id("route"),
+                    id=route_record_id,
                     request_id=ctx.request_id,
                     trajectory_id=ctx.trajectory_id,
                     query_profile_id=profile_id,
@@ -392,7 +418,40 @@ class Runtime:
                 severity=Severity.HIGH,
                 payload={"reason": model_decision.reason, "model_action": model_decision.action.value},
             )
-        return capability_route, model_decision
+        return capability_route, model_decision, route_record_id
+
+    def _persist_final_graph_snapshot(self, route_record_id: str, capability_route: CapabilityRoute) -> None:
+        """Rewrite the persisted execution graph with FINAL node statuses.
+
+        Milestone 10 fix, found while validating component-level failure
+        localization against real persisted data: ``route_decisions.execution_graph``
+        was written at routing time, before the graph ran, so every node
+        status in the database was frozen at PENDING forever. The
+        in-memory ``state.metadata`` copy was updated post-execution, but
+        the DB row -- which is what the dashboard and any offline
+        diagnostics read -- never was.
+
+        That made the dashboard misreport which capabilities actually
+        executed, and it directly undermined failure localization, which
+        uses node status to distinguish "retrieval ran and the model
+        ignored the evidence" (a generation failure) from "retrieval
+        never ran at all" (a routing failure).
+        """
+        from sqlalchemy.exc import SQLAlchemyError
+
+        from controlplane.db.engine import session_scope
+
+        try:
+            with session_scope() as session:
+                record = session.get(RouteDecisionRecord, route_record_id)
+                if record is not None:
+                    record.execution_graph = capability_route.graph.to_dict()
+        except SQLAlchemyError:
+            # Observability must never break the request it observes.
+            logger.warning(
+                "graph_snapshot_persist_failed",
+                extra={"cp_fields": {"route_record_id": route_record_id}},
+            )
 
     def _abstain(
         self,
@@ -613,8 +672,13 @@ class Runtime:
         decision = self._decision_engine.decide(evaluation_results, risk, model_decision, attempt_number=attempt)
         decision_id = self._record_decision(ctx, decision)
 
+        # Shadow Mode: the decision was still computed and recorded above
+        # (that IS the observation), but no consequence is applied -- no
+        # intervention runs, and the answer below is never withheld.
+        shadow_verdict = shadow_mode_verdict_for(decision) if self._shadow_mode else None
+
         _HARD_MAX_ITERATIONS = 5  # independent of DecisionEngine's own bound -- see docstring
-        for _ in range(_HARD_MAX_ITERATIONS):
+        for _ in range(_HARD_MAX_ITERATIONS if not self._shadow_mode else 0):
             if not decision.requires_intervention:
                 break
 
@@ -695,8 +759,15 @@ class Runtime:
             )
 
         final_answer = result["content"]
-        if decision.action == ControlAction.ASK_CLARIFICATION:
+        if decision.action == ControlAction.ASK_CLARIFICATION and not self._shadow_mode:
             final_answer = None
+
+        if shadow_verdict is not None:
+            self._publish(
+                EventType.SHADOW_DECISION_RECORDED, ctx, source="controlplane",
+                payload={"verdict": shadow_verdict.value, "would_be_action": decision.action.value,
+                          "reason": decision.reason},
+            )
 
         return final_answer, result, current_role, evaluation_results, decision, verification
 
@@ -1056,6 +1127,7 @@ def build_default_runtime(
     model_router=None,
     evaluation_suite=None,
     rag_capability=None,
+    shadow_mode: bool = False,
 ) -> Runtime:
     trajectory_store = TrajectoryStore()
     ledger = ExecutionLedger()
@@ -1073,4 +1145,5 @@ def build_default_runtime(
         model_router=model_router,
         evaluation_suite=evaluation_suite,
         rag_capability=rag_capability,
+        shadow_mode=shadow_mode,
     )

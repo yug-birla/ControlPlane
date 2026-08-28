@@ -15,10 +15,48 @@ def test_fake_provider_returns_normalized_result():
     assert provider.calls == ["hi"]
 
 
-def test_registry_raises_configuration_error_without_api_key():
+def test_registry_falls_back_to_the_local_model_without_an_api_key(monkeypatch):
+    """Milestone 9 contract change (deliberate, not a regression): a
+    key-less environment used to raise ConfigurationError, which left the
+    whole system with no generative model and forced every end-to-end
+    scenario onto scripted fakes. It now falls back to the offline local
+    provider. See controlplane/models/local_generation_provider.py."""
+    sentinel = object()
+    monkeypatch.setattr(
+        "controlplane.models.local_generation_provider.get_local_generation_provider",
+        lambda role: sentinel,
+    )
+    settings = Settings(groq_api_key=None, groq_model="some-model")
+    assert get_configured_provider(settings) is sentinel
+
+
+def test_registry_reports_configuration_error_when_no_provider_is_available_at_all(monkeypatch):
+    """No remote key AND no cached local weights is still a real, clean
+    configuration failure -- the fallback must not silently swallow it."""
+    from controlplane.models.provider import ModelProviderError
+
+    def _unavailable(role):
+        raise ModelProviderError("weights not cached")
+
+    monkeypatch.setattr(
+        "controlplane.models.local_generation_provider.get_local_generation_provider",
+        _unavailable,
+    )
     settings = Settings(groq_api_key=None, groq_model="some-model")
     with pytest.raises(ConfigurationError):
         get_configured_provider(settings)
+
+
+def test_local_generation_is_preferred_when_explicitly_forced(monkeypatch):
+    """CONTROLPLANE_LOCAL_GENERATION=1 pins the reproducible local model
+    even when a remote key is present (used by offline experiments)."""
+    sentinel = object()
+    monkeypatch.setattr(
+        "controlplane.models.local_generation_provider.get_local_generation_provider",
+        lambda role: sentinel,
+    )
+    settings = Settings(groq_api_key="sk-not-real", groq_model="m", use_local_generation=True)
+    assert get_configured_provider(settings) is sentinel
 
 
 def test_registry_raises_configuration_error_without_model():

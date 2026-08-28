@@ -60,3 +60,17 @@ While re-running the full test suite after Milestone 7's changes, wall-clock tim
 ## B8 — No `docs/ALGORITHMS/` directory
 `AGENTS_RESEARCH_ALIGNED_UPDATED.md` §"Algorithm Policy" (and this bootstrap's §6) require a `docs/ALGORITHMS/<NAME>.md` file for every replaceable algorithm before implementing it. None exist yet, which is expected at this stage (no algorithm has been implemented) but is flagged so the first algorithm doc isn't skipped when Layer 7+ starts.
 **Blocks:** Layer 7 (Baseline Query Intelligence) onward, per the project's own rule — create the first `docs/ALGORITHMS/QUERY_PROFILER.md` before or alongside that layer's code.
+
+## B11 — Unit-test and production embedding caches shared one file path (found 2026-08-29, Milestone 9) — **FIXED same day**
+
+`tests/test_injection_knn.py` constructed `EmbeddingKNNInjectionDetector` with a small 6-example synthetic reference set but **no `cache_path`**, so it wrote to the default path — the same file the real 546-example TRAIN reference set uses (`data/cache/injection_knn_embeddings.npz`).
+
+Consequences, all real:
+
+- Test and production runs clobbered each other; the file's contents were whichever ran last.
+- The artifact committed in Milestone 8 (`5c22e15`) was therefore the **test** cache (9,490 bytes) rather than the production one (838,930 bytes).
+- Every fresh process alternated between cache misses, silently defeating the reproducibility guarantee (`BLOCKERS.md` B9) that this cache exists to provide.
+
+Found while reviewing `git status` before committing Milestone 9 — the `.npz` showed as modified when nothing in this milestone touches injection detection, and the ~90x size change made the cause visible.
+
+**Fix:** the tests now pass an isolated `tmp_path` cache file. The correct 546-example production cache is committed. Root cause class: `REPRODUCIBILITY` / test isolation, not a defect in the detector itself.

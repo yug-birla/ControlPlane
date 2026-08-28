@@ -58,14 +58,23 @@ python -m venv .venv
 .venv/Scripts/python -c "from huggingface_hub import snapshot_download; snapshot_download('cross-encoder/ms-marco-MiniLM-L-6-v2', revision='c5ee24cb16019beea0893ab7796b1df96625c6b8')"
 .venv/Scripts/python -c "from huggingface_hub import snapshot_download; snapshot_download('Qwen/Qwen2.5-1.5B-Instruct', revision='989aa7980e4cf806f80c7fef2b1adb7bc71aa306')"
 .venv/Scripts/python -m pytest       # 200+ tests, no live external API required (local models must be downloaded first)
+# With a hosted model (normal interactive path):
 GROQ_API_KEY=... GROQ_MODEL=... .venv/Scripts/python -m uvicorn controlplane.main:app
 # Optional: GROQ_MODEL_FAST / GROQ_MODEL_STRONG override GROQ_MODEL per Model Router role
 # Optional (comparison-only, never the default route): GEMINI_API_KEY_1 / GEMINI_API_KEY_2 / GEMINI_MODEL
+
+# Fully offline (no API key): falls back to the local Qwen2.5-1.5B-Instruct
+# generative provider automatically. Slow (CPU-only, ~30-90s/request) but real.
+.venv/Scripts/python -m uvicorn controlplane.main:app
+# Force the local model even when a key IS present (used by offline experiments):
+CONTROLPLANE_LOCAL_GENERATION=1 .venv/Scripts/python -m uvicorn controlplane.main:app
 ```
 
 Visit `/dashboard` once the app is running for a read-only view of every request's profile/risk/route/graph/decision/intervention/verification/**trust** trail.
 
-The Local Judge (`Qwen2.5-1.5B-Instruct`) is CPU-only and slow (measured 30-90s per structured judgment on this hardware) — it is used for offline calibration/comparison experiments (`controlplane/experiments/evaluate_judge_calibration.py`, `evaluate_bias.py`), never in the live request path. See `docs/ALGORITHMS/LLM_JUDGE.md`.
+The same `Qwen2.5-1.5B-Instruct` weights serve two roles and are loaded once per process: the **Local Judge** (structured evaluation) and the **local generative provider** (`controlplane/models/local_generation_provider.py`, Milestone 9), which is what makes the system runnable — and the baseline-vs-ControlPlane experiment measurable — without any API key. See `docs/EVALUATION/BASELINE_VS_CONTROLPLANE.md`.
+
+The Local Judge is CPU-only and slow (measured 30-90s per structured judgment on this hardware) — it is used for offline calibration/comparison experiments (`controlplane/experiments/evaluate_judge_calibration.py`, `evaluate_bias.py`), never in the live request path. See `docs/ALGORITHMS/LLM_JUDGE.md`.
 
 See `controlplane/README.md` for the interface and current scope, `docs/PROJECT_STATE/CURRENT_STATE.md` for exactly what is and isn't implemented, and `docs/EVALUATION/` for measured results.
 

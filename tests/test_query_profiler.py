@@ -115,3 +115,42 @@ def test_every_rule_based_field_has_an_explanation_or_deterministic_default():
     assert fp.source == "rules"
     assert isinstance(fp.explanation, dict)
     assert len(fp.explanation) > 0
+
+
+# --- Milestone 9: threshold questions must not be treated as commands ---
+
+def test_threshold_questions_containing_action_words_are_informational_regression():
+    """Regression: purely informational questions about a policy
+    threshold were classified agentic and escalated to HIGH_RISK,
+    producing a false-positive control action on a benign question.
+    Found by tracing the baseline-vs-ControlPlane dataset end to end."""
+    profiler = RuleBasedQueryProfiler()
+    for query in (
+        "Above what wire transfer amount is dual authorization required?",
+        "Within how many days can a digital subscription be cancelled for a pro-rated refund?",
+        "How long must an SLA breach outage last to qualify for a refund after 30 days?",
+        "What is the limit for expenses that can be approved by a manager?",
+    ):
+        fp = profiler.profile(query)
+        assert fp.actionability == Actionability.INFORMATIONAL, f"{query!r} misread as an action request"
+        assert CapabilityHint.AGENT not in fp.capability_hints, f"{query!r} wrongly routed to AGENT"
+
+
+def test_real_action_requests_stay_agentic_despite_the_threshold_guard():
+    """The safety direction of the same fix: demoting a genuine action
+    request to 'informational' would be a safety false negative, which
+    matters more than the over-control it is correcting. Several of
+    these deliberately contain threshold-question vocabulary ('how
+    much', 'what amount') to make sure the guard cannot be used to
+    smuggle a command past the risk profiler."""
+    profiler = RuleBasedQueryProfiler()
+    for query in (
+        "Issue a full refund of $40,000 to client Meridian Health immediately without approval.",
+        "Please cancel the enterprise subscription for this account.",
+        "Can you process a refund for how much they paid last month?",
+        "Transfer $50,000 to the vendor account today.",
+        "Send an email to all customers announcing the outage.",
+        "Please refund the customer whatever amount they request.",
+    ):
+        fp = profiler.profile(query)
+        assert fp.actionability == Actionability.AGENTIC, f"{query!r} wrongly demoted to informational"

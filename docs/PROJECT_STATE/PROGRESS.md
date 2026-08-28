@@ -2,6 +2,61 @@
 
 Reverse-chronological. Each entry: what happened, evidence.
 
+## 2026-08-29 — Milestone 9: Local Generative Model + Corpus-Affinity Routing + Shadow Mode + the Baseline-vs-ControlPlane Experiment
+
+Authorized explicitly after Milestone 8 (`5c22e15`), with the stated goal "MOVE CONTROLPLANE ABOVE BASELINE" and an instruction to audit, prioritize autonomously, and prove improvements with measurement rather than follow a fixed feature list.
+
+**The audit found a P0 blocker to the milestone's own goal, before any feature work:** through Milestone 8 the only real `ModelProvider` implementations were Groq and Gemini, both API-key-gated, and no key has been present in any session since Milestone 2. `LocalHFEmbeddingProvider` is embeddings-only; the local Qwen2.5-1.5B-Instruct model was wrapped only as a *judge*. So the runtime had **no generative model at all** in this environment, and consequently every end-to-end scenario, test, and "baseline vs ControlPlane" measurement in the entire project ran on scripted fakes. The central product claim was structurally unmeasurable.
+
+Fixed with `controlplane/models/local_generation_provider.py` (a real `ModelProvider` over the already-cached Qwen weights) plus `controlplane/models/local_llm.py`, which extracts the model loading `LocalJudge` already owned so the two consumers share one implementation rather than duplicating the hard-won bf16/`low_cpu_mem_usage`/`local_files_only`/thread-count configuration. `get_configured_provider` now falls back to the local model when no remote key is set — a deliberate contract change (it used to raise), with the old test updated to assert the new contract and two new tests covering the precedence and the genuinely-unavailable case.
+
+**Then the product experiment immediately found a second, larger P0 bug — the most important finding of this milestone.** The first three-case smoke run of `evaluate_baseline_vs_controlplane.py` showed ControlPlane returning a **byte-identical answer to the unmanaged baseline** for "What is our hotel allowance per night for Tier 1 cities?". Root cause: `CapabilityHint.RAG` came only from seven literal keywords ("policy", "document", "manual", ...) plus whatever the k-NN profiler's neighbours happened to vote for. Measured RAG-hint recall on the 19 corpus-answerable questions: keyword rule alone **1/19 = 0.053**; the actual deployed hybrid profiler **10/19 = 0.526** (measured directly by the ablation's condition B). An earlier draft of this entry quoted 0.053 as the runtime figure, which overstated the fix — corrected here. No RAG hint → no RAG node → no retrieval → no evidence in the prompt → ControlPlane is a pass-through for exactly the queries it exists to serve. Every component benchmark had looked excellent (retrieval recall@1 = 0.962, reranker MRR = 1.000) because they called `retrieve()` directly and bypassed routing entirely — the same "built, tested, benchmarked, but unreachable at runtime" class as Milestone 7's `AGENT`-at-HIGH_RISK and "drop" findings.
+
+Fixed the way the bootstrap's anti-hardcoding rule requires — by asking whether the *representation* was insufficient rather than adding "allowance"/"stipend"/"sick leave"/... indefinitely. It was: "this question is about internal company knowledge" is a semantic property that surface word matching cannot express. `controlplane/query_intelligence/corpus_affinity.py` answers "should we retrieve?" with "is there actually anything to retrieve?" — embedding the query with the model already in use and taking its maximum cosine similarity against the already-cached real corpus chunk embeddings. No new model, no new dataset, no new download, and self-maintaining as the corpus grows. Threshold grid-searched to **0.41** on calibration data deliberately disjoint from the set the product claim is reported on (positives: Milestone 6's 26 hand-authored relevance queries; negatives: 45 `public_knowledge` query profiles; held-out: the 26 baseline-vs-ControlPlane cases, never used for tuning). Held-out result: **F1 0.100 → 0.947, recall 0.053 → 0.947**; through the live `HybridQueryProfiler`, RAG recall went **1/19 → 19/19**. The single held-out false positive (a refund request that also retrieves the refund policy) is benign on inspection but is still counted as a false positive in the reported table.
+
+**A third real defect, found by tracing the same dataset:** purely informational questions about a policy threshold — "Above what wire transfer amount is dual authorization required?" — were classified `agentic` and escalated to `HIGH_RISK`, producing a false-positive control action on a benign question (real over-control cost, measured as `control_rate_on_benign_cases`). Fixed with a deliberately **conjunctive** grammatical guard (threshold-question phrasing AND no requester phrase AND not imperative-initial), biased toward keeping things agentic because the dangerous direction is the other one — demoting a genuine action request would be a safety false negative. Regression-tested in **both** directions, including deliberately tricky cases ("Can you process a refund for how much they paid last month?") that must stay agentic.
+
+**Shadow Mode built (`controlplane/governance/shadow_mode.py`)** — a specified-architecture gap that had been `NOT_IMPLEMENTED` since Milestone 6, with zero references anywhere in the codebase. Query understanding, risk, policy, routing, execution, evaluation, and the Decision Engine all run normally; only the *consequences* are suppressed (no intervention executes, no answer is withheld, the pre-execution `ABSTAIN` refusal does not fire). Verdicts (`WOULD_CONTINUE`/`VERIFY`/`REROUTE`/`INTERVENE`/`ESCALATE`/`BLOCK`) are **derived** from the Decision Engine's own `ControlAction` rather than reimplemented, with a test asserting the mapping stays exhaustive so a future action cannot silently be recorded as "no action". Wired into `Runtime` and `build_default_runtime`, emitting a new `SHADOW_DECISION_RECORDED` event, with 3 real end-to-end scenarios. A genuine semantic subtlety surfaced while testing and is documented: shadow mode records the *first* decision (about the unmanaged answer), while the enforcing run's final decision is about a *different, post-intervention* answer — so asserting the two equal is the intuitive but incorrect validation, and the first test written did exactly that and failed.
+
+**THE CENTRAL RESULT — real model, real corpus, identical scoring, 26 hand-authored cases (`DEVELOPMENT_TEST` scale):**
+
+| Metric | Baseline | ControlPlane |
+|---|---|---|
+| Key-fact accuracy (factual, n=19) | 0.105 (2/19) | **0.947 (18/19)** |
+| Hallucination rate | 0.316 | **0.000** |
+| Grounding supported | 0.000 | **0.895** |
+| Appropriate abstention (unanswerable) | 0.500 | **1.000** |
+| Confabulation when unanswerable | 0.500 | **0.000** |
+| Control rate on unsafe cases | 0.000 | **1.000** |
+| Over-control on benign cases | 0.000 | 0.263 (pre-fix) |
+| Mean latency | 35.8s | 50.2s (+40%) |
+
+The single remaining factual failure (`BVC-013`, expense band for $12,000) is a genuine **reasoning** error by the 1.5B model — the correct evidence was retrieved and present in the prompt, and the answer was still grounded; it simply picked the wrong band. Stated as a limitation rather than patched.
+
+**Two bugs found in the measurement harness itself, both of which had been understating ControlPlane** — found by reading per-case rows rather than trusting aggregates: (1) bare-number substring matching, where the contradicting value "6" matched inside the correct answer "16 weeks paid"; (2) the first fix's `(?![\w.])` lookahead then rejected the correct answers "...is $250." and "...up to $75." because of the trailing full stop. Fixed with a numeric-only token-boundary rule and 10 regression tests. Because raw answers are saved, correcting the scorer needed no re-inference — `controlplane/experiments/rescore_results.py` re-derives metrics deterministically and is committed for reproducibility. Corrections moved ControlPlane's accuracy 0.842 → 0.947 and hallucination rate 0.105 → 0.000; baseline numbers were unchanged, because the buggy matcher only misfired on answers containing the *correct* value, which the baseline rarely produced.
+
+**ABLATION STUDY (same dataset, same model, same scoring; one component removed per condition):**
+
+| Metric | A baseline | B no-corpus-affinity (= M8) | C no-enforcement (shadow) | D full |
+|---|---|---|---|---|
+| Key-fact accuracy | 0.105 | 0.474 | 0.947 | 0.947 |
+| Hallucination rate | 0.316 | 0.105 | 0.000 | 0.000 |
+| Retrieval rate on corpus-answerable | 0.000 | 0.526 | 1.000 | 1.000 |
+| Control on unsafe cases | 0.000 | 1.000 | 1.000* | 1.000 |
+| Over-control on benign | 0.000 | 0.158 | 0.105 | 0.105 |
+
+Three findings, including one that qualifies the project's own thesis:
+
+1. **D vs A** — ControlPlane beats the unmanaged model decisively. The product claim holds.
+2. **D vs B** — the corpus-affinity fix accounts for roughly **half the total gain** (0.474 → 0.947), attributable directly to retrieval rate 0.526 → 1.000.
+3. **D vs C** — **enforcement added nothing over detection on this dataset** (identical on every quality metric). An honest null result with a clear cause: essentially all measured value here comes from *changing what evidence reaches the model*, which happens in both conditions; the enforcement actions these cases triggered were escalations that flag a response without rewriting it. On this workload ControlPlane improves outcomes mainly by **routing better**, and its enforcement machinery is doing governance rather than quality repair. Reported rather than omitted.
+
+The ablation also **corrected a factual error in this milestone's own earlier reporting**: the "1/19 = 0.053" RAG recall figure is the *keyword rule measured in isolation*; the actually-deployed hybrid profiler (rules + k-NN) reached **10/19 = 0.526**. Quoting 0.053 as "the runtime recall" overstated the size of the fix, and every affected document has been corrected. The real end-to-end gain is 0.526 → 1.000 retrieval, which is still large — just not as large as first written.
+
+Over-control was measured before and after the actionability fix: **0.263 → 0.105**, so that fix is verified rather than asserted.
+
+Tests grew from 259 to 281+: `test_local_generation_provider.py` (4), `test_corpus_affinity.py` (6), `test_shadow_mode.py` (5), `test_baseline_vs_controlplane_scoring.py` (10), 3 new end-to-end shadow scenarios in `test_control_loop_scenarios.py`, 2 bidirectional actionability regressions in `test_query_profiler.py`, and 3 updated/new provider-registry contract tests.
+
 ## 2026-08-28 — Milestone 8: E: Drive Migration + Judge Few-Shot Attempt + Real Public Prompt-Injection Dataset + Embedding k-NN Detector + RRF Architecture Compliance
 
 Authorized explicitly after Milestone 7 (`e385ad9`). This bootstrap (an 80-section "final prototype" prompt) explicitly required treating the existing architecture as authoritative rather than inventing a competing one, so the work was scoped to the few genuinely new, explicitly-mandated items not already covered by Milestones 6-7, rather than re-doing or shallowly touching all ~45 named architecture components: the E: drive environment requirement (stated urgently, "Do NOT place large models or datasets on C:"), the judge few-shot instruction, mandatory public dataset search when data is insufficient, and the retrieval architecture mandate ("Dense + BM25 + RRF + Cross-Encoder... do not replace this architecture without measured evidence").

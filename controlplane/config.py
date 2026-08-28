@@ -54,6 +54,12 @@ class Settings:
     gemini_api_key_2: str | None = None
     gemini_model: str | None = None
 
+    # Milestone 9: force the offline local generative model even when a
+    # Groq key is present. Not a secret. Used by experiments that need a
+    # reproducible, key-independent model; also the automatic fallback
+    # when no remote key is configured (see controlplane.models.registry).
+    use_local_generation: bool = False
+
     feature_flags: frozenset[str] = field(default_factory=frozenset)
 
     @staticmethod
@@ -75,6 +81,7 @@ class Settings:
             gemini_api_key_1=os.environ.get("GEMINI_API_KEY_1"),
             gemini_api_key_2=os.environ.get("GEMINI_API_KEY_2"),
             gemini_model=os.environ.get("GEMINI_MODEL"),
+            use_local_generation=os.environ.get("CONTROLPLANE_LOCAL_GENERATION", "") == "1",
             feature_flags=flags,
         )
 

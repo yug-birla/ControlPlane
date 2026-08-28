@@ -266,3 +266,70 @@ def test_high_risk_action_reaches_human_review_not_continue():
     assert state.metadata["verification"]["status"] == VerificationStatus.REJECTED.value
     # Graceful degradation, not withholding: a draft is still available for the human to review.
     assert state.metadata["answer"] is not None
+
+
+def _run_shadow(query: str, provider: ModelProvider) -> tuple[ExecutionState, RequestContext]:
+    rt = build_default_runtime(
+        provider_factory=lambda settings, role="STRONG": provider, shadow_mode=True
+    )
+    ctx = RequestContext.new()
+    with ctx.bind():
+        state = ExecutionState.initial(ctx=ctx, query=query)
+        state = rt.handle(ctx, state)
+    return state, ctx
+
+
+def test_shadow_mode_observes_a_problem_but_enforces_nothing():
+    """SCENARIO 8 (Milestone 9): on a query the enforcing runtime
+    intervenes on, Shadow Mode must detect the same problem and record
+    what it would have done, while changing nothing the user receives.
+
+    Note on what is and is not compared: shadow mode's recorded decision
+    is the FIRST decision -- its judgement of the answer the unmanaged
+    system actually produced. The enforcing run's final decision comes
+    after it intervened and re-evaluated, so the two are decisions about
+    different answers and are deliberately not asserted equal. What must
+    hold is that shadow mode saw the problem (it would have intervened),
+    executed nothing, and returned the original answer untouched."""
+    query = (
+        "According to our travel policy document, what is the meal reimbursement limit, "
+        "and what did our revenue look like last quarter?"
+    )
+    ungrounded = "Our company mascot is a penguin and morale is excellent."
+
+    enforcing_provider = _ScriptedProvider([ungrounded])
+    _enforcing_state, _ = _run(query, enforcing_provider)
+
+    shadow_provider = _ScriptedProvider([ungrounded])
+    shadow_state, _ = _run_shadow(query, shadow_provider)
+
+    # Shadow mode saw a problem worth acting on.
+    assert shadow_state.metadata["decision"]["action"] != ControlAction.CONTINUE.value
+
+    # No enforcement: shadow never re-invoked the model; the enforcing
+    # run genuinely did (that is the difference being demonstrated).
+    assert shadow_provider.calls == 1
+    assert enforcing_provider.calls > 1
+
+    # The user still gets the unmanaged model's answer, untouched.
+    assert shadow_state.metadata["answer"] == ungrounded
+
+
+def test_shadow_mode_records_a_would_have_verdict_event():
+    provider = _ScriptedProvider(["Our company mascot is a penguin."])
+    _state, ctx = _run_shadow(
+        "According to our travel policy document, what is the meal reimbursement limit?", provider
+    )
+    events = EventStore().get_by_trajectory(ctx.trajectory_id)
+    shadow_events = [e for e in events if e["event_type"] == "SHADOW_DECISION_RECORDED"]
+    assert len(shadow_events) == 1
+    assert shadow_events[0]["payload"]["verdict"].startswith("WOULD_")
+
+
+def test_shadow_mode_never_withholds_an_answer_the_enforcing_path_would_block():
+    """A query the enforcing runtime refuses before execution (model
+    router ABSTAIN) must still produce an observable answer in shadow
+    mode -- otherwise half the observation is destroyed."""
+    provider = _ScriptedProvider(["Deleting all customer records now."])
+    state, _ = _run_shadow("Please drop the customers table from the production database.", provider)
+    assert state.metadata["answer"] is not None

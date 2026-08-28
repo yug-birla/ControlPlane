@@ -25,6 +25,7 @@ from controlplane.db.models import (
 )
 from controlplane.decision.engine import ControlDecision
 from controlplane.risk.profile import RiskProfile
+from controlplane.diagnostics.report import build_component_reports, localize
 from controlplane.trust.engine import TrustEngine
 from controlplane.verification.engine import VerificationResult
 
@@ -296,7 +297,69 @@ def get_request_detail(request_id: str) -> dict | None:
             ),
             "trust": trust,
             "permission_lineage": permission_lineage,
+            # Component-level health + failure localization (Milestone 10).
+            # Derived, like Trust and Permission Lineage above -- no new
+            # table. Answers "WHICH component failed and why?", not just
+            # "did the request fail?". See controlplane/diagnostics/.
+            **_diagnostics_block(
+                steps=steps, route=route, evaluations=evaluations,
+                decisions=decisions, verifications=verifications,
+                trust=trust, profile=profile, invocation=invocation,
+            ),
         }
+
+
+def _diagnostics_block(*, steps, route, evaluations, decisions, verifications,
+                        trust, profile, invocation) -> dict:
+    """Assemble the component health view. Isolated so a malformed row
+    degrades to 'not shown' instead of breaking the whole detail page --
+    the same defensive posture already used for Trust above."""
+    try:
+        step_dicts = [
+            {"step_type": s.step_type, "status": s.status,
+             "started_at": s.started_at, "completed_at": s.completed_at}
+            for s in steps
+        ]
+        graph_nodes = ((route.execution_graph or {}).get("nodes") or []) if route else []
+        evaluation_dicts = [
+            {"evaluator": ev.evaluator, "status": ev.status, "label": ev.label,
+             "recommended_signal": (ev.result or {}).get("recommended_signal")}
+            for ev in evaluations
+        ]
+        last_decision = (
+            {"action": decisions[-1].action, "reason": decisions[-1].reason,
+             "triggering_evaluator": decisions[-1].triggering_evaluator,
+             "attempt_number": decisions[-1].attempt_number,
+             "requires_intervention": decisions[-1].action not in ("CONTINUE", "VERIFY")}
+            if decisions else None
+        )
+        verification_dict = (
+            {"status": verifications[-1].status, "reason": verifications[-1].reason}
+            if verifications else None
+        )
+        model_meta = (
+            {"provider": invocation.provider, "model": invocation.model,
+             "role": (route.model_role if route else None), "latency_ms": invocation.latency_ms}
+            if invocation else None
+        )
+        reports = build_component_reports(
+            steps=step_dicts, graph_nodes=graph_nodes, evaluations=evaluation_dicts,
+            decision=last_decision, verification=verification_dict, trust=trust,
+            risk=(profile.risk_vector if profile else None),
+            fingerprint=({"intent": profile.intent, "complexity": profile.complexity,
+                          "capability_hints": profile.capability_hints} if profile else None),
+            model_meta=model_meta,
+        )
+        failure = localize(
+            steps=step_dicts, graph_nodes=graph_nodes, evaluations=evaluation_dicts,
+            decision=last_decision, verification=verification_dict,
+        )
+        return {
+            "component_health": [r.to_dict() for r in reports],
+            "failure_localization": failure.to_dict(),
+        }
+    except (TypeError, ValueError, AttributeError, KeyError):
+        return {"component_health": None, "failure_localization": None}
 
 
 def aggregate_stats() -> dict:

@@ -177,9 +177,46 @@ class HybridQueryProfiler:
 
     name = "hybrid"
 
-    def __init__(self, k: int = 5) -> None:
+    def __init__(self, k: int = 5, use_corpus_affinity: bool = True) -> None:
         self._rules = RuleBasedQueryProfiler()
         self._knn = EmbeddingKNNQueryProfiler(k=k)
+        self._use_corpus_affinity = use_corpus_affinity
+
+    def _corpus_affinity_hint(self, query: str, explanation: dict) -> bool:
+        """Milestone 9: does the real corpus actually contain something
+        relevant to this query?
+
+        The keyword rule produced ``CapabilityHint.RAG`` only for seven
+        literal words, giving measured recall of 0.053 on
+        corpus-answerable questions -- so ControlPlane almost never
+        retrieved and returned the same answer as an unmanaged model.
+        Adding more keywords cannot fix a representation problem, so this
+        asks the semantic question directly. See
+        ``controlplane.query_intelligence.corpus_affinity``.
+        """
+        if not self._use_corpus_affinity:
+            return False
+        try:
+            from controlplane.query_intelligence.corpus_affinity import (
+                get_corpus_affinity_detector,
+            )
+
+            detector = get_corpus_affinity_detector()
+            affinity = detector.assess(query)
+        except Exception:
+            # Never fail a request because the corpus/embeddings are
+            # unavailable -- degrade to the keyword behaviour, same
+            # graceful-degradation pattern as the injection k-NN layer.
+            return False
+
+        if affinity.is_corpus_answerable:
+            explanation["capability_hints_corpus_affinity"] = (
+                f"corpus affinity {affinity.max_similarity:.3f} >= "
+                f"{detector.threshold:.2f} "
+                f"(nearest: {affinity.nearest_document})"
+            )
+            return True
+        return False
 
     def profile(self, query: str) -> QueryFingerprint:
         rule_fp = self._rules.profile(query)
@@ -198,12 +235,22 @@ class HybridQueryProfiler:
             # has an explanation, even the weak fallback ones).
             return rule_val if field in rule_fp.high_confidence_fields else knn_val
 
-        capability_hints = sorted(
-            {h for h in (*rule_fp.capability_hints, *knn_fp.capability_hints) if h != CapabilityHint.GENERAL}
-            or {CapabilityHint.GENERAL},
-            key=lambda h: h.value,
-        )
-        data_requirement = sorted({*rule_fp.data_requirement, *knn_fp.data_requirement}, key=lambda d: d.value)
+        merged_hints = {
+            h for h in (*rule_fp.capability_hints, *knn_fp.capability_hints)
+            if h != CapabilityHint.GENERAL
+        }
+        merged_sources = {*rule_fp.data_requirement, *knn_fp.data_requirement}
+
+        # Semantic RAG layer, consulted only when neither the keyword
+        # rules nor the k-NN neighbours already asked for retrieval
+        # (deterministic-first / semantic-fallback -- the same layering
+        # used by PromptInjectionEvaluator).
+        if CapabilityHint.RAG not in merged_hints and self._corpus_affinity_hint(query, explanation):
+            merged_hints.add(CapabilityHint.RAG)
+            merged_sources.add(DataRequirement.RAG_CORPUS)
+
+        capability_hints = sorted(merged_hints or {CapabilityHint.GENERAL}, key=lambda h: h.value)
+        data_requirement = sorted(merged_sources, key=lambda d: d.value)
 
         confidence = dict(knn_fp.confidence)
         confidence.update(rule_fp.confidence)

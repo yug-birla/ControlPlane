@@ -79,6 +79,10 @@ class EventType(str, Enum):
     """docs/architecture/EVENT_MODEL.md SS14 -- emitted when
     ``VerificationEngine`` returns NOT_VERIFIED or REJECTED."""
     AGENT_ACTION_GOVERNED = "AGENT_ACTION_GOVERNED"
+
+    # Shadow Mode (Milestone 9): what ControlPlane WOULD have done,
+    # recorded without enforcement. See controlplane/governance/shadow_mode.py.
+    SHADOW_DECISION_RECORDED = "SHADOW_DECISION_RECORDED"
     """Not in EVENT_MODEL.md's original list -- added this milestone
     (real Agent/Tool governance path, ``controlplane/capabilities/agent_capability.py``)
     for every proposed tool call, whatever the outcome
@@ -119,6 +123,7 @@ _DEFAULT_SEVERITY = {
     EventType.REPLAN_COMPLETED: Severity.INFO,
     EventType.RISK_ESCALATION: Severity.HIGH,
     EventType.VERIFICATION_FAILED: Severity.WARNING,
+    EventType.SHADOW_DECISION_RECORDED: Severity.NOTICE,  # never an enforcement signal, by definition
     EventType.AGENT_ACTION_GOVERNED: Severity.NOTICE,  # overridden per-call to HIGH/CRITICAL for BLOCK/HUMAN_REVIEW -- see controlplane/runtime.py
     EventType.FINAL_RESPONSE_GENERATED: Severity.INFO,
 }
