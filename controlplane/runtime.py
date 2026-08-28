@@ -63,6 +63,7 @@ from controlplane.ledger.ledger import ConsequenceClass, ExecutionLedger
 from controlplane.logging_config import get_logger
 from controlplane.models.provider import ModelProviderError, ModelProviderTimeout
 from controlplane.models.registry import get_configured_provider, resolve_model_name
+from controlplane.planning.replanner import Replanner
 from controlplane.policy.baseline import PolicyBaseline, PolicyDecision
 from controlplane.query_intelligence.fingerprint import QueryFingerprint
 from controlplane.query_intelligence.knn_profiler import HybridQueryProfiler
@@ -114,6 +115,7 @@ class Runtime:
         intervention_engine=None,
         verification_engine=None,
         trust_engine=None,
+        replanner=None,
         shadow_mode: bool = False,
     ) -> None:
         self._trajectory_store = trajectory_store
@@ -135,6 +137,8 @@ class Runtime:
         self._intervention_engine = intervention_engine or InterventionEngine()
         self._verification_engine = verification_engine or VerificationEngine()
         self._trust_engine = trust_engine or TrustEngine()
+        # Dynamic replanning (Milestone 10): proposes real graph changes.
+        self._replanner = replanner or Replanner()
         # Shadow Mode (Milestone 9): observe and record, never enforce.
         # See controlplane/governance/shadow_mode.py for what is and is
         # not suppressed.
@@ -419,6 +423,102 @@ class Runtime:
                 payload={"reason": model_decision.reason, "model_action": model_decision.action.value},
             )
         return capability_route, model_decision, route_record_id
+
+    def _attempt_capability_replan(
+        self,
+        ctx: RequestContext,
+        query: str,
+        capability_route: CapabilityRoute,
+        fingerprint: QueryFingerprint,
+        evaluation_results: list[EvaluationResult],
+    ):
+        """Try to change the PLAN, not just re-run the same node harder.
+
+        Milestone 10 (§8/§38/§46): asks the Capability Registry whether a
+        capability exists that serves a data requirement of THIS query
+        which nothing in the current plan serves. If so, the node is added
+        to the graph, executed, and its evidence rewired into the merge
+        node so it actually reaches the generation prompt.
+
+        INSUFFICIENT evidence and CONFLICTING evidence are different
+        problems and get different responses. Adding a new data source
+        cannot resolve a contradiction between two sources that already
+        disagree -- it just supplies a third opinion, and the architecture's
+        answer to conflicting evidence is to widen retrieval in search of
+        an authoritative source and then disclose the conflict rather than
+        pick a side (see the Milestone 6 conflicting-evidence scenario).
+        Conflating the two was a real regression caught by that scenario's
+        existing test.
+
+        Returns the ``PlanChange`` (which may be ``changed=False``), or
+        ``None`` if the new node could not be executed -- in which case the
+        caller falls back to widening retrieval rather than proceeding with
+        a node that produced nothing.
+        """
+        if any(r.label == "CONFLICTING" for r in evaluation_results):
+            logger.info(
+                "capability_replan_skipped_for_conflicting_evidence",
+                extra={"cp_fields": {"reason": "conflicting evidence needs an authoritative source, "
+                                                "not an additional one"}},
+            )
+            return None
+        proposal, descriptor = self._replanner.propose_additional_evidence_capability(
+            graph=capability_route.graph,
+            data_requirements={d.value for d in fingerprint.data_requirement},
+            restricted_capabilities=set(capability_route.restricted_removed),
+        )
+        if not proposal.changed or descriptor is None:
+            logger.info(
+                "capability_replan_declined",
+                extra={"cp_fields": {"reason": proposal.rejected_reason}},
+            )
+            return proposal
+
+        applied = self._replanner.apply(capability_route.graph, descriptor)
+        if not applied.changed:
+            return applied
+
+        node_id = applied.added_nodes[0]
+        node = capability_route.graph.get(node_id)
+        handler = {"SQL": self._sql_capability, "RAG": self._rag_capability}.get(descriptor.capability_id)
+        if handler is None:
+            # The registry offered a capability this runtime has no live
+            # handler for. Mark it SKIPPED and fall back -- never leave a
+            # PENDING node in the graph pretending it contributed.
+            node.status = NodeStatus.SKIPPED
+            node.error = f"no live handler wired for capability {descriptor.capability_id}"
+            return None
+
+        try:
+            node.output_ref = handler.execute(query)
+            node.status = NodeStatus.COMPLETED
+        except Exception as exc:  # a new capability failing must not fail the request
+            node.status = NodeStatus.FAILED
+            node.error = str(exc)
+            logger.warning(
+                "replan_capability_execution_failed",
+                extra={"cp_fields": {"capability": descriptor.capability_id, "error": str(exc)}},
+            )
+            return None
+
+        self._publish(
+            EventType.REPLAN_TRIGGERED, ctx, source="controlplane",
+            payload={
+                "plan_change": "ADD_NODE",
+                "added_capability": descriptor.capability_id,
+                "added_node": node_id,
+                "reason": proposal.reason,
+            },
+        )
+        self._trajectory_store.append_step(
+            trajectory_id=ctx.trajectory_id,
+            step_type=f"replan:add_{descriptor.capability_id.lower()}",
+            status="COMPLETED",
+            input_ref={"reason": proposal.reason},
+            output_ref={"added_node": node_id, "capability": descriptor.capability_id},
+            completed=True,
+        )
+        return applied
 
     def _persist_final_graph_snapshot(self, route_record_id: str, capability_route: CapabilityRoute) -> None:
         """Rewrite the persisted execution graph with FINAL node statuses.
@@ -709,14 +809,27 @@ class Runtime:
                     payload={"from_role": current_role, "to_role": new_role, "reason": spec.reason},
                 )
 
+            plan_change = None
             try:
                 if spec.intervention_type == InterventionType.RETRIEVE_MORE:
-                    rag_node = next((n for n in capability_route.graph.nodes if n.capability == "RAG"), None)
-                    if rag_node is not None:
-                        rag_node.output_ref = self._rag_capability.execute(query, k=spec.new_rag_k)
+                    # Milestone 10: try a REAL plan change first -- add a
+                    # capability that serves a data requirement nothing in
+                    # the current plan serves. Only if no such capability
+                    # exists do we fall back to re-running the same
+                    # retrieval with a wider k (the Milestone 5 behaviour,
+                    # which changed plan_version without changing the graph).
+                    plan_change = self._attempt_capability_replan(
+                        ctx, query, capability_route, fingerprint, evaluation_results
+                    )
+                    if plan_change is None or not plan_change.changed:
+                        rag_node = next((n for n in capability_route.graph.nodes if n.capability == "RAG"), None)
+                        if rag_node is not None:
+                            rag_node.output_ref = self._rag_capability.execute(query, k=spec.new_rag_k)
                 prompt = self._build_generation_prompt(query, capability_route.graph)
                 new_result = self._invoke_model(ctx, settings, prompt, role=new_role)
                 actual_effect = {"status": "EXECUTED", "new_content_preview": new_result["content"][:200]}
+                if plan_change is not None and plan_change.changed:
+                    actual_effect["plan_change"] = plan_change.to_dict()
             except ControlPlaneError as exc:
                 logger.warning(
                     "intervention_execution_failed",

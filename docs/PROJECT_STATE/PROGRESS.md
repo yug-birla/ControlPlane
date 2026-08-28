@@ -2,6 +2,30 @@
 
 Reverse-chronological. Each entry: what happened, evidence.
 
+## 2026-08-29 — Milestone 10 (in progress): Component Diagnostics, Capability Registry, Dynamic Graph-Mutating Replanning
+
+Authorized after Milestone 9 (`c19eafb`). Audit-first, then the two items the directive itself flags as highest priority.
+
+**Component-level state and failure localization (`controlplane/diagnostics/`)** — the directive's stated problem was that the system could report *that* a request failed but not *which component* failed. Built as a derived view over already-persisted data (trajectory steps, evaluations, decisions, verifications, model invocations) — no new table, same "derive, don't duplicate" pattern as the Trust Layer and Permission Lineage. Adds the specified status vocabulary, per-component signal/latency/decision-impact, and a conservative **failure attribution** algorithm that reports the *earliest* component explaining the outcome. Two deliberate behaviours: correctly-governed hostile input (injection, high-risk action) is reported as `INPUT_GOVERNED`, never as a component defect — otherwise the dashboard punishes the system for working; and verification failing with no evaluator flag is reported as `UNDETERMINED` rather than inventing a culprit.
+
+Its headline regression test encodes the Milestone 9 bug: **an ungrounded answer when no retrieval ran is a ROUTING failure, not a generation failure.** Blaming generation there is exactly what let that bug hide behind "every component completed successfully".
+
+**Two real bugs found by running the diagnostics against real persisted data** rather than only fixtures: (1) `route_decisions.execution_graph` was written at routing time, *before* execution, so every node status in the database was frozen at `PENDING` forever — the dashboard had been misreporting which capabilities ran since Milestone 3, and it directly undermined failure localization, which uses node status to distinguish "retrieval ran and was ignored" from "retrieval never ran". Now rewritten with final statuses after execution. (2) List-valued profile fields are persisted as `{"values": [...]}`, and iterating the dict yielded its *keys* — the dashboard showed the literal signal `"values"` instead of `"RAG"`.
+
+**Capability Registry (`controlplane/capabilities/registry.py`)** — centralized capability metadata (status, side-effect level, satisfied data requirements, permissions, cost/latency/risk). Capability knowledge had been scattered across four places and nothing could answer "what exists and what could supply the evidence this query needs?". Status is deliberately never more optimistic than reality: `CHAT_HISTORY`/`MEMORY`/`WEB` are registered `MOCKED` because they run via the placeholder handler, so the planner can see they exist without relying on them for evidence.
+
+**Dynamic, graph-mutating replanning (`controlplane/planning/replanner.py`)** — the directive calls the linear pipeline "the most important current architectural problem", and the audit confirmed it precisely: a replan bumped `plan_version`, emitted `REPLAN_TRIGGERED`, and re-ran the *same* RAG node with a wider `k`. **The graph never changed.** Now, on insufficient evidence, ControlPlane discovers a capability serving an unserved data requirement of *this query*, adds it as a node, and rewires the merge node to consume it — verified end-to-end as a real `PLAN V1 (data_rag) → PLAN V2 (data_rag + data_sql)` mutation, not asserted.
+
+Selection is explicitly **not** hard-coded (the spec forbids "RAG failure → always SQL"): it matches the query's own measured `data_requirement` values against registry metadata, filtered by policy restriction, availability, and what has already been tried. A document-only question gets no new node; a restricted or `MOCKED` capability is never proposed.
+
+**A real regression I introduced and the existing suite caught:** the replan was initially applied to *every* `RETRIEVE_MORE`, including ones triggered by **conflicting** evidence. That broke the Milestone 6 conflicting-evidence scenario — correctly, because adding a new data source cannot resolve a contradiction between two sources that already disagree; it supplies a third opinion. Insufficient and conflicting evidence are different problems with different responses. Fixed and regression-tested in both directions.
+
+**Research references resolved from the repository rather than assumed** (the directive explicitly warns against guessing): "Self-GPT" is defined in `docs/specs/CONTROLPLANE_ROUTING_SYSTEM_SPEC.md` §27 as the **Self-REF** direction — confidence-token emission for cascade routing, which that spec itself defers as "requires a fine-tuned local model... a later experiment rather than the initial dependency" (and fine-tuning needs GPU approval). **Self-Refine, AgentNet, and CTC appear nowhere in the repository docs**; recorded as unverifiable rather than invented.
+
+**Model downloads to E: (verified before starting: 100.9GB free on E:, 11.6GB on C:; `HF_HOME`/`HF_HUB_CACHE` confirmed pointing at E:)** — `prometheus-eval/prometheus-7b-v2.0` (14.5GB, Apache-2.0, revision `66ffb1fc...`) and `Qwen/Qwen3-4B` (8.1GB, Apache-2.0, revision `1cfa9a72...`, the exact model `docs/architecture/MODEL_AND_EVALUATION_DECISIONS.md` names as the medium tier — verified in the repo rather than guessed). Both in progress at the time of this commit.
+
+Tests grew from 304 to 315: `test_replanner.py` (10), `test_diagnostics.py` (13), plus 3 new end-to-end control-loop scenarios.
+
 ## 2026-08-29 — Milestone 9: Local Generative Model + Corpus-Affinity Routing + Shadow Mode + the Baseline-vs-ControlPlane Experiment
 
 Authorized explicitly after Milestone 8 (`5c22e15`), with the stated goal "MOVE CONTROLPLANE ABOVE BASELINE" and an instruction to audit, prioritize autonomously, and prove improvements with measurement rather than follow a fixed feature list.

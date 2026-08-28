@@ -333,3 +333,33 @@ def test_shadow_mode_never_withholds_an_answer_the_enforcing_path_would_block():
     provider = _ScriptedProvider(["Deleting all customer records now."])
     state, _ = _run_shadow("Please drop the customers table from the production database.", provider)
     assert state.metadata["answer"] is not None
+
+
+def test_conflicting_evidence_does_not_trigger_a_capability_adding_replan_regression():
+    """Regression (Milestone 10): the capability-adding replanner was
+    initially applied to every RETRIEVE_MORE intervention, including ones
+    triggered by CONFLICTING evidence. Adding a new data source cannot
+    resolve a contradiction between two sources that already disagree --
+    it supplies a third opinion. The correct response is to widen
+    retrieval looking for an authoritative source, then disclose the
+    conflict. Caught by the Milestone 6 conflicting-evidence scenario."""
+    fake_rag = _ScriptedConflictingRAG(
+        ["[Annex B]: Threshold is $5,000.", "[Finance Addendum]: Threshold is $10,000."]
+    )
+    provider = _ScriptedProvider(["The threshold is $5,000 per the Annex B policy document."])
+    rt = build_default_runtime(
+        provider_factory=lambda settings, role="STRONG": provider, rag_capability=fake_rag
+    )
+    ctx = RequestContext.new()
+    with ctx.bind():
+        state = ExecutionState.initial(
+            ctx=ctx,
+            query="What is the exact financial threshold for SLA commitments per our policy documents?",
+        )
+        state = rt.handle(ctx, state)
+
+    # Retrieval was widened (the real response to a conflict)...
+    assert fake_rag.calls == 2
+    # ...and no unrelated capability was bolted on to "resolve" it.
+    capabilities = {n["capability"] for n in state.metadata["capability_route"]["graph"]["nodes"]}
+    assert "SQL" not in capabilities
