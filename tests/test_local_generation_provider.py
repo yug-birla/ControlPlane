@@ -71,3 +71,34 @@ def test_generation_failure_maps_onto_the_provider_error_contract():
     provider = LocalGenerationProvider(llm=_FakeLLM(fail=True))
     with pytest.raises(ModelProviderError):
         provider.generate(prompt="q")
+
+
+def test_fast_and_strong_resolve_to_genuinely_different_models():
+    """Milestone 10: through Milestone 9 both roles resolved to the same
+    1.5B model, so "model escalation" changed a label and a token budget
+    but not the model. Escalation results were therefore only a mechanism
+    check, not a capability change."""
+    from controlplane.models.local_generation_provider import _ROLE_MODELS
+
+    fast_repo, _ = _ROLE_MODELS["FAST"]
+    strong_repo, _ = _ROLE_MODELS["STRONG"]
+    assert fast_repo != strong_repo
+
+
+def test_every_tier_pins_an_exact_revision():
+    """A model tier without a pinned revision is not reproducible."""
+    from controlplane.models.local_generation_provider import _ROLE_MODELS
+
+    for role, (repo, revision) in _ROLE_MODELS.items():
+        assert repo and revision, f"{role} is missing repo/revision"
+        assert len(revision) == 40, f"{role} revision {revision!r} is not a full commit sha"
+
+
+def test_provider_reports_the_model_it_actually_used():
+    """ModelResult.model must name the tier's real repo, so a routing
+    decision can be audited against what actually ran."""
+    llm = _FakeLLM()
+    llm.model_repo = "Qwen/Qwen3-4B"
+    result = LocalGenerationProvider(role="STRONG", llm=llm).generate(prompt="q")
+    assert result.model == "Qwen/Qwen3-4B"
+    assert result.raw_metadata["role"] == "STRONG"

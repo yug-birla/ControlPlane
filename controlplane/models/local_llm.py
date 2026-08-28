@@ -61,10 +61,7 @@ class LocalLLM:
     belong to the judge / provider layers above it.
     """
 
-    model_repo = MODEL_REPO
-    model_revision = MODEL_REVISION
-
-    def __init__(self) -> None:
+    def __init__(self, model_repo: str = MODEL_REPO, model_revision: str = MODEL_REVISION) -> None:
         try:
             import os
 
@@ -76,21 +73,23 @@ class LocalLLM:
             ) from exc
 
         torch.set_num_threads(os.cpu_count() or 4)
+        self.model_repo = model_repo
+        self.model_revision = model_revision
 
         try:
             self._tokenizer = AutoTokenizer.from_pretrained(
-                MODEL_REPO, revision=MODEL_REVISION, local_files_only=True
+                model_repo, revision=model_revision, local_files_only=True
             )
             self._model = AutoModelForCausalLM.from_pretrained(
-                MODEL_REPO,
-                revision=MODEL_REVISION,
+                model_repo,
+                revision=model_revision,
                 local_files_only=True,
                 dtype=torch.bfloat16,
                 low_cpu_mem_usage=True,
             )
         except Exception as exc:
             raise LocalLLMError(
-                f"local model {MODEL_REPO}@{MODEL_REVISION} is not cached locally -- "
+                f"local model {model_repo}@{model_revision} is not cached locally -- "
                 "download it once via huggingface_hub.snapshot_download during setup, "
                 "never during a request"
             ) from exc
@@ -102,9 +101,22 @@ class LocalLLM:
         counts are the real tokenizer counts, not word-count estimates --
         ``ModelResult`` consumers report them as measured values.
         """
-        text = self._tokenizer.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True
-        )
+        # ``enable_thinking=False`` matters and is not cosmetic: Qwen3 is a
+        # hybrid reasoning model whose chat template emits a <think>...</think>
+        # block by default. This repository must never store hidden
+        # chain-of-thought (stated in every architecture doc and enforced
+        # in ModelResult.raw_metadata), and those tokens would otherwise
+        # land in ``content`` and be persisted to model_invocations.
+        # Passed only when the loaded template accepts it, so Qwen2.5 and
+        # any non-thinking model keep working unchanged.
+        try:
+            text = self._tokenizer.apply_chat_template(
+                messages, tokenize=False, add_generation_prompt=True, enable_thinking=False
+            )
+        except TypeError:
+            text = self._tokenizer.apply_chat_template(
+                messages, tokenize=False, add_generation_prompt=True
+            )
         inputs = self._tokenizer([text], return_tensors="pt")
         input_tokens = int(inputs["input_ids"].shape[1])
 
