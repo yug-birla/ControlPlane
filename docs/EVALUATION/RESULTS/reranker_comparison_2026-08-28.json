@@ -1,5 +1,5 @@
 {
-  "experiment_id": "exp_9454041d-e713-478d-bfce-ff9e9e8b957f",
+  "experiment_id": "exp_e1a033d1-63fc-4a66-b371-04c32e3e7bae",
   "dataset_id": "rag_retrieval_relevance_cases",
   "dataset_version": "v0.1",
   "results": {
@@ -9,29 +9,49 @@
       "recall_at_3": 1.0,
       "mrr": 0.9807692307692307,
       "not_found_count": 0,
-      "cold_start_ms": 20437,
-      "warm_latency_ms_mean": 44.11538461538461,
-      "warm_latency_ms_max": 63
+      "cold_start_ms": 26891,
+      "warm_latency_ms_mean": 26.653846153846153,
+      "warm_latency_ms_max": 47
     },
-    "B_dense_plus_lexical_fusion": {
+    "B1_dense_plus_lexical_min_max_fusion": {
       "sample_count": 26,
       "recall_at_1": 0.9615384615384616,
       "recall_at_3": 1.0,
       "mrr": 0.9807692307692307,
       "not_found_count": 0,
-      "cold_start_ms": 47,
-      "warm_latency_ms_mean": 41.73076923076923,
-      "warm_latency_ms_max": 47
+      "cold_start_ms": 15,
+      "warm_latency_ms_mean": 19.923076923076923,
+      "warm_latency_ms_max": 32
     },
-    "C_dense_plus_lexical_plus_cross_encoder": {
+    "B2_dense_plus_lexical_RRF_fusion": {
+      "sample_count": 26,
+      "recall_at_1": 0.9615384615384616,
+      "recall_at_3": 1.0,
+      "mrr": 0.9807692307692307,
+      "not_found_count": 0,
+      "cold_start_ms": 31,
+      "warm_latency_ms_mean": 19.423076923076923,
+      "warm_latency_ms_max": 31
+    },
+    "C1_min_max_plus_cross_encoder": {
       "sample_count": 26,
       "recall_at_1": 1.0,
       "recall_at_3": 1.0,
       "mrr": 1.0,
       "not_found_count": 0,
-      "cold_start_ms": 1358,
-      "warm_latency_ms_mean": 1087.7307692307693,
-      "warm_latency_ms_max": 1968
+      "cold_start_ms": 968,
+      "warm_latency_ms_mean": 450.34615384615387,
+      "warm_latency_ms_max": 531
+    },
+    "C2_RRF_plus_cross_encoder": {
+      "sample_count": 26,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "mrr": 1.0,
+      "not_found_count": 0,
+      "cold_start_ms": 530,
+      "warm_latency_ms_mean": 500.9230769230769,
+      "warm_latency_ms_max": 547
     }
   }
 }

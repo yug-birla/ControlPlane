@@ -23,7 +23,22 @@ Grid search was run on this same 150-example set — no separate held-out split 
 
 **Critical finding (Milestone 5 architecture audit):** through Milestone 4, `provider.generate(prompt=query)` used the raw query only — SQL/RAG evidence was retrieved, evaluated, and persisted, but **never actually shown to the model**. Fixed in `controlplane/runtime.py::_build_generation_prompt` to construct an evidence-augmented prompt whenever SQL/RAG nodes completed. Verified via manual trace: a travel-policy question's prompt now literally contains the retrieved policy text before the question. See `docs/PROJECT_STATE/DECISIONS.md` for the full finding.
 
-## Reranker Comparison (NEW, Milestone 6)
+## Fusion Method: RRF vs. Min-Max (NEW, Milestone 8)
+
+**Finding:** `docs/specs/CONTROLPLANE_RAG_RETRIEVAL_HALLUCINATION_AGENT_GUIDE.md` explicitly specifies "Dense + BM25 + RRF + Cross-Encoder" as the source-of-truth pipeline (citing Cormack, Clarke & Büttcher's RRF paper). Milestones 4-7 used min-max-normalized weighted-sum fusion instead — an undocumented deviation, found while auditing this milestone's bootstrap against the original specs (bootstrap's own "architecture contradiction" rule: fix it or report it, don't silently keep it).
+
+**Run:** `controlplane/experiments/evaluate_reranker.py`, same 26-case relevance benchmark as the reranker comparison below.
+
+| Config | Recall@1 | Recall@3 | MRR |
+|---|---|---|---|
+| Dense + lexical, min-max fusion (the deviation) | 0.962 | 1.000 | 0.981 |
+| Dense + lexical, RRF fusion (the spec) | 0.962 | 1.000 | 0.981 |
+| Min-max fusion + cross-encoder | 1.000 | 1.000 | 1.000 |
+| RRF fusion + cross-encoder | 1.000 | 1.000 | 1.000 |
+
+**Identical results** on this corpus/benchmark scale (30 documents, 26 queries) — a real, honest measurement, not evidence RRF is better *or* worse here, just evidence there is no measured reason to keep deviating from the spec. Per the spec's own words ("the initial prototype should remain Dense+BM25+RRF+Cross-Encoder unless experiments show a concrete reason to replace it"), RRF is now adopted as the default (`controlplane.rag.retrieval.retrieve`'s `fusion_method="rrf"` default) — `min_max` is kept available for reproducing the earlier milestones' exact numbers, not deleted.
+
+## Reranker Comparison (Milestone 6)
 
 **Run:** `controlplane/experiments/evaluate_reranker.py`, 2026-08-28. Ground truth: `data/raw/generated/rag_retrieval_relevance_cases.json` (26 cases, provenance HUMAN, SMOKE_TEST scale — hand-authored by reading all 30 real corpus documents). Real retrieval pipeline, real corpus, not mocked.
 

@@ -1,7 +1,15 @@
-"""Reranker comparison: dense-only vs dense+lexical fusion vs
-dense+lexical+cross-encoder -- against the REAL retrieval pipeline and
-the REAL 30-document corpus (``data/synthetic_enterprise/documents/``),
-not a mocked one.
+"""Reranker AND fusion-method comparison: dense-only vs dense+lexical
+(min-max weighted-sum vs Reciprocal Rank Fusion) vs each fusion +
+cross-encoder -- against the REAL retrieval pipeline and the REAL
+30-document corpus (``data/synthetic_enterprise/documents/``), not a
+mocked one.
+
+The RRF-vs-min-max comparison (NEW, Milestone 8) exists because
+``docs/specs/CONTROLPLANE_RAG_RETRIEVAL_HALLUCINATION_AGENT_GUIDE.md``
+explicitly specifies RRF ("Dense + BM25 + RRF + Cross-Encoder") as the
+source-of-truth fusion method -- Milestones 4-7 used min-max weighted-sum
+fusion instead, an undocumented deviation found and measured here rather
+than silently kept (bootstrap's "architecture contradiction" rule).
 
 Ground truth: ``data/raw/generated/rag_retrieval_relevance_cases.json``
 (26 cases, provenance HUMAN -- hand-authored this milestone by reading
@@ -50,7 +58,7 @@ def _rank_of(document_name: str, results) -> int | None:
     return None
 
 
-def _evaluate_config(cases: list[dict], *, dense_weight: float, rerank: bool) -> dict:
+def _evaluate_config(cases: list[dict], *, dense_weight: float = 0.5, rerank: bool, fusion_method: str = "rrf") -> dict:
     # Warm the lazily-loaded embedding model / cross-encoder singletons
     # (both @lru_cache'd) with one untimed call first -- otherwise the
     # first query's latency absorbs a one-time model-load cost and
@@ -59,7 +67,7 @@ def _evaluate_config(cases: list[dict], *, dense_weight: float, rerank: bool) ->
     cold_start = None
     if cases:
         t0 = time.monotonic()
-        retrieve(cases[0]["query"], k=_TOP_N, dense_weight=dense_weight, rerank=rerank)
+        retrieve(cases[0]["query"], k=_TOP_N, dense_weight=dense_weight, rerank=rerank, fusion_method=fusion_method)
         cold_start = int((time.monotonic() - t0) * 1000)
 
     ranks: list[int | None] = []
@@ -73,7 +81,7 @@ def _evaluate_config(cases: list[dict], *, dense_weight: float, rerank: bool) ->
         # as an extension and silently truncate it, breaking the match.
         expected_doc = _document_title(Path(case["relevant_document_stem"] + ".txt"))
         start = time.monotonic()
-        results = retrieve(case["query"], k=_TOP_N, dense_weight=dense_weight, rerank=rerank)
+        results = retrieve(case["query"], k=_TOP_N, dense_weight=dense_weight, rerank=rerank, fusion_method=fusion_method)
         latencies_ms.append(int((time.monotonic() - start) * 1000))
         ranks.append(_rank_of(expected_doc, results))
 
@@ -100,9 +108,11 @@ def main() -> None:
     )
 
     configs = {
-        "A_dense_only": dict(dense_weight=1.0, rerank=False),
-        "B_dense_plus_lexical_fusion": dict(dense_weight=0.5, rerank=False),
-        "C_dense_plus_lexical_plus_cross_encoder": dict(dense_weight=0.5, rerank=True),
+        "A_dense_only": dict(dense_weight=1.0, rerank=False, fusion_method="min_max"),
+        "B1_dense_plus_lexical_min_max_fusion": dict(dense_weight=0.5, rerank=False, fusion_method="min_max"),
+        "B2_dense_plus_lexical_RRF_fusion": dict(rerank=False, fusion_method="rrf"),
+        "C1_min_max_plus_cross_encoder": dict(dense_weight=0.5, rerank=True, fusion_method="min_max"),
+        "C2_RRF_plus_cross_encoder": dict(rerank=True, fusion_method="rrf"),
     }
 
     results = {}

@@ -17,3 +17,10 @@ data/synthetic_enterprise/nexaconsult.db-wal
 # Real runtime output of AgentCapability's write_report tool (Milestone 7)
 # -- generated artifacts, not source; sandboxed to this one directory.
 data/agent_reports/
+
+# Hugging Face cache (Milestone 8 E: drive migration, BLOCKERS.md B10):
+# HF_HOME/HF_HUB_CACHE/TRANSFORMERS_CACHE point here so large model/dataset
+# downloads land on E: instead of a nearly-full C:. This is the machine's
+# shared cache (used by other, unrelated projects too, not just
+# ControlPlane) and can grow to several GB -- never commit it.
+.cache/

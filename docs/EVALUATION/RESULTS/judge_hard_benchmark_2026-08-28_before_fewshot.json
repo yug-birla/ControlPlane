@@ -1,5 +1,5 @@
 {
-  "experiment_id": "exp_4526a316-0ff4-4636-ac40-a487083626c2",
+  "experiment_id": "exp_a5055d10-cb4b-45f1-9691-c1e9a9f42562",
   "dataset_id": "judge_hard_cases",
   "dataset_version": "v0.1",
   "results": {
@@ -172,13 +172,13 @@
     "local_judge": {
       "scorer": "local_judge",
       "sample_count": 24,
-      "accuracy": 0.4166666666666667,
-      "macro_f1": 0.32,
+      "accuracy": 0.375,
+      "macro_f1": 0.2996632996632997,
       "per_class": {
         "SUPPORTED": {
-          "precision": 0.5,
-          "recall": 0.3333333333333333,
-          "f1": 0.4,
+          "precision": 0.38461538461538464,
+          "recall": 0.5555555555555556,
+          "f1": 0.4545454545454546,
           "support": 9
         },
         "PARTIALLY_SUPPORTED": {
@@ -188,54 +188,48 @@
           "support": 8
         },
         "UNSUPPORTED": {
-          "precision": 0.3888888888888889,
-          "recall": 1.0,
-          "f1": 0.56,
+          "precision": 0.36363636363636365,
+          "recall": 0.5714285714285714,
+          "f1": 0.4444444444444444,
           "support": 7
         }
       },
       "confusion_matrix": {
         "SUPPORTED": {
-          "SUPPORTED": 3,
+          "SUPPORTED": 5,
           "PARTIALLY_SUPPORTED": 0,
-          "UNSUPPORTED": 6
+          "UNSUPPORTED": 4
         },
         "PARTIALLY_SUPPORTED": {
-          "SUPPORTED": 3,
+          "SUPPORTED": 5,
           "PARTIALLY_SUPPORTED": 0,
-          "UNSUPPORTED": 5
+          "UNSUPPORTED": 3
         },
         "UNSUPPORTED": {
-          "SUPPORTED": 0,
+          "SUPPORTED": 3,
           "PARTIALLY_SUPPORTED": 0,
-          "UNSUPPORTED": 7
+          "UNSUPPORTED": 4
         }
       },
       "accuracy_by_category": {
         "conflicting_evidence": "0/2",
-        "correct_direct_match": "1/2",
+        "correct_direct_match": "2/2",
         "fully_unsupported_unrelated": "2/2",
         "hallucinated_detail": "0/3",
         "incomplete_but_not_wrong": "0/2",
-        "paraphrased_correct": "2/5",
+        "paraphrased_correct": "3/5",
         "paraphrased_correct_unit_conversion": "0/1",
         "reasoning_correct_inference": "0/1",
-        "reasoning_error_wrong_inference": "1/1",
-        "subtly_incorrect_number": "4/4",
+        "reasoning_error_wrong_inference": "0/1",
+        "subtly_incorrect_number": "2/4",
         "wrong_threshold_in_list": "0/1"
       },
       "raw_label_distribution": {
-        "SUPPORTED": 6,
-        "UNSUPPORTED": 18
+        "SUPPORTED": 13,
+        "UNSUPPORTED": 11
       },
-      "latency_ms_mean": 75253.5,
+      "latency_ms_mean": 32557.5,
       "errors": [
-        {
-          "case_id": "JH-002",
-          "category": "paraphrased_correct",
-          "expected": "SUPPORTED",
-          "actual": "UNSUPPORTED"
-        },
         {
           "case_id": "JH-003",
           "category": "paraphrased_correct_unit_conversion",
@@ -255,6 +249,18 @@
           "actual": "UNSUPPORTED"
         },
         {
+          "case_id": "JH-007",
+          "category": "subtly_incorrect_number",
+          "expected": "UNSUPPORTED",
+          "actual": "SUPPORTED"
+        },
+        {
+          "case_id": "JH-008",
+          "category": "subtly_incorrect_number",
+          "expected": "UNSUPPORTED",
+          "actual": "SUPPORTED"
+        },
+        {
           "case_id": "JH-011",
           "category": "hallucinated_detail",
           "expected": "PARTIALLY_SUPPORTED",
@@ -264,7 +270,7 @@
           "case_id": "JH-012",
           "category": "hallucinated_detail",
           "expected": "PARTIALLY_SUPPORTED",
-          "actual": "UNSUPPORTED"
+          "actual": "SUPPORTED"
         },
         {
           "case_id": "JH-013",
@@ -276,7 +282,7 @@
           "case_id": "JH-014",
           "category": "wrong_threshold_in_list",
           "expected": "PARTIALLY_SUPPORTED",
-          "actual": "UNSUPPORTED"
+          "actual": "SUPPORTED"
         },
         {
           "case_id": "JH-015",
@@ -303,10 +309,10 @@
           "actual": "UNSUPPORTED"
         },
         {
-          "case_id": "JH-021",
-          "category": "correct_direct_match",
-          "expected": "SUPPORTED",
-          "actual": "UNSUPPORTED"
+          "case_id": "JH-023",
+          "category": "reasoning_error_wrong_inference",
+          "expected": "UNSUPPORTED",
+          "actual": "SUPPORTED"
         },
         {
           "case_id": "JH-024",

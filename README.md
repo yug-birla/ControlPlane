@@ -38,6 +38,15 @@ ControlPlane/
 ## Running the Application
 
 ```
+# IMPORTANT: local models are large (~3.2GB total) -- point the Hugging Face
+# cache at a drive with headroom (E: in this project's own dev environment,
+# not the OS drive) BEFORE downloading anything. Set once per machine
+# (persists across terminals); see docs/PROJECT_STATE/BLOCKERS.md B10 for why.
+setx HF_HOME "E:\ControlPlane\.cache\huggingface"
+setx HF_HUB_CACHE "E:\ControlPlane\.cache\huggingface\hub"
+setx TRANSFORMERS_CACHE "E:\ControlPlane\.cache\huggingface\hub"
+# (open a new terminal after setx, or export the same three vars in the current one)
+
 docker compose up -d postgres        # isolated ControlPlane Postgres on localhost:5433
 python -m venv .venv
 .venv/Scripts/pip install -e ".[dev]" --extra-index-url https://download.pytorch.org/whl/cpu   # CPU-only torch; omitting the index pulls a much larger CUDA build

@@ -59,6 +59,39 @@ _TASK_INSTRUCTIONS: dict[str, str] = {
 
 TASKS = tuple(_TASK_INSTRUCTIONS)
 
+# Few-shot examples (Milestone 8) -- added after a real, measured finding:
+# on the 24-case HARD judge benchmark (docs/EVALUATION/EVALUATOR_RESULTS.md),
+# the Local Judge (Qwen2.5-1.5B-Instruct) NEVER ONCE predicted
+# PARTIALLY_SUPPORTED across all 24 cases despite the prompt explicitly
+# offering it -- it collapsed the 3-way judgment into an effectively
+# binary one. Per bootstrap's "prompt improvement -> few-shot -> ...
+# before fine-tuning" ordering, these three examples (one per label,
+# invented for an unrelated office-policy domain so they cannot leak
+# answers into the actual benchmark's real cases) are the first, cheapest
+# thing to try. On a different domain deliberately: the goal is teaching
+# the LABEL DISTINCTION itself, not the specific facts being tested.
+_GROUNDING_FEW_SHOT = """EXAMPLES (for calibration only, unrelated to the real case below):
+
+Evidence: "The office is open Monday through Friday, 8am to 6pm."
+Answer: "The office is open weekdays from 8 in the morning until 6 in the evening."
+{"label": "SUPPORTED", "score": 0.95, "issues": [], "rationale": "Same fact, reworded."}
+
+Evidence: "Employees can request up to 3 remote days per week with manager approval."
+Answer: "Employees can work remotely up to 3 days per week, and this is unlimited for senior staff."
+{"label": "PARTIALLY_SUPPORTED", "score": 0.4, "issues": ["senior-staff exception not in evidence"], "rationale": "The 3-day limit is correct, but the added exception is not supported."}
+
+Evidence: "The maximum vacation carryover is 5 days per year."
+Answer: "The maximum vacation carryover is 15 days per year."
+{"label": "UNSUPPORTED", "score": 0.05, "issues": ["number contradicts evidence"], "rationale": "The stated number contradicts the evidence."}
+
+Notice the middle example: a PARTIALLY_SUPPORTED answer keeps a correct core fact but adds something the evidence doesn't say. Use PARTIALLY_SUPPORTED whenever this happens -- it is a real, distinct, and commonly-correct label, not a rare edge case.
+
+"""
+
+_FEW_SHOT_EXAMPLES: dict[str, str] = {
+    "grounding": _GROUNDING_FEW_SHOT,
+}
+
 
 def build_judge_prompt(task: str, *, query: str, answer: str, evidence: list[str] | None = None) -> tuple[str, str]:
     """Returns ``(system_prompt, user_prompt)``. Raises ``ValueError`` for
@@ -67,7 +100,9 @@ def build_judge_prompt(task: str, *, query: str, answer: str, evidence: list[str
         raise ValueError(f"unknown judge task {task!r} -- expected one of {TASKS}")
 
     evidence_block = "\n".join(f"- {e}" for e in evidence) if evidence else "(none provided)"
+    few_shot = _FEW_SHOT_EXAMPLES.get(task, "")
     user = (
+        f"{few_shot}"
         f"QUERY: {query}\n\n"
         f"EVIDENCE:\n{evidence_block}\n\n"
         f"ANSWER: {answer}\n\n"

@@ -1,5 +1,5 @@
-"""Dense + lexical retrieval, a V0 score-fusion "reranker", and (new this
-milestone) a real cross-encoder reranking stage.
+"""Dense + lexical retrieval, fusion, and a real cross-encoder reranking
+stage.
 
 Baseline choice (per bootstrap SS17/SS50/SS51 -- "choose a small
 practical baseline," "do not implement every paper"):
@@ -9,17 +9,25 @@ practical baseline," "do not implement every paper"):
 - Lexical: BM25, implemented from scratch (~40 lines) rather than adding
   a dependency -- consistent with this codebase's existing
   dependency-free-metrics precedent (``controlplane/experiments/metrics.py``).
-- Score fusion: min-max-normalized 0.5 dense + 0.5 lexical -- the
-  candidate-generation stage. Previously mislabeled "reranking"; a real
-  cross-encoder (``controlplane.rag.reranker``) now does that job when
-  ``rerank=True``, per the decision to no longer defer it -- see
-  docs/PROJECT_STATE/DECISIONS.md and docs/EVALUATION/RAG_RESULTS.md for
-  the measured comparison (dense vs dense+lexical vs dense+lexical+cross-encoder).
+- Fusion: **Reciprocal Rank Fusion (RRF)** -- the default, per
+  ``docs/specs/CONTROLPLANE_RAG_RETRIEVAL_HALLUCINATION_AGENT_GUIDE.md``
+  SS"Reciprocal Rank Fusion" / SS198's explicit "Dense + BM25 + RRF +
+  Cross-Encoder" contract (Cormack, Clarke & Büttcher). Milestone 4/5/6/7
+  used min-max-normalized weighted-sum fusion instead -- a real,
+  undocumented deviation from the source-of-truth spec, found and fixed
+  in Milestone 8 (bootstrap's own "architecture contradiction" rule:
+  fix it or report it, don't silently keep it) after measuring RRF
+  against it (`docs/EVALUATION/RAG_RESULTS.md`) and finding no evidence
+  favoring the deviation. ``fusion_method="min_max"`` is kept available
+  (not deleted) for that comparison and for anyone reproducing the
+  earlier milestones' exact numbers.
 
-``retrieve()`` defaults to ``rerank=False`` (unchanged fusion-only
-behavior, e.g. for existing callers/tests); ``RAGCapability`` -- the path
-actually used by the runtime -- passes ``rerank=True`` so the
-cross-encoder is a real, live stage, not decorative unused code.
+A real cross-encoder (``controlplane.rag.reranker``) reranks the fused
+candidates when ``rerank=True``. ``retrieve()`` defaults to
+``rerank=False`` (unchanged behavior for existing callers/tests);
+``RAGCapability`` -- the path actually used by the runtime -- passes
+``rerank=True`` so the cross-encoder is a real, live stage, not
+decorative unused code.
 """
 
 from __future__ import annotations
@@ -100,6 +108,33 @@ def _min_max_normalize(values: list[float]) -> list[float]:
     return [(v - lo) / (hi - lo) for v in values]
 
 
+def _ranks_descending(values: list[float]) -> list[int]:
+    """1-indexed rank of each item if ``values`` were sorted descending
+    (rank 1 = highest score). Ties broken by original index (stable) --
+    fine for this corpus's scale, not claimed to be a tie-breaking
+    policy that matters at larger scale."""
+    order = sorted(range(len(values)), key=lambda i: values[i], reverse=True)
+    ranks = [0] * len(values)
+    for rank, i in enumerate(order, start=1):
+        ranks[i] = rank
+    return ranks
+
+
+def rrf_fusion(dense_scores: list[float], lexical_scores: list[float], k_constant: int = 60) -> list[float]:
+    """Reciprocal Rank Fusion (Cormack, Clarke & Büttcher, 2009):
+    ``score(d) = sum over each ranker of 1 / (k_constant + rank(d))``.
+    ``k_constant=60`` is the paper's own reported default, not tuned
+    against this corpus (same reasoning as BM25's untuned k1/b above --
+    30 documents is too small to tune a rank-fusion constant without
+    overfitting to it). Operates on RANKS, not raw scores, which is
+    exactly why RRF needs no score normalization step (unlike the
+    min-max weighted-sum alternative) -- dense cosine similarities and
+    BM25 scores live on completely different, incomparable scales."""
+    dense_ranks = _ranks_descending(dense_scores)
+    lexical_ranks = _ranks_descending(lexical_scores)
+    return [1.0 / (k_constant + dr) + 1.0 / (k_constant + lr) for dr, lr in zip(dense_ranks, lexical_ranks)]
+
+
 @dataclass
 class RetrievedChunk:
     chunk: Chunk
@@ -125,13 +160,22 @@ def retrieve(
     dense_weight: float = 0.5,
     rerank: bool = False,
     candidate_multiplier: int = 3,
+    fusion_method: str = "rrf",
 ) -> list[RetrievedChunk]:
     """``rerank=True`` adds a second stage: widen candidate generation to
     ``max(k * candidate_multiplier, 10)`` chunks via fusion, then
     re-score/re-sort that candidate set with the real cross-encoder
     (``controlplane.rag.reranker``), truncating to ``k``. Default
     ``False`` keeps existing callers' behavior (fusion-ranked top-k)
-    unchanged; ``RAGCapability`` opts in."""
+    unchanged; ``RAGCapability`` opts in.
+
+    ``fusion_method``: ``"rrf"`` (default, per the source-of-truth spec)
+    or ``"min_max"`` (the pre-Milestone-8 weighted-sum method, kept for
+    comparison/reproducibility -- ``dense_weight`` only applies to
+    ``"min_max"``; RRF has no weighting parameter by design)."""
+    if fusion_method not in ("rrf", "min_max"):
+        raise ValueError(f"unknown fusion_method {fusion_method!r} -- expected 'rrf' or 'min_max'")
+
     chunks = load_chunks()
     if not chunks:
         return []
@@ -140,9 +184,12 @@ def retrieve(
     dense_scores = [cosine_similarity(query_embedding, c.embedding) for c in chunks]
     lexical_scores = _bm25_index().scores_for_query(_tokenize(query))
 
-    dense_norm = _min_max_normalize(dense_scores)
-    lexical_norm = _min_max_normalize(lexical_scores)
-    fused = [dense_weight * d + (1 - dense_weight) * l for d, l in zip(dense_norm, lexical_norm)]
+    if fusion_method == "rrf":
+        fused = rrf_fusion(dense_scores, lexical_scores)
+    else:
+        dense_norm = _min_max_normalize(dense_scores)
+        lexical_norm = _min_max_normalize(lexical_scores)
+        fused = [dense_weight * d + (1 - dense_weight) * l for d, l in zip(dense_norm, lexical_norm)]
 
     candidate_k = min(len(chunks), max(k * candidate_multiplier, 10)) if rerank else k
     order = sorted(range(len(chunks)), key=lambda i: fused[i], reverse=True)[:candidate_k]

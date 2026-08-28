@@ -59,6 +59,17 @@ def test_build_judge_prompt_rejects_unknown_task():
         build_judge_prompt("not_a_real_task", query="q", answer="a")
 
 
+def test_build_judge_prompt_grounding_includes_few_shot_examples_with_no_doubled_braces():
+    """Milestone 8: added after the HARD judge benchmark found the Local
+    Judge never once predicted PARTIALLY_SUPPORTED across 24 cases. Also
+    guards against a repeat of the doubled-brace prompt bug (found
+    earlier this project) in these new literal JSON examples."""
+    system, user = build_judge_prompt("grounding", query="q", answer="a", evidence=["e"])
+    assert "PARTIALLY_SUPPORTED" in user
+    assert "EXAMPLES" in user
+    assert "{{" not in user
+
+
 def test_build_judge_prompt_embeds_query_answer_and_evidence():
     system, user = build_judge_prompt("grounding", query="What is X?", answer="X is Y.", evidence=["X is Y per doc."])
     assert "What is X?" in user

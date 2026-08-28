@@ -43,6 +43,33 @@ Built specifically to fix the easy benchmark's blind spot: 24 hand-authored case
 
 **Latency:** 32.6s mean per call (faster than the earlier 89s figure — likely less background CPU contention during this run, not a code change) remains far too slow for the live per-request path, but the accuracy gap above is now real evidence *for* offline use (calibration, spot-checks, judge-assisted labeling), not just evidence to keep it out of the hot path.
 
+## Judge Few-Shot Fix Attempt (NEW, Milestone 8)
+
+Per bootstrap's explicit escalation ladder ("prompt improvement → few-shot → schema improvement → model comparison → better data → fine-tuning if justified"), added 3 few-shot examples (one per label, on an unrelated office-policy domain so they cannot leak answers into the real benchmark) directly demonstrating the `PARTIALLY_SUPPORTED` label to the grounding judge prompt (`controlplane/judge/prompts.py`), then re-ran the identical 24-case HARD benchmark.
+
+| Scorer | Accuracy | Macro-F1 | `PARTIALLY_SUPPORTED` predictions made |
+|---|---|---|---|
+| Local Judge, zero-shot (pre-fix) | 0.375 | 0.300 | **0 / 24** |
+| Local Judge, + 3 few-shot examples | 0.417 | 0.320 | **0 / 24** |
+
+**Honest, unflattering-but-real result:** few-shot prompting produced a small overall accuracy gain (+0.042) — driven entirely by the model becoming more willing to say `UNSUPPORTED` (recall for that class reached a perfect 1.0, catching all 4 `subtly_incorrect_number` cases it previously missed) — but it did **not** fix the actual problem: the judge *still never once predicted `PARTIALLY_SUPPORTED`*, even with three explicit worked examples showing exactly when to use it. This is real evidence that the collapse is a genuine capability limit of this 1.5B model on this specific 3-way distinction, not merely a prompting gap — per the bootstrap's own ordering, the next justified step is **model comparison** (a different/larger pretrained model), not fine-tuning, and not attempted this milestone (time-boxed; documented as the concrete next step in `docs/PROJECT_STATE/FUTURE_WORK.md`).
+
+## Prompt Injection: Real Public Dataset + Embedding k-NN Upgrade (NEW, Milestone 8)
+
+Per bootstrap SS58 ("n=3 is not a serious benchmark"), Milestone 7's `PromptInjectionEvaluator` (12 hand-authored cases, 1.0 accuracy) was re-tested against the real, public `deepset/prompt-injections` dataset (662 examples, Apache-2.0, see `docs/DATA/EXTERNAL_DATASETS.md`).
+
+| Scorer | Dataset | Accuracy | Macro-F1 | FN Rate | FP Rate |
+|---|---|---|---|---|---|
+| Deterministic keyword list | Full external (662) | 0.609 | 0.392 | **0.985** | 0.000 |
+| Deterministic keyword list | Held-out TEST (116) | 0.483 | 0.326 | 1.000 | 0.000 |
+| Embedding k-NN (calibrated, k=5, threshold=0.30) | Held-out TEST (116) | **0.802** | **0.796** | 0.383 | 0.000 |
+
+**The keyword-only baseline misses essentially every real injection attempt** (98.5% false negative rate on the full dataset) — a fixed phrase list cannot generalize across real paraphrase diversity ("forget all previous tasks" / "ignore all preceding orders" share no literal substring). Root-caused as representational (bootstrap SS9/10), not patched with more keywords: built `controlplane/evaluation/injection_knn.py`, an embedding k-NN detector reusing the same local embedding model used everywhere else in this project (no new model). Macro-F1 improved from 0.326 to 0.796 on the held-out TEST split (k-NN reference is the disjoint TRAIN split — genuine held-out evaluation, not leakage), with false-positive rate still exactly 0.0.
+
+**A second real bug found via end-to-end integration testing, not designed upfront:** the first (threshold-less) k-NN version flagged a completely benign ControlPlane SQL query ("Please execute a database query to count how many support tickets are open") as an injection attempt, because k=5 majority-vote always returns some label even when the nearest neighbor's cosine similarity is only ~0.2 (near-orthogonal). Fixed with a similarity-reject threshold. **A third, subtler finding:** the raw calibration-optimal threshold (0.20, found via grid search on a held-out slice of TRAIN) would *still* have misclassified that exact SQL query (similarity 0.245) — because the calibration data is drawn from the same narrow "casual assistant question" distribution as the reference set, which looks nothing like ControlPlane's actual query traffic (SQL/RAG/agent-tool proposals). The shipped default (`similarity_threshold=0.30`) is a deliberate, documented judgment call trading a small amount of in-domain calibration performance (macro-F1 0.419 vs 0.435) for materially better protection against this domain-shift risk — see `controlplane/evaluation/injection_knn.py`'s docstring.
+
+`PromptInjectionEvaluator` now runs both layers live: keyword first (free, 100% precision), embedding k-NN as a semantic fallback when the keyword layer finds nothing.
+
 ## Reasoning Evaluator Capability Audit (NEW, Milestone 7)
 
 **Run:** `controlplane/experiments/evaluate_reasoning.py`. Not a conventional accuracy benchmark — `ReasoningEvaluator` (`controlplane/evaluation/evaluators.py`) is an explicitly narrow deterministic self-contradiction check, not a general reasoning evaluator. 12 hand-authored cases (`data/raw/generated/reasoning_cases.json`) spanning easy/direct-contradiction/arithmetic/comparison/constraint-satisfaction/misleading-inference categories.

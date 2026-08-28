@@ -312,17 +312,32 @@ _PROMPT_INJECTION_PATTERNS = (
 
 
 class PromptInjectionEvaluator(Evaluator):
-    """Deterministic pattern check for well-known prompt-injection
-    phrasing in the user's own query (bootstrap SS20 / InjecAgent
-    research direction) -- independent of the Risk Profiler's own safety
-    dimension (which was never designed to look for this specific
-    threat model). A narrow, fixed keyword list, not a general
-    adversarial-input classifier: catches only well-known injection
-    phrasings verbatim, not paraphrases or novel attacks -- see
-    docs/EVALUATION/SAFETY_RESULTS.md for measured precision/recall on a
-    small hand-authored benchmark."""
+    """Two-layer prompt-injection check (bootstrap SS20 / InjecAgent
+    research direction), independent of the Risk Profiler's own safety
+    dimension (never designed for this specific threat model).
+
+    Layer 1 (keyword, always on): a fixed phrase list -- fast, free,
+    100% precision on this project's own benchmarks, but a real,
+    measured 98.5% FALSE NEGATIVE RATE against the public
+    `deepset/prompt-injections` dataset (662 real examples) -- exact
+    phrasing cannot generalize across real paraphrase diversity
+    ("forget all previous tasks" vs. "ignore all preceding orders").
+
+    Layer 2 (embedding k-NN, semantic fallback): only runs when layer 1
+    finds nothing, per bootstrap SS9/10 ("do not depend primarily on
+    fixed keywords for semantic risk... move toward a small local model
+    when the representation is shown insufficient"). Reuses the same
+    local embedding model already used everywhere else in this project
+    -- no new model, no fine-tuning. Measured on the held-out TEST split:
+    macro-F1 0.326 (keyword alone) -> 0.796 (keyword + k-NN), false
+    positive rate still 0.0 both ways -- see
+    docs/EVALUATION/EVALUATOR_RESULTS.md. Degrades to keyword-only
+    (never crashes) if the reference dataset file is missing."""
 
     name = "prompt_injection"
+
+    def __init__(self, use_semantic_fallback: bool = True) -> None:
+        self._use_semantic_fallback = use_semantic_fallback
 
     def evaluate(self, ctx: EvaluationContext) -> EvaluationResult:
         lowered = ctx.query.lower()
@@ -333,14 +348,38 @@ class PromptInjectionEvaluator(Evaluator):
                 status=EvaluationStatus.IMPLEMENTED,
                 label="INJECTION_PATTERN_DETECTED",
                 issues=hits,
+                evidence={"detection_method": "keyword"},
                 rationale=f"query matches known prompt-injection phrasing: {hits}",
                 recommended_signal="FLAG_FOR_REVIEW",
             )
+
+        if self._use_semantic_fallback:
+            from controlplane.evaluation.injection_knn import get_injection_knn_detector
+
+            try:
+                detector = get_injection_knn_detector()
+            except FileNotFoundError:
+                detector = None
+            if detector is not None:
+                result = detector.classify(ctx.query)
+                if result.label == "INJECTION_PATTERN_DETECTED":
+                    nearest_text = result.nearest_examples[0][0] if result.nearest_examples else None
+                    return EvaluationResult(
+                        evaluator=self.name,
+                        status=EvaluationStatus.IMPLEMENTED,
+                        label="INJECTION_PATTERN_DETECTED",
+                        score=result.confidence,
+                        evidence={"detection_method": "embedding_knn", "nearest_reference_example": nearest_text},
+                        rationale=f"semantically similar to known injection examples (k-NN confidence={result.confidence:.2f})",
+                        recommended_signal="FLAG_FOR_REVIEW",
+                    )
+
         return EvaluationResult(
             evaluator=self.name,
             status=EvaluationStatus.IMPLEMENTED,
             label="NO_PATTERN_DETECTED",
-            rationale="no known prompt-injection phrasing found -- a narrow keyword check, not a general adversarial-input classifier",
+            evidence={"detection_method": "keyword_and_knn" if self._use_semantic_fallback else "keyword"},
+            rationale="no known prompt-injection phrasing or semantically similar example found",
             recommended_signal="OK",
         )
 
