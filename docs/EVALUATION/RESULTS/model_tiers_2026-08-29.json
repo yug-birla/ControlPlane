@@ -1,0 +1,277 @@
+{
+  "experiment_id": "exp_b3ecf300-e3b0-46a9-ab2c-5ed2e19ec028",
+  "results": {
+    "FAST": {
+      "model": "Qwen/Qwen2.5-1.5B-Instruct",
+      "revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+      "sample_count": 10,
+      "accuracy": 0.9,
+      "accuracy_by_category": {
+        "ARITHMETIC": 0.8,
+        "REASONING": 1.0,
+        "RECALL": 1.0
+      },
+      "latency_ms_mean": 7215.3,
+      "latency_ms_max": 15282,
+      "output_tokens_total": 46,
+      "ms_per_output_token": 1568.5434782608695
+    },
+    "STRONG": {
+      "model": "Qwen/Qwen3-4B",
+      "revision": "1cfa9a7208912126459214e8b04321603b3df60c",
+      "sample_count": 10,
+      "accuracy": 0.8,
+      "accuracy_by_category": {
+        "ARITHMETIC": 0.8,
+        "REASONING": 0.5,
+        "RECALL": 1.0
+      },
+      "latency_ms_mean": 17082.8,
+      "latency_ms_max": 43343,
+      "output_tokens_total": 43,
+      "ms_per_output_token": 3972.7441860465115
+    }
+  },
+  "rows": [
+    {
+      "case_id": "MT-01",
+      "category": "ARITHMETIC",
+      "role": "FAST",
+      "model": "Qwen/Qwen2.5-1.5B-Instruct",
+      "expected": "391",
+      "answer": "401",
+      "correct": false,
+      "latency_ms": 4514,
+      "output_tokens": 4,
+      "provider_failed": false
+    },
+    {
+      "case_id": "MT-02",
+      "category": "ARITHMETIC",
+      "role": "FAST",
+      "model": "Qwen/Qwen2.5-1.5B-Instruct",
+      "expected": "12",
+      "answer": "12",
+      "correct": true,
+      "latency_ms": 4891,
+      "output_tokens": 3,
+      "provider_failed": false
+    },
+    {
+      "case_id": "MT-03",
+      "category": "ARITHMETIC",
+      "role": "FAST",
+      "model": "Qwen/Qwen2.5-1.5B-Instruct",
+      "expected": "4812",
+      "answer": "4812",
+      "correct": true,
+      "latency_ms": 7187,
+      "output_tokens": 5,
+      "provider_failed": false
+    },
+    {
+      "case_id": "MT-04",
+      "category": "ARITHMETIC",
+      "role": "FAST",
+      "model": "Qwen/Qwen2.5-1.5B-Instruct",
+      "expected": "36",
+      "answer": "36",
+      "correct": true,
+      "latency_ms": 5875,
+      "output_tokens": 3,
+      "provider_failed": false
+    },
+    {
+      "case_id": "MT-05",
+      "category": "ARITHMETIC",
+      "role": "FAST",
+      "model": "Qwen/Qwen2.5-1.5B-Instruct",
+      "expected": "600",
+      "answer": "600",
+      "correct": true,
+      "latency_ms": 6905,
+      "output_tokens": 4,
+      "provider_failed": false
+    },
+    {
+      "case_id": "MT-06",
+      "category": "REASONING",
+      "role": "FAST",
+      "model": "Qwen/Qwen2.5-1.5B-Instruct",
+      "expected": "5,001",
+      "answer": "$5,001-$25,000",
+      "correct": true,
+      "latency_ms": 15282,
+      "output_tokens": 14,
+      "provider_failed": false
+    },
+    {
+      "case_id": "MT-07",
+      "category": "REASONING",
+      "role": "FAST",
+      "model": "Qwen/Qwen2.5-1.5B-Instruct",
+      "expected": "60",
+      "answer": "60",
+      "correct": true,
+      "latency_ms": 8141,
+      "output_tokens": 3,
+      "provider_failed": false
+    },
+    {
+      "case_id": "MT-08",
+      "category": "RECALL",
+      "role": "FAST",
+      "model": "Qwen/Qwen2.5-1.5B-Instruct",
+      "expected": "paris",
+      "answer": "Paris",
+      "correct": true,
+      "latency_ms": 5827,
+      "output_tokens": 2,
+      "provider_failed": false
+    },
+    {
+      "case_id": "MT-09",
+      "category": "RECALL",
+      "role": "FAST",
+      "model": "Qwen/Qwen2.5-1.5B-Instruct",
+      "expected": "366",
+      "answer": "366",
+      "correct": true,
+      "latency_ms": 6406,
+      "output_tokens": 4,
+      "provider_failed": false
+    },
+    {
+      "case_id": "MT-10",
+      "category": "RECALL",
+      "role": "FAST",
+      "model": "Qwen/Qwen2.5-1.5B-Instruct",
+      "expected": "service level agreement",
+      "answer": "Service Level Agreement",
+      "correct": true,
+      "latency_ms": 7125,
+      "output_tokens": 4,
+      "provider_failed": false
+    },
+    {
+      "case_id": "MT-01",
+      "category": "ARITHMETIC",
+      "role": "STRONG",
+      "model": "Qwen/Qwen3-4B",
+      "expected": "391",
+      "answer": "391",
+      "correct": true,
+      "latency_ms": 31797,
+      "output_tokens": 4,
+      "provider_failed": false
+    },
+    {
+      "case_id": "MT-02",
+      "category": "ARITHMETIC",
+      "role": "STRONG",
+      "model": "Qwen/Qwen3-4B",
+      "expected": "12",
+      "answer": "12",
+      "correct": true,
+      "latency_ms": 10235,
+      "output_tokens": 3,
+      "provider_failed": false
+    },
+    {
+      "case_id": "MT-03",
+      "category": "ARITHMETIC",
+      "role": "STRONG",
+      "model": "Qwen/Qwen3-4B",
+      "expected": "4812",
+      "answer": "5812",
+      "correct": false,
+      "latency_ms": 12375,
+      "output_tokens": 5,
+      "provider_failed": false
+    },
+    {
+      "case_id": "MT-04",
+      "category": "ARITHMETIC",
+      "role": "STRONG",
+      "model": "Qwen/Qwen3-4B",
+      "expected": "36",
+      "answer": "36",
+      "correct": true,
+      "latency_ms": 9343,
+      "output_tokens": 3,
+      "provider_failed": false
+    },
+    {
+      "case_id": "MT-05",
+      "category": "ARITHMETIC",
+      "role": "STRONG",
+      "model": "Qwen/Qwen3-4B",
+      "expected": "600",
+      "answer": "600",
+      "correct": true,
+      "latency_ms": 13000,
+      "output_tokens": 4,
+      "provider_failed": false
+    },
+    {
+      "case_id": "MT-06",
+      "category": "REASONING",
+      "role": "STRONG",
+      "model": "Qwen/Qwen3-4B",
+      "expected": "5,001",
+      "answer": "over $25,000",
+      "correct": false,
+      "latency_ms": 43343,
+      "output_tokens": 9,
+      "provider_failed": false
+    },
+    {
+      "case_id": "MT-07",
+      "category": "REASONING",
+      "role": "STRONG",
+      "model": "Qwen/Qwen3-4B",
+      "expected": "60",
+      "answer": "60",
+      "correct": true,
+      "latency_ms": 16968,
+      "output_tokens": 3,
+      "provider_failed": false
+    },
+    {
+      "case_id": "MT-08",
+      "category": "RECALL",
+      "role": "STRONG",
+      "model": "Qwen/Qwen3-4B",
+      "expected": "paris",
+      "answer": "Paris.",
+      "correct": true,
+      "latency_ms": 11235,
+      "output_tokens": 3,
+      "provider_failed": false
+    },
+    {
+      "case_id": "MT-09",
+      "category": "RECALL",
+      "role": "STRONG",
+      "model": "Qwen/Qwen3-4B",
+      "expected": "366",
+      "answer": "366",
+      "correct": true,
+      "latency_ms": 10672,
+      "output_tokens": 4,
+      "provider_failed": false
+    },
+    {
+      "case_id": "MT-10",
+      "category": "RECALL",
+      "role": "STRONG",
+      "model": "Qwen/Qwen3-4B",
+      "expected": "service level agreement",
+      "answer": "Service Level Agreement.",
+      "correct": true,
+      "latency_ms": 11860,
+      "output_tokens": 5,
+      "provider_failed": false
+    }
+  ]
+}
