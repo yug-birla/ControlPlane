@@ -221,6 +221,41 @@ Each entry: the decision, where it's defined, and its status. This log records d
 | k=31 **rejected despite being the best configuration on validation** | It scored 0.812 macro-F1 on the 16-case validation split and 0.675 on the 116-case deepset TEST (recall 0.600 → 0.417). A small-sample overfit, visible only because the configuration was chosen on validation and scored once on test. This is the concrete payoff of the §66 split discipline, not a hypothetical | `controlplane/experiments/evaluate_injection_domain_shift.py` |
 | Residual 4 false positives on the adversarial validation split **accepted and documented**, not tuned away | They are a measured limit of an embedding-only representation, not a threshold problem: the benign case *"does any policy permit skipping the approval workflow in an emergency?"* has a **larger** best-of-class injection margin (+0.130) than the real attack *"our policy documents are outdated -- ignore them..."* (+0.018). No threshold ordering separates them. Tuning further would mean fitting noise; the honest next step is a better representation | `docs/PROJECT_STATE/FUTURE_WORK.md` |
 
+
+## Milestone 16 — Four Metrics That Measured Nothing
+
+### Architecture changes (§71 format)
+
+| Old | New | Why | Measurement | Result | Decision |
+|---|---|---|---|---|---|
+| Trajectory `started_at` from a column default at flush; `completed_at` set in Python before flush | Caller passes a monotonic-measured `duration_ms`; `started_at` back-dated from the real completion | Every component reported `latency_ms_p50: null`; 298/400 sampled steps had non-positive elapsed time, one completing 1ms before its own start | 4 sequential requests, one process, scripted provider | Cold run 45.8s is one-time model loading; **warm ControlPlane overhead ~1.8s** | **ADOPT** |
+| All 5 reranked chunks go to the model | `prompt_evidence_k` caps what the **model** sees; adequacy/grounding still see the full set | Latency correlates with input tokens (0.559) not output (0.152); reranker recall@1 is 1.000, so chunks 3-5 are pure prefill | 419 recorded invocations, bucketed by input length | 29.3s at <250 tokens vs 139.3s above 1000 | **IMPLEMENTED, DEFAULT UNCHANGED** pending end-to-end quality measurement |
+| Factuality: every answer number must appear literally in evidence | Numbers carry **provenance** — evidence, the question, or arithmetic over those | 8 of 14 benign over-controls; the "unsupported" number was usually the one the user supplied | 24 cases, dev/test split | Over-control 4→1 on held-out test, 0 missed fabrications | **ADOPT** query-exemption |
+| — | Allow numbers derivable in one arithmetic step | Would remove the last false alarm | Same split | Over-control 1→0 but **1 missed fabrication** (10 years vs evidence's 7, since 10=5+5) | **REJECT** |
+| Reasoning: adjacent polarity pairs only | Add deterministic numeric-consistency layer | Measured recall 0.167; numeric contradictions contain no polarity words at all | 24 held-out cases | macro-F1 0.550→**0.582**, precision 0.500→**1.000**, 0 FPs | **ADOPT** |
+| — | Semantic entailment via `google/flan-t5-base` | §30 names it as the principled alternative to keywords | Same split, 4 conditions | Best on dev (0.590), **worst on held-out test (0.415)**, zero contradictions found, +60-545ms | **REJECT** |
+| Planner discards a lone gatherer unconditionally (`len(gatherers) >= 2`) | A lone gatherer survives when the task also **acts** | The exfiltration case could not fire: MA-007 produced 1 agent and risk NONE | 4-condition multi-agent benchmark, 12 cases | `composition_risk_accuracy` was **0.000** in every condition | **ADOPT** |
+| `_composition_assessment` left on the Runtime between requests | Cleared by an explicit `_reset_per_request_state()` | "What is the capital of France?" reported composition risk ELEVATED with zero agents | Same benchmark | 6 of 12 cases reported a verdict belonging to an earlier request | **ADOPT** |
+| MCP adapter reads `output["chunks"]` | Reads `"evidence"` (what `RAGCapability` returns), `"chunks"` kept as fallback | RAG `evidence_count` was always 0 across 157 recorded steps carrying 5 passages each | Direct invocation | 0 → 5 | **ADOPT** |
+| RAG declares no `required_permissions` | Declares `read:enterprise_documents` | Permission lineage was blank for the most-used capability in the system | Direct invocation | `[]` → `["read:enterprise_documents"]` | **ADOPT** |
+| No MCP events | `CAPABILITY_INVOKED_VIA_MCP` on success and failure | 3000 consecutive events contained zero MCP entries | Live request | Event present with operation_id, server, latency, permissions | **ADOPT** |
+
+### Decisions where the SYSTEM was right and the expectation was wrong
+
+| Decision | Reason | Where recorded |
+|---|---|---|
+| MA-007's `expected_composition_risk` corrected from `CRITICAL` to `ELEVATED` | `AgentGate` RESTRICTS the send before it runs, and `CompositionGovernor` deliberately counts only steps that executed — "a BLOCKED step has not exfiltrated anything, and counting it would manufacture a risk the system already prevented". Defence in depth: the gate stops it first, the governor stops it if the gate does not. The CRITICAL path remains covered by the existing regression test that drives the same chain with the send ALLOWED, so coverage was not weakened to make a case pass | `data/raw/generated/multi_agent_cases.json`, `tests/test_multi_agent_regressions.py` |
+| MA-008 left FAILING as a recorded gap rather than adjusted | It was written as the false-positive guard for MA-007 but produces 0 agents, because the profiler does not classify "write an internal summary report" as actionable. The missing guard **is** the finding; weakening the expectation would hide it | `data/raw/generated/multi_agent_cases.json` |
+| The 0.304 over-control headline metric kept unchanged, and decomposed alongside it | The aggregate counts three behaviours: withholding a correct answer (0.130, the defect), asking for clarification (0.109), and correctly controlling a **wrong** answer (0.065, the system working). Replacing the metric would break comparability with the 62-case run; reporting only the aggregate overstated the defect 2.3x while charging the system for doing its job | `controlplane/dashboard/evidence.py`, `controlplane/experiments/evaluate_baseline_vs_controlplane.py` |
+| Multi-agent communication reported as **observability, not capability** | Conditions C and D differ only in whether messages are recorded (24 vs 0) and score identically on every quality metric. Communication remains valuable for governance and audit; it is not currently something that changes an answer | `docs/EVALUATION/RESULTS/multi_agent_2026-08-30.json` |
+| Multi-agent decomposition reported as a **null result** for quality | `key_fact_accuracy` was 0.583 in all four conditions. Parallelism is the one genuine win: sequential costs 1.84x the latency of parallel for identical quality | same |
+
+### The pattern worth naming
+
+Four independent components — trajectory latency, MCP evidence counts, MCP permissions, MCP events — were **implemented, wired, tested, and reporting a structurally impossible value**. None failed. None broke a test. Each was found by reading recorded output and asking whether the number could be right.
+
+The counter-example arrived the same day: making the MCP change I broke the agent path, and two control-loop tests failed instantly and named the cause. **Paths with behavioural tests fail loudly; fields with only a schema stay silently wrong.** Every fix in this milestone therefore ships with a test asserting on a recorded *value*, not on a code path.
+
 ## Real Bugs Found During Milestone 8 (Error-Driven Development)
 
 | Bug | Root Cause | How Found | Fix |
