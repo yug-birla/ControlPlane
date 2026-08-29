@@ -38,11 +38,53 @@ def test_two_independent_data_sources_justify_two_agents_in_parallel():
 
 
 def test_an_action_request_justifies_an_actor_agent():
+    """EXPECTATION CHANGED 2026-08-30, on measured evidence.
+
+    This asserted 1 agent: one data source plus an action produced only
+    the actor, with the read left on the plain capability path. The
+    multi-agent benchmark showed what that costs. MA-007 ("pull the
+    customer contact records and email them to our external marketing
+    agency") has exactly this shape, and because the read carried no
+    agent identity, CompositionGovernor saw a single anonymous send step
+    and returned NONE where CRITICAL was expected -- composition risk
+    accuracy was 0.000 across all four conditions.
+
+    When a task both reads and acts, the read is half of the chain being
+    governed. It now carries an identity. The rule for a PURE read is
+    unchanged and is pinned by
+    test_a_single_source_read_does_not_justify_an_agent below."""
     plan = AgentPlanner().plan(data_requirements={"RAG_CORPUS"}, is_agentic=True)
+    assert plan.agent_count == 2
+    assert [a.role for a in plan.agents] == [AgentRole.RETRIEVER, AgentRole.NOTIFIER]
+
+
+def test_an_action_with_no_data_requirement_is_still_a_single_agent():
+    """The actor alone, when there is nothing to read. Carries the two
+    assertions that belonged to this shape before the expectation above
+    changed -- agents[0] is the actor only when no gatherer exists."""
+    plan = AgentPlanner().plan(data_requirements=set(), is_agentic=True)
     assert plan.agent_count == 1
     assert plan.agents[0].role is AgentRole.NOTIFIER
     # Established id preserved -- see the planner's comment.
     assert plan.agents[0].agent_id == "agent_action"
+
+
+def test_the_actor_keeps_its_established_id_even_beside_a_gatherer():
+    """Lineage guard. The dashboard's Permission Lineage panel and the
+    trajectory step names key on route:agent_action."""
+    plan = AgentPlanner().plan(data_requirements={"SQL_DB"}, is_agentic=True)
+    actor = next(a for a in plan.agents if a.role is AgentRole.NOTIFIER)
+    assert actor.agent_id == "agent_action"
+    assert actor.parent_agent == "agent_analyst"
+
+
+def test_the_plan_rationale_matches_the_plan_it_describes():
+    """The reason string reported '0 independent gatherer(s)' while
+    returning 2 agents. A governance rationale that contradicts its own
+    plan is worse than none."""
+    plan = AgentPlanner().plan(data_requirements={"SQL_DB"}, is_agentic=True)
+    assert "1 independent gatherer(s)" in plan.reason
+    assert plan.reason.startswith("2 agent(s)")
 
 
 def test_data_plus_action_produces_gatherers_and_a_dependent_actor():

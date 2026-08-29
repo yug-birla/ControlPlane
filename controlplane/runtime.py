@@ -227,6 +227,18 @@ class Runtime:
         # not suppressed.
         self._shadow_mode = shadow_mode
 
+    def _reset_per_request_state(self) -> None:
+        """Clear everything on this Runtime that describes ONE request.
+
+        A Runtime instance serves many requests. Any field derived from a
+        single request must either live in ``ExecutionState`` or be
+        cleared here -- otherwise a later request silently inherits it.
+        Extracted as a named method rather than an inline assignment so
+        the property can be tested directly, and so the next per-request
+        field added has an obvious place to go.
+        """
+        self._composition_assessment = None
+
     def _publish(
         self, event_type: EventType, ctx: RequestContext, *, source: str, payload: dict, severity: Severity | None = None
     ) -> None:
@@ -246,6 +258,21 @@ class Runtime:
 
         query = state.query
         settings = self._settings_provider()
+
+        # PER-REQUEST STATE MUST NOT SURVIVE THE REQUEST (Milestone 16).
+        # ``_composition_assessment`` is written only when a request has
+        # AGENT nodes, and ``_govern_agent_composition`` returns early
+        # when it has none -- so a request with no agents inherited the
+        # PREVIOUS request's governance verdict. The multi-agent
+        # benchmark surfaced it unmistakably: "What is the capital of
+        # France?", which creates zero agents, reported composition risk
+        # ELEVATED. Six of twelve cases in that run were reporting a
+        # verdict belonging to some earlier request.
+        #
+        # A Runtime serves many requests, so anything derived from one
+        # request either belongs in ExecutionState or must be cleared
+        # here.
+        self._reset_per_request_state()
 
         try:
             self._trajectory_store.create_request(
