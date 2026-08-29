@@ -646,7 +646,7 @@ class Runtime:
             # COMPLETED here because this dict bypassed it entirely.
             "SQL": lambda node: self._invoke_via_mcp("SQL", query),
             "RAG": lambda node: self._invoke_via_mcp("RAG", query),
-            "AGENT": lambda node: self._invoke_via_mcp("AGENT", query),
+            "AGENT": lambda node: self._execute_agent_node(node, query),
         }
         executor = GraphExecutor(handlers=handlers)
         graph_result = executor.run(capability_route.graph, mode="parallel")
@@ -680,6 +680,45 @@ class Runtime:
         if "generation" in graph_result.failed:
             raise captured["error"]
         return captured["result"]
+
+    def _execute_agent_node(self, node, query: str) -> dict:
+        """Run one AGENT node.
+
+        Two kinds of agent node exist and they do different work:
+
+        - A **gatherer** declares ``serves_capability`` and is a governed
+          wrapper around a real capability (RAG/SQL). It fetches evidence
+          under an agent identity, through the MCP fabric, so the call is
+          normalized and correlated like any other capability invocation.
+          It is NOT a second implementation of retrieval.
+        - An **actor** proposes a tool call, which ``AgentGate`` gates
+          before anything executes.
+
+        Both carry their identity into the result so
+        ``CompositionGovernor`` can reason about the chain rather than
+        about N anonymous agents.
+        """
+        input_ref = node.input_ref or {}
+        agent_id = input_ref.get("agent_id", node.node_id)
+        serves = input_ref.get("serves_capability")
+
+        if serves:
+            result = self._invoke_via_mcp(serves, query)
+            return {
+                **result,
+                "agent_id": agent_id,
+                "agent_role": input_ref.get("role"),
+                "serves_capability": serves,
+                # A gatherer proposes no tool: its governance question is
+                # "what data did it touch", answered by composition
+                # governance, not by a per-step tool gate.
+                "proposed_tool": f"{serves.lower()}_read",
+                "governance_action": "ALLOW",
+                "execution_status": "EXECUTED" if result.get("status") != "FAILED" else "FAILED",
+            }
+
+        return {**self._agent_capability.execute(query), "agent_id": agent_id,
+                "agent_role": input_ref.get("role", "NOTIFIER")}
 
     def _decide_compute(
         self,

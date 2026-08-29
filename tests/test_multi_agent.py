@@ -142,3 +142,28 @@ def test_replan_request_is_a_request_not_a_mutation():
     )
     assert not hasattr(message, "new_plan")
     assert not hasattr(message, "graph")
+
+
+def test_a_gatherer_agents_capability_determines_its_data_sensitivity_regression():
+    """Regression: a gatherer agent reading the enterprise database emitted
+    proposed_tool="sql_read", which matched nothing in the tool tables, so
+    the chain scored PUBLIC and the gather-then-notify exfiltration path
+    would NOT have fired.
+
+    The composition governor was working correctly; it was being fed a tool
+    name it had never heard of. Found by tracing a full multi-agent run
+    end-to-end, not by a unit test of the governor."""
+    from controlplane.governance.multi_agent import steps_from_agent_results
+
+    steps = steps_from_agent_results([
+        ("agent_analyst", {"proposed_tool": "sql_read", "serves_capability": "SQL",
+                            "governance_action": "ALLOW", "execution_status": "EXECUTED"}),
+        ("agent_action", {"proposed_tool": "send_notification",
+                           "governance_action": "ALLOW", "execution_status": "EXECUTED"}),
+    ])
+    assert steps[0].data_sensitivity is DataSensitivity.CONFIDENTIAL
+    assert steps[1].destination is DestinationClass.EXTERNAL
+
+    assessment = CompositionGovernor().evaluate(steps)
+    assert assessment.risk is CompositionRisk.CRITICAL
+    assert assessment.sensitive_data_reached_external

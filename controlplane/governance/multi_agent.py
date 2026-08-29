@@ -166,6 +166,7 @@ _SENSITIVE = {DataSensitivity.CONFIDENTIAL, DataSensitivity.RESTRICTED}
 # getting "does this tool reach outside the organization?" wrong is the
 # difference between catching an exfiltration path and missing it.
 _TOOL_DESTINATION = {
+    "read_documents": DestinationClass.NONE,
     "send_notification": DestinationClass.EXTERNAL,
     "write_report": DestinationClass.INTERNAL,
     "sql_read_query": DestinationClass.NONE,
@@ -199,6 +200,20 @@ def steps_from_agent_results(
     steps: list[AgentStep] = []
     for index, (node_id, result) in enumerate(agent_results):
         tool = result.get("proposed_tool", "unknown")
+
+        # A GATHERER agent declares the capability it serves. Classify by
+        # that, not by its synthesized tool name.
+        #
+        # This was a real gap, caught by tracing a full multi-agent run:
+        # a gatherer reading the enterprise database emitted
+        # proposed_tool="sql_read", which matched nothing in the tool
+        # tables below, so the chain was scored PUBLIC and the
+        # gather-then-notify exfiltration path would NOT have fired. The
+        # composition governor was working; it was being fed a tool name
+        # it had never heard of.
+        serves = result.get("serves_capability")
+        if serves:
+            tool = {"SQL": "sql_read_query", "RAG": "read_documents"}.get(serves, tool)
         identity = AgentIdentity(
             agent_id=node_id,
             role=_TOOL_ROLE.get(tool, AgentRole.ANALYST),

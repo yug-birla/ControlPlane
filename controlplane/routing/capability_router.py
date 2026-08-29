@@ -45,6 +45,15 @@ _GENERATION_CAPABILITIES = {
 }
 
 
+# Which real capability each gatherer agent role executes. A gatherer
+# agent is a governed wrapper around a capability, not a second
+# implementation of it.
+_ROLE_CAPABILITY = {
+    AgentRole.RETRIEVER: CapabilityHint.RAG.value,
+    AgentRole.ANALYST: CapabilityHint.SQL.value,
+}
+
+
 @dataclass
 class CapabilityRoute:
     selected_capabilities: list[str]
@@ -91,13 +100,55 @@ class CapabilityRouter:
         data_caps = sorted(selected & _DATA_CAPABILITIES)
         agent_selected = CapabilityHint.AGENT.value in selected
 
+        # MULTI-AGENT PLANNING (Milestone 12). The planner decides how many
+        # agents the task actually justifies, from the query's own measured
+        # data requirements -- rather than this router always emitting
+        # exactly one agent node.
+        #
+        # Consulted only for AGENTIC queries. A read-only multi-source
+        # query needs no agents: agents exist to be *governed*, and adding
+        # identities and permission sets to a pure read buys nothing --
+        # which is the planner's own "no agent overhead" rule.
+        agent_plan = None
+        if agent_selected:
+            agent_plan = self._agent_planner.plan(
+                data_requirements=set(fingerprint.data_requirement or []),
+                is_agentic=True,
+                restricted_capabilities=set(policy.restricted_capabilities),
+            )
+        gatherers = (
+            [a for a in agent_plan.agents if a.role is not AgentRole.NOTIFIER]
+            if agent_plan else []
+        )
+
         graph = ExecutionGraph()
-        if data_caps:
+        if gatherers:
+            # Gatherer agents REPLACE the plain data nodes rather than
+            # sitting alongside them. Adding both would fetch the same
+            # evidence twice -- wasted work, and two provenance trails for
+            # one piece of evidence. Each agent node carries the capability
+            # it serves, so the executor runs the real RAG/SQL capability
+            # under an agent identity that AgentGate and CompositionGovernor
+            # can reason about.
+            for agent in gatherers:
+                graph.add_node(ExecutionNode(
+                    node_id=agent.agent_id, capability=CapabilityHint.AGENT.value,
+                    input_ref={
+                        "agent_id": agent.agent_id, "role": agent.role.value,
+                        "serves_capability": _ROLE_CAPABILITY[agent.role],
+                    },
+                ))
+            evidence_nodes = tuple(a.agent_id for a in gatherers)
+        elif data_caps:
             for cap in data_caps:
                 graph.add_node(ExecutionNode(node_id=f"data_{cap.lower()}", capability=cap))
+            evidence_nodes = tuple(f"data_{c.lower()}" for c in data_caps)
+        else:
+            evidence_nodes = ()
+
+        if evidence_nodes:
             graph.add_node(ExecutionNode(
-                node_id="merge", capability="merge",
-                depends_on=tuple(f"data_{c.lower()}" for c in data_caps),
+                node_id="merge", capability="merge", depends_on=evidence_nodes,
                 # Answer from whatever evidence arrived. One failing
                 # source must not block generation when another
                 # returned good evidence (graceful degradation).
@@ -107,37 +158,17 @@ class CapabilityRouter:
         else:
             graph.add_node(ExecutionNode(node_id="generation", capability="generation"))
 
-        # MULTI-AGENT PLANNING (Milestone 12). The planner decides how many
-        # agents the task actually justifies, from the query's own measured
-        # data requirements -- rather than this router always emitting
-        # exactly one agent node.
-        #
-        # It is consulted only when the query is agentic or genuinely needs
-        # several independent data sources; for everything else it returns
-        # an empty plan and the single-node path below is used unchanged.
-        # That is the planner's own rule ("a plain capability path does this
-        # work without agent overhead"), not a special case here.
-        agent_plan = None
-        if agent_selected or len(data_caps) > 1:
-            agent_plan = self._agent_planner.plan(
-                data_requirements=set(fingerprint.data_requirement or []),
-                is_agentic=agent_selected,
-                restricted_capabilities=set(policy.restricted_capabilities),
-            )
-
-        if agent_plan is not None and agent_plan.agent_count > 0:
-            self._agent_planner.apply(graph, agent_plan)
+        if agent_selected:
             # The actor must not act before the answer it may act on
-            # exists. Found by ROLE rather than by a hardcoded node id, so
-            # renaming a node cannot silently drop this dependency.
-            actor = next((a for a in agent_plan.agents if a.role is AgentRole.NOTIFIER), None)
-            if actor is not None:
-                node = graph.get(actor.agent_id)
-                node.depends_on = tuple(sorted(set(node.depends_on) | {"generation"}))
-        elif agent_selected:
+            # exists. Its id is the established "agent_action".
+            actor = next((a for a in (agent_plan.agents if agent_plan else [])
+                          if a.role is AgentRole.NOTIFIER), None)
+            actor_id = actor.agent_id if actor else "agent_action"
+            depends = tuple(sorted({"generation", *(a.agent_id for a in gatherers)}))
             graph.add_node(ExecutionNode(
-                node_id="agent_action", capability=CapabilityHint.AGENT.value,
-                depends_on=("generation",),
+                node_id=actor_id, capability=CapabilityHint.AGENT.value,
+                depends_on=depends, requires_all_dependencies=False,
+                input_ref={"agent_id": actor_id, "role": "NOTIFIER"},
             ))
         graph.validate()
 
