@@ -80,6 +80,13 @@ class EventType(str, Enum):
     ``VerificationEngine`` returns NOT_VERIFIED or REJECTED."""
     AGENT_ACTION_GOVERNED = "AGENT_ACTION_GOVERNED"
 
+    AGENT_MESSAGE_SENT = "AGENT_MESSAGE_SENT"
+    """One structured agent-to-agent communication, mediated by
+    ControlPlane. Agents never call each other directly, so every
+    handoff, evidence transfer, uncertainty signal, and replan request
+    is on the event stream and correlated to the trajectory. There is no
+    hidden agent channel."""
+
     # Shadow Mode (Milestone 9): what ControlPlane WOULD have done,
     # recorded without enforcement. See controlplane/governance/shadow_mode.py.
     SHADOW_DECISION_RECORDED = "SHADOW_DECISION_RECORDED"
@@ -125,6 +132,7 @@ _DEFAULT_SEVERITY = {
     EventType.VERIFICATION_FAILED: Severity.WARNING,
     EventType.SHADOW_DECISION_RECORDED: Severity.NOTICE,  # never an enforcement signal, by definition
     EventType.AGENT_ACTION_GOVERNED: Severity.NOTICE,  # overridden per-call to HIGH/CRITICAL for BLOCK/HUMAN_REVIEW -- see controlplane/runtime.py
+    EventType.AGENT_MESSAGE_SENT: Severity.INFO,  # routine handoffs; raised to NOTICE for a REPLAN_REQUEST
     EventType.FINAL_RESPONSE_GENERATED: Severity.INFO,
 }
 

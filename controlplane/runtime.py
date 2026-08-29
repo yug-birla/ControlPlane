@@ -57,7 +57,11 @@ from controlplane.intervention.engine import InterventionEngine, InterventionSpe
 from controlplane.events.store import EventStore
 from controlplane.events.transport import EventTransport, InProcessEventTransport
 from controlplane.execution.executor import GraphExecutor
+from controlplane.governance.agent_bus import AgentBus, evidence_handoff
 from controlplane.governance.multi_agent import (
+    AgentMessage,
+    AgentMessageType,
+    AgentRole,
     CompositionGovernor,
     CompositionRisk,
     steps_from_agent_results,
@@ -159,6 +163,9 @@ class Runtime:
         self._adaptive_compute = AdaptiveComputePolicy()
         self._model_profiles_cache: dict | None = None
         self._composition_governor = CompositionGovernor()
+        # Agent-to-agent communication (Milestone 12): every message is
+        # recorded, so there is no hidden agent channel.
+        self._agent_bus = AgentBus()
         self._composition_assessment = None
         # MCP capability fabric (Milestone 11): uniform discovery and
         # invocation, normalized results, classified failures. Wired to
@@ -817,6 +824,45 @@ class Runtime:
         steps = steps_from_agent_results(agent_results)
         assessment = self._composition_governor.evaluate(steps)
         self._composition_assessment = assessment
+
+        # AGENT COMMUNICATION (Milestone 12). Every handoff between agents
+        # is recorded on the event stream, so there is no path by which two
+        # agents exchange anything unobserved. A gatherer that produced
+        # evidence hands it to the actor; a gatherer that produced none
+        # raises a REPLAN_REQUEST, which ControlPlane triages rather than
+        # obeys.
+        actor_step = next((s for s in steps if s.agent.role is AgentRole.NOTIFIER), None)
+        for step in steps:
+            if step.agent.role is AgentRole.NOTIFIER:
+                continue
+            result = dict(agent_results)[step.agent.agent_id]
+            evidence_count = len(result.get("evidence") or result.get("chunks") or result.get("rows") or [])
+
+            if evidence_count and actor_step is not None:
+                message = evidence_handoff(
+                    from_agent=step.agent.agent_id, to_agent=actor_step.agent.agent_id,
+                    evidence_count=evidence_count, sensitivity=step.data_sensitivity,
+                )
+                self._agent_bus.send(message)
+                self._publish(
+                    EventType.AGENT_MESSAGE_SENT, ctx, source="agent_bus",
+                    payload=message.to_dict(),
+                )
+            elif not evidence_count:
+                request = AgentMessage(
+                    message_type=AgentMessageType.REPLAN_REQUEST,
+                    from_agent=step.agent.agent_id, to_agent=None,
+                    payload_summary=f"{step.tool} returned no usable evidence",
+                )
+                self._agent_bus.send(request)
+                triage = self._agent_bus.triage_replan_request(
+                    request, agent_produced_evidence=False,
+                )
+                self._publish(
+                    EventType.AGENT_MESSAGE_SENT, ctx, source="agent_bus",
+                    severity=Severity.NOTICE,
+                    payload={**request.to_dict(), "triage": triage.to_dict()},
+                )
 
         if assessment.risk is not CompositionRisk.NONE:
             self._publish(
