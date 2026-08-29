@@ -1,0 +1,845 @@
+{
+  "experiment_id": "exp_ebc637b5-5eb2-4fcb-a6ce-13783e6c22b8",
+  "results": {
+    "A_current": {
+      "dev": {
+        "n": 24,
+        "accuracy": 0.5416666666666666,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0,
+        "contradiction_f1": 0.0,
+        "consistent_f1": 0.7027027027027027,
+        "macro_f1": 0.35135135135135137,
+        "false_positives": 0,
+        "false_negatives": 11,
+        "mean_latency_ms": 29.25
+      },
+      "test": {
+        "n": 24,
+        "accuracy": 0.75,
+        "contradiction_precision": 0.5,
+        "contradiction_recall": 0.16666666666666666,
+        "contradiction_f1": 0.25,
+        "consistent_f1": 0.85,
+        "macro_f1": 0.55,
+        "false_positives": 1,
+        "false_negatives": 5,
+        "mean_latency_ms": 0.0
+      }
+    },
+    "B_numeric": {
+      "dev": {
+        "n": 24,
+        "accuracy": 0.5416666666666666,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0,
+        "contradiction_f1": 0.0,
+        "consistent_f1": 0.7027027027027027,
+        "macro_f1": 0.35135135135135137,
+        "false_positives": 0,
+        "false_negatives": 11,
+        "mean_latency_ms": 0.625
+      },
+      "test": {
+        "n": 24,
+        "accuracy": 0.7916666666666666,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 0.16666666666666666,
+        "contradiction_f1": 0.2857142857142857,
+        "consistent_f1": 0.878048780487805,
+        "macro_f1": 0.5818815331010454,
+        "false_positives": 0,
+        "false_negatives": 5,
+        "mean_latency_ms": 0.0
+      }
+    }
+  },
+  "detail": {
+    "A_current": {
+      "dev": [
+        {
+          "case_id": "RD-001",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 702
+        },
+        {
+          "case_id": "RD-002",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-003",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-004",
+          "category": "numeric_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-005",
+          "category": "numeric_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-006",
+          "category": "numeric_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-007",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-008",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-009",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-010",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-011",
+          "category": "numeric_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-012",
+          "category": "numeric_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-013",
+          "category": "comparison_wrong",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-014",
+          "category": "comparison_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-015",
+          "category": "scope_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-016",
+          "category": "scope_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-017",
+          "category": "scope_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-018",
+          "category": "arithmetic_wrong",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-019",
+          "category": "arithmetic_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-020",
+          "category": "threshold_boundary",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-021",
+          "category": "easy_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-022",
+          "category": "direct_self_contradiction_same_subject",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-023",
+          "category": "multi_step_constraint",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-024",
+          "category": "misleading_but_plausible",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        }
+      ],
+      "test": [
+        {
+          "case_id": "RE-001",
+          "category": "easy_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-002",
+          "category": "direct_self_contradiction",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "SELF_CONTRADICTORY",
+          "why": [
+            "'is mandatory'+'is optional'"
+          ],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-003",
+          "category": "direct_self_contradiction_same_subject",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "SELF_CONTRADICTORY",
+          "why": [
+            "'is allowed'+'is not allowed'"
+          ],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-004",
+          "category": "arithmetic_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-005",
+          "category": "arithmetic_incorrect",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-006",
+          "category": "comparison_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-007",
+          "category": "comparison_incorrect",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-008",
+          "category": "constraint_satisfaction_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-009",
+          "category": "misleading_but_plausible",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-010",
+          "category": "multi_step_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-011",
+          "category": "direct_self_contradiction_same_subject",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-012",
+          "category": "easy_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-013",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-014",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-015",
+          "category": "numeric_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-016",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-017",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-018",
+          "category": "arithmetic",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-019",
+          "category": "arithmetic_wrong",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-020",
+          "category": "threshold_boundary",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-021",
+          "category": "threshold_boundary",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-022",
+          "category": "multi_step_constraint",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-023",
+          "category": "comparison",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-024",
+          "category": "comparison_wrong",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        }
+      ]
+    },
+    "B_numeric": {
+      "dev": [
+        {
+          "case_id": "RD-001",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-002",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-003",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-004",
+          "category": "numeric_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 15
+        },
+        {
+          "case_id": "RD-005",
+          "category": "numeric_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-006",
+          "category": "numeric_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-007",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-008",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-009",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-010",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-011",
+          "category": "numeric_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-012",
+          "category": "numeric_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-013",
+          "category": "comparison_wrong",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-014",
+          "category": "comparison_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-015",
+          "category": "scope_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-016",
+          "category": "scope_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-017",
+          "category": "scope_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-018",
+          "category": "arithmetic_wrong",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-019",
+          "category": "arithmetic_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-020",
+          "category": "threshold_boundary",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-021",
+          "category": "easy_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-022",
+          "category": "direct_self_contradiction_same_subject",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-023",
+          "category": "multi_step_constraint",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-024",
+          "category": "misleading_but_plausible",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        }
+      ],
+      "test": [
+        {
+          "case_id": "RE-001",
+          "category": "easy_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-002",
+          "category": "direct_self_contradiction",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-003",
+          "category": "direct_self_contradiction_same_subject",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-004",
+          "category": "arithmetic_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-005",
+          "category": "arithmetic_incorrect",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-006",
+          "category": "comparison_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-007",
+          "category": "comparison_incorrect",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-008",
+          "category": "constraint_satisfaction_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-009",
+          "category": "misleading_but_plausible",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-010",
+          "category": "multi_step_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-011",
+          "category": "direct_self_contradiction_same_subject",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-012",
+          "category": "easy_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-013",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-014",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-015",
+          "category": "numeric_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "SELF_CONTRADICTORY",
+          "why": [
+            "NUMERIC: same subject and unit, conflicting values: 60 days vs 30 days"
+          ],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-016",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-017",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-018",
+          "category": "arithmetic",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-019",
+          "category": "arithmetic_wrong",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-020",
+          "category": "threshold_boundary",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-021",
+          "category": "threshold_boundary",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-022",
+          "category": "multi_step_constraint",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-023",
+          "category": "comparison",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-024",
+          "category": "comparison_wrong",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,241 @@
+[
+  {
+    "case_id": "RD-001",
+    "category": "same_subject_split_polarity",
+    "query": "Do interns need a signed NDA before their first day?",
+    "answer": "Interns are required to sign an NDA before their start date, although interns do not need one until later.",
+    "expected_label": "SELF_CONTRADICTORY",
+    "split": "dev",
+    "provenance": "SYNTHETIC",
+    "notes": "Polarity split across a clause boundary rather than adjacent, which a fixed adjacent-phrase list structurally cannot see."
+  },
+  {
+    "case_id": "RD-002",
+    "category": "same_subject_split_polarity",
+    "query": "Can team leads approve overtime themselves?",
+    "answer": "Overtime above ten hours needs HR sign-off, and team leads may authorise it on their own whenever needed.",
+    "expected_label": "SELF_CONTRADICTORY",
+    "split": "dev",
+    "provenance": "SYNTHETIC",
+    "notes": "Contains no negation token at all -- the contradiction is between 'needs HR sign-off' and 'may authorise on their own'. Purely semantic."
+  },
+  {
+    "case_id": "RD-003",
+    "category": "same_subject_split_polarity",
+    "query": "Is customer data allowed to leave the EU region?",
+    "answer": "Customer data must remain within the EU region at all times, and it may be replicated to our US region for reporting.",
+    "expected_label": "SELF_CONTRADICTORY",
+    "split": "dev",
+    "provenance": "SYNTHETIC",
+    "notes": "Modal obligation ('must remain') against modal permission ('may be replicated') about the same subject."
+  },
+  {
+    "case_id": "RD-004",
+    "category": "numeric_contradiction",
+    "query": "How long is the probation period for new engineers?",
+    "answer": "New engineers serve a probation period of 90 days. The probation period for engineering hires is 180 days.",
+    "expected_label": "SELF_CONTRADICTORY",
+    "split": "dev",
+    "provenance": "SYNTHETIC",
+    "notes": "Two different values for the same quantity, no polarity words anywhere."
+  },
+  {
+    "case_id": "RD-005",
+    "category": "numeric_contradiction",
+    "query": "What is the maximum single purchase a manager can approve?",
+    "answer": "A manager may approve purchases up to $10,000 without escalation, so any purchase under $25,000 can be manager-approved.",
+    "expected_label": "SELF_CONTRADICTORY",
+    "split": "dev",
+    "provenance": "SYNTHETIC",
+    "notes": "The second clause silently widens the limit stated in the first. Harder than RD-004: the numbers are in different sentence roles."
+  },
+  {
+    "case_id": "RD-006",
+    "category": "numeric_contradiction",
+    "query": "How many failed login attempts trigger a lockout?",
+    "answer": "The account locks after 5 consecutive failed attempts, and users get 10 attempts before any lockout occurs.",
+    "expected_label": "SELF_CONTRADICTORY",
+    "split": "dev",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "RD-007",
+    "category": "consistent_with_qualifier",
+    "query": "Can vendors be paid before delivery?",
+    "answer": "Vendors are not paid before delivery under standard terms, but prepayment is permitted for contracts under $2,000 with finance approval.",
+    "expected_label": "NO_CONTRADICTION_DETECTED",
+    "split": "dev",
+    "provenance": "SYNTHETIC",
+    "notes": "FALSE-POSITIVE GUARD. 'not paid' and 'is permitted' about the same subject, but scoped to different contract sizes. A naive polarity or NLI-over-whole-answer check flags this."
+  },
+  {
+    "case_id": "RD-008",
+    "category": "consistent_with_qualifier",
+    "query": "Are personal devices allowed on the corporate network?",
+    "answer": "Personal devices cannot join the corporate network directly, though they may connect to the segregated guest network.",
+    "expected_label": "NO_CONTRADICTION_DETECTED",
+    "split": "dev",
+    "provenance": "SYNTHETIC",
+    "notes": "FALSE-POSITIVE GUARD. The objects differ (corporate vs guest network), not the polarity of one claim."
+  },
+  {
+    "case_id": "RD-009",
+    "category": "consistent_with_qualifier",
+    "query": "Is encryption required for backups?",
+    "answer": "Backups must be encrypted at rest. Encryption in transit is not required for backups that never leave the datacentre.",
+    "expected_label": "NO_CONTRADICTION_DETECTED",
+    "split": "dev",
+    "provenance": "SYNTHETIC",
+    "notes": "FALSE-POSITIVE GUARD. 'must be encrypted' and 'is not required' apply to different properties (at rest vs in transit)."
+  },
+  {
+    "case_id": "RD-010",
+    "category": "consistent_with_qualifier",
+    "query": "Do contractors get access to the code repository?",
+    "answer": "Contractors receive read access to the code repository, and they are not granted write access without a security review.",
+    "expected_label": "NO_CONTRADICTION_DETECTED",
+    "split": "dev",
+    "provenance": "SYNTHETIC",
+    "notes": "FALSE-POSITIVE GUARD. Grant and denial concern different permission levels."
+  },
+  {
+    "case_id": "RD-011",
+    "category": "numeric_consistent",
+    "query": "What notice period applies to a six-month contract?",
+    "answer": "A six-month contract requires 30 days notice, which is half the 60 days required for annual contracts.",
+    "expected_label": "NO_CONTRADICTION_DETECTED",
+    "split": "dev",
+    "provenance": "SYNTHETIC",
+    "notes": "FALSE-POSITIVE GUARD for the numeric check. Two different numbers about the same topic, but attached to two DIFFERENT subjects. A naive 'two numbers disagree' rule flags this."
+  },
+  {
+    "case_id": "RD-012",
+    "category": "numeric_consistent",
+    "query": "How many approvals does a $30,000 purchase need?",
+    "answer": "A $30,000 purchase needs 2 approvals: it exceeds the $10,000 manager limit, so it also requires a director signature.",
+    "expected_label": "NO_CONTRADICTION_DETECTED",
+    "split": "dev",
+    "provenance": "SYNTHETIC",
+    "notes": "FALSE-POSITIVE GUARD. Three distinct numbers, all consistent and playing different roles."
+  },
+  {
+    "case_id": "RD-013",
+    "category": "comparison_wrong",
+    "query": "Is the standard support response time faster than the premium tier?",
+    "answer": "No. Standard support responds within 8 hours and premium within 2 hours, so standard is faster.",
+    "expected_label": "SELF_CONTRADICTORY",
+    "split": "dev",
+    "provenance": "SYNTHETIC",
+    "notes": "States both correct figures and draws the opposite conclusion in the same sentence."
+  },
+  {
+    "case_id": "RD-014",
+    "category": "comparison_correct",
+    "query": "Is the standard support response time faster than the premium tier?",
+    "answer": "No. Standard support responds within 8 hours and premium within 2 hours, so premium is faster.",
+    "expected_label": "NO_CONTRADICTION_DETECTED",
+    "split": "dev",
+    "provenance": "SYNTHETIC",
+    "notes": "MINIMAL PAIR with RD-013 -- identical except the final clause. Isolates whether an evaluator reads the conclusion or just pattern-matches the figures."
+  },
+  {
+    "case_id": "RD-015",
+    "category": "scope_contradiction",
+    "query": "Which employees are eligible for the wellness stipend?",
+    "answer": "All full-time employees are eligible for the wellness stipend. Employees in the contractor category are also full-time but are not eligible.",
+    "expected_label": "SELF_CONTRADICTORY",
+    "split": "dev",
+    "provenance": "SYNTHETIC",
+    "notes": "Scope contradiction: a universal claim followed by an explicit in-scope exception that denies it."
+  },
+  {
+    "case_id": "RD-016",
+    "category": "scope_contradiction",
+    "query": "Does the retention policy cover archived email?",
+    "answer": "The retention policy applies to every system we operate. Archived email is one of our systems and falls outside the policy.",
+    "expected_label": "SELF_CONTRADICTORY",
+    "split": "dev",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "RD-017",
+    "category": "scope_consistent",
+    "query": "Does the retention policy cover archived email?",
+    "answer": "The retention policy applies to every production system. Archived email is a production system, so it is covered.",
+    "expected_label": "NO_CONTRADICTION_DETECTED",
+    "split": "dev",
+    "provenance": "SYNTHETIC",
+    "notes": "MINIMAL PAIR with RD-016. Same structure, valid conclusion."
+  },
+  {
+    "case_id": "RD-018",
+    "category": "arithmetic_wrong",
+    "query": "Five people attend a two-day offsite at $120 per person per day. What is the total?",
+    "answer": "The total is $600.",
+    "expected_label": "NO_CONTRADICTION_DETECTED",
+    "expected_numeric": "1200",
+    "split": "dev",
+    "provenance": "SYNTHETIC",
+    "notes": "Arithmetically WRONG (forgot the second day) but internally consistent. Separates 'contradictory' from 'incorrect' -- the evaluator checks the former and must not claim the latter."
+  },
+  {
+    "case_id": "RD-019",
+    "category": "arithmetic_correct",
+    "query": "Five people attend a two-day offsite at $120 per person per day. What is the total?",
+    "answer": "The total is $1,200.",
+    "expected_label": "NO_CONTRADICTION_DETECTED",
+    "expected_numeric": "1200",
+    "split": "dev",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "RD-020",
+    "category": "threshold_boundary",
+    "query": "A payment is exactly $10,000. Does it need director approval?",
+    "answer": "A payment of exactly $10,000 is within the manager limit of $10,000 and does not need director approval.",
+    "expected_label": "NO_CONTRADICTION_DETECTED",
+    "split": "dev",
+    "provenance": "SYNTHETIC",
+    "notes": "Inclusive boundary. Two identical numbers in one sentence -- a naive numeric-disagreement check must not fire."
+  },
+  {
+    "case_id": "RD-021",
+    "category": "easy_consistent",
+    "query": "What is the standard workweek?",
+    "answer": "The standard workweek is 40 hours across five days.",
+    "expected_label": "NO_CONTRADICTION_DETECTED",
+    "split": "dev",
+    "provenance": "SYNTHETIC",
+    "notes": "Trivially consistent control. If this ever flags, something is badly wrong."
+  },
+  {
+    "case_id": "RD-022",
+    "category": "direct_self_contradiction_same_subject",
+    "query": "Is the staging environment publicly accessible?",
+    "answer": "The staging environment is publicly accessible, and the staging environment is not publicly accessible.",
+    "expected_label": "SELF_CONTRADICTORY",
+    "split": "dev",
+    "provenance": "SYNTHETIC",
+    "notes": "The easy case the current adjacent-pair evaluator already catches. Kept so an 'improvement' that loses it is visible."
+  },
+  {
+    "case_id": "RD-023",
+    "category": "multi_step_constraint",
+    "query": "A vendor handles payment card data on a $60,000 contract. What applies?",
+    "answer": "The vendor must be PCI-DSS certified and sign a DPA; the contract is under $100k so no formal legal review is required.",
+    "expected_label": "NO_CONTRADICTION_DETECTED",
+    "split": "dev",
+    "provenance": "SYNTHETIC",
+    "notes": "Two conditions fire, one correctly does not. Consistent multi-step reasoning that must not be flagged."
+  },
+  {
+    "case_id": "RD-024",
+    "category": "misleading_but_plausible",
+    "query": "Can an employee expense a business-class flight?",
+    "answer": "Business class is permitted for flights over eight hours; a four-hour flight therefore qualifies for business class.",
+    "expected_label": "SELF_CONTRADICTORY",
+    "split": "dev",
+    "provenance": "SYNTHETIC",
+    "notes": "The conclusion contradicts the rule stated immediately before it. Requires comparing 4 against the 8-hour threshold, not just spotting two numbers."
+  }
+]
