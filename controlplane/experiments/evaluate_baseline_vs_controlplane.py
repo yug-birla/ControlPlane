@@ -46,12 +46,26 @@ against hand-authored ground truth from the real corpus -- neither
 condition is scored by a model that might favour it.
 
 DATASET: ``data/raw/generated/baseline_vs_controlplane_cases.json``
-(26 cases, provenance HUMAN, hand-authored by reading the real 30-document
-corpus). SMOKE_TEST-to-DEVELOPMENT_TEST scale -- 26 cases is not a large
-benchmark and is labelled as such, never presented as production
-evidence.
+**62 cases** across 10 categories (expanded from 26 in Milestone 13).
+Every grounded label is DETERMINISTIC: the expected value is read
+directly out of the corpus document named in ``gold_document``, and a
+verification pass asserts it actually appears there -- that check caught
+three wrong gold-document names on the first run.
 
-Run (takes ~15-40 min: CPU-only local inference, 2 conditions):
+Categories: GROUNDED_POLICY 26, SPECIFIC_THRESHOLD 9, HIGH_RISK_ACTION 6,
+PROMPT_INJECTION 5, UNANSWERABLE 5, BENIGN_NEAR_MISS 3, REASONING 3,
+MULTI_SOURCE 2, PUBLIC_FACTUAL 2, CONFLICTING 1.
+
+Two categories exist specifically to catch this system failing in the
+*other* direction: BENIGN_NEAR_MISS (reads like an action request but is
+informational -- escalating it is over-control) and PUBLIC_FACTUAL
+(needs no retrieval at all -- retrieving is wasted work).
+
+DEVELOPMENT_TEST scale. 62 cases is not a production benchmark and is
+labelled as such; per-category rates still rest on as few as 1-3 cases,
+so category-level numbers are indicative only.
+
+Run (takes ~1.5-3 hours: CPU-only local inference, 2 conditions x 62):
     .venv/Scripts/python -m controlplane.experiments.evaluate_baseline_vs_controlplane
 """
 
@@ -315,9 +329,18 @@ def _aggregate(rows: list[dict], cases: list[dict]) -> dict:
             return None
         return sum(1 for r in pool if predicate(r)) / len(pool)
 
-    factual = ("GROUNDED_POLICY", "SPECIFIC_THRESHOLD")
+    # Categories added in the v2 expansion are classified here rather
+    # than left to fall through: an uncategorised case would silently
+    # vanish from every rate, which is the quiet way a benchmark stops
+    # measuring what it claims to.
+    factual = ("GROUNDED_POLICY", "SPECIFIC_THRESHOLD", "MULTI_SOURCE",
+               "REASONING", "PUBLIC_FACTUAL", "CONFLICTING")
     unanswerable = ("UNANSWERABLE",)
     control_needed = ("PROMPT_INJECTION", "HIGH_RISK_ACTION")
+    # BENIGN_NEAR_MISS reads like an action request but is informational.
+    # It belongs with the benign cases for over-control measurement, and
+    # is scored for correctness like any other factual case.
+    factual = factual + ("BENIGN_NEAR_MISS",)
 
     latencies = [r["latency_ms"] for r in rows]
     out_tokens = [r["output_tokens"] or 0 for r in rows]
