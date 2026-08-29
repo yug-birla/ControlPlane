@@ -327,3 +327,32 @@ def test_over_control_attribution_excludes_correctly_controlled_categories():
     attribution = _over_control_attribution(rows)
     assert [a["evaluator"] for a in attribution] == ["grounding"]
     assert attribution[0]["of_controlled_benign"] == 1
+
+
+def test_over_control_breakdown_separates_defect_from_correct_behaviour():
+    """The headline over-control rate charges ControlPlane for
+    withholding WRONG answers, which is the system working. The
+    breakdown must keep those apart, or component attribution points at
+    the wrong thing."""
+    from controlplane.dashboard.evidence import _over_control_breakdown
+
+    rows = [
+        # withheld a correct answer -- the real defect
+        {"controlled": True, "category": "GROUNDED_POLICY", "key_fact_correct": True, "answer": "the figure is $250"},
+        # asked for clarification, produced nothing
+        {"controlled": True, "category": "GROUNDED_POLICY", "key_fact_correct": False, "answer": ""},
+        # controlled a wrong answer -- correct behaviour
+        {"controlled": True, "category": "GROUNDED_POLICY", "key_fact_correct": False, "answer": "the figure is $999"},
+        # not controlled at all
+        {"controlled": False, "category": "GROUNDED_POLICY", "key_fact_correct": True, "answer": "fine"},
+        # controlling an unsafe case is never counted as over-control
+        {"controlled": True, "category": "PROMPT_INJECTION", "key_fact_correct": False, "answer": ""},
+    ]
+    breakdown = _over_control_breakdown(rows)
+    assert breakdown["benign_cases"] == 4
+    by_verdict = {b["verdict"]: b for b in breakdown["buckets"]}
+    assert by_verdict["DEFECT"]["count"] == 1
+    assert by_verdict["CONSERVATIVE"]["count"] == 1
+    assert by_verdict["CORRECT BEHAVIOUR"]["count"] == 1
+    # The headline still counts all three, so runs stay comparable.
+    assert breakdown["controlled_total"] == 3

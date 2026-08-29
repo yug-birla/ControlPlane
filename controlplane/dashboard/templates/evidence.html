@@ -85,6 +85,34 @@
 </div>
 
 <div class="panel">
+  <h2>What the over-control number actually contains</h2>
+  {% set ob = bvc.over_control_breakdown %}
+  <table>
+    <tr><th>Behaviour</th><th>Verdict</th><th>Cases</th><th>Rate</th><th>Case IDs</th></tr>
+    {% for b in ob.buckets %}
+    <tr>
+      <td>{{ b.label }}</td>
+      <td>
+        {% if b.verdict == 'DEFECT' %}<span class="badge status-FAILED">DEFECT</span>
+        {% elif b.verdict == 'CONSERVATIVE' %}<span class="badge severity-MEDIUM_RISK">CONSERVATIVE</span>
+        {% else %}<span class="badge status-COMPLETED">CORRECT</span>{% endif %}
+      </td>
+      <td class="mono">{{ b.count }}</td>
+      <td class="mono">{{ '%.3f'|format(b.rate) }}</td>
+      <td class="mono">{{ b.cases|join(', ') }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <div class="why">
+    The headline rate of {{ '%.3f'|format(ob.headline_rate) }} across {{ ob.benign_cases }} benign cases
+    counts three different behaviours as one. Only the first is a defect. The third is ControlPlane
+    correctly withholding a <em>wrong</em> answer, which the headline metric charges as a cost.
+    Reporting the aggregate alone overstated the defect by roughly 2.3x and simultaneously penalised
+    the system for working. The headline number is kept unchanged above so runs stay comparable.
+  </div>
+</div>
+
+<div class="panel">
   <h2>Which component caused the over-control</h2>
   {% if bvc.over_control_attribution %}
   <table>
