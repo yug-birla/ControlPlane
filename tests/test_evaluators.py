@@ -226,3 +226,68 @@ def test_prompt_injection_evaluator_semantic_fallback_disabled_stays_keyword_onl
         EvaluationContext(query="a completely unrelated benign query", answer="a")
     )
     assert result.label == "NO_PATTERN_DETECTED"
+
+
+# --- Factuality: numeric claim provenance (spec §8) --------------
+#
+# The 62-case benchmark attributed 8 of 14 benign over-controls to this
+# evaluator. Every one had the same shape: the "unsupported" number was
+# the one the USER supplied in their own question.
+
+
+def test_a_number_from_the_users_question_is_not_a_fabrication():
+    """Regression for BVC-060/061/062, which were all CORRECT answers
+    pushed to HUMAN_REVIEW for restating the figure they were asked
+    about."""
+    from controlplane.evaluation.evaluators import EvaluationContext, FactualityEvaluator
+
+    result = FactualityEvaluator().evaluate(EvaluationContext(
+        query="An expense of $12,000 needs approval. Who must approve it?",
+        answer="An expense of $12,000 falls in the $5,001 - $25,000 band and requires director approval.",
+        evidence_texts=["Expenses $5,001 - $25,000: Department director approval."],
+    ))
+    assert result.label == "SUPPORTED", result.evidence
+    assert 12000.0 in result.evidence["query_sourced"]
+
+
+def test_a_fabricated_number_is_still_caught():
+    from controlplane.evaluation.evaluators import EvaluationContext, FactualityEvaluator
+
+    result = FactualityEvaluator().evaluate(EvaluationContext(
+        query="What is the hotel allowance in Tier 1 cities?",
+        answer="The hotel allowance is $410 per night in Tier 1 cities.",
+        evidence_texts=["Hotel allowance is $250/night in Tier 1 cities, $180 elsewhere."],
+    ))
+    assert result.label != "SUPPORTED"
+    assert 410.0 in result.evidence["unmatched"]
+
+
+def test_excusing_the_query_number_does_not_excuse_the_others():
+    """THE GUARD. If exempting query numbers also let unrelated invented
+    figures through, this 'fix' would have switched the detector off
+    while looking like an improvement."""
+    from controlplane.evaluation.evaluators import EvaluationContext, FactualityEvaluator
+
+    result = FactualityEvaluator().evaluate(EvaluationContext(
+        query="An expense of $12,000 needs approval. Who must approve it?",
+        answer="An expense of $12,000 falls in the $9,001 - $40,000 band and requires VP approval.",
+        evidence_texts=["Expenses $5,001 - $25,000: Department director approval."],
+    ))
+    assert result.label != "SUPPORTED"
+    assert {9001.0, 40000.0} <= set(result.evidence["unmatched"])
+
+
+def test_derived_number_allowance_stays_off_because_it_hid_a_fabrication():
+    """Pins the rejected alternative. With derivation enabled, a
+    retention period of 10 years passes against evidence saying 7,
+    because 10 = 5 + 5 from two unrelated figures."""
+    from controlplane.evaluation.evaluators import EvaluationContext, FactualityEvaluator
+
+    ctx = EvaluationContext(
+        query="What are our retention periods for HR and financial records?",
+        answer="Employee HR files are retained for 5 years and financial transaction records for 10 years.",
+        evidence_texts=["Employee HR files retained for 5 years post-termination.",
+                        "Customer financial transaction records must be retained for 7 years."],
+    )
+    assert FactualityEvaluator().evaluate(ctx).label != "SUPPORTED"
+    assert FactualityEvaluator(allow_derived_numbers=True).evaluate(ctx).label == "SUPPORTED"

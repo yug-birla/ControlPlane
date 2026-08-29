@@ -1,0 +1,894 @@
+{
+  "experiment_id": "exp_ecdd9fcd-d7cd-4acf-8bb0-6baf230f1751",
+  "results": {
+    "A_current": {
+      "dev": {
+        "sample_count": 12,
+        "exact_label_accuracy": 0.5,
+        "control_decision_accuracy": 0.6666666666666666,
+        "over_control_count": 4,
+        "over_control_rate": 0.5714285714285714,
+        "missed_fabrication_count": 0,
+        "missed_fabrication_rate": 0.0,
+        "over_controlled_cases": [
+          "FA-D01",
+          "FA-D02",
+          "FA-D03",
+          "FA-D11"
+        ],
+        "missed_cases": []
+      },
+      "test": {
+        "sample_count": 12,
+        "exact_label_accuracy": 0.5833333333333334,
+        "control_decision_accuracy": 0.6666666666666666,
+        "over_control_count": 4,
+        "over_control_rate": 0.5714285714285714,
+        "missed_fabrication_count": 0,
+        "missed_fabrication_rate": 0.0,
+        "over_controlled_cases": [
+          "FA-T01",
+          "FA-T02",
+          "FA-T03",
+          "FA-T11"
+        ],
+        "missed_cases": []
+      }
+    },
+    "B_query_exempt": {
+      "dev": {
+        "sample_count": 12,
+        "exact_label_accuracy": 0.6666666666666666,
+        "control_decision_accuracy": 0.9166666666666666,
+        "over_control_count": 1,
+        "over_control_rate": 0.14285714285714285,
+        "missed_fabrication_count": 0,
+        "missed_fabrication_rate": 0.0,
+        "over_controlled_cases": [
+          "FA-D11"
+        ],
+        "missed_cases": []
+      },
+      "test": {
+        "sample_count": 12,
+        "exact_label_accuracy": 0.75,
+        "control_decision_accuracy": 0.9166666666666666,
+        "over_control_count": 1,
+        "over_control_rate": 0.14285714285714285,
+        "missed_fabrication_count": 0,
+        "missed_fabrication_rate": 0.0,
+        "over_controlled_cases": [
+          "FA-T11"
+        ],
+        "missed_cases": []
+      }
+    },
+    "C_query_derived": {
+      "dev": {
+        "sample_count": 12,
+        "exact_label_accuracy": 0.6666666666666666,
+        "control_decision_accuracy": 0.9166666666666666,
+        "over_control_count": 1,
+        "over_control_rate": 0.14285714285714285,
+        "missed_fabrication_count": 0,
+        "missed_fabrication_rate": 0.0,
+        "over_controlled_cases": [
+          "FA-D11"
+        ],
+        "missed_cases": []
+      },
+      "test": {
+        "sample_count": 12,
+        "exact_label_accuracy": 0.75,
+        "control_decision_accuracy": 0.9166666666666666,
+        "over_control_count": 0,
+        "over_control_rate": 0.0,
+        "missed_fabrication_count": 1,
+        "missed_fabrication_rate": 0.2,
+        "over_controlled_cases": [],
+        "missed_cases": [
+          "FA-T09"
+        ]
+      }
+    }
+  },
+  "detail": {
+    "A_current": {
+      "dev": [
+        {
+          "case_id": "FA-D01",
+          "category": "query_restated_number",
+          "expected": "SUPPORTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            12000.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D02",
+          "category": "query_restated_number",
+          "expected": "SUPPORTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            99.85
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D03",
+          "category": "query_restated_number",
+          "expected": "SUPPORTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            120000.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D04",
+          "category": "evidence_number",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D05",
+          "category": "fabricated_number",
+          "expected": "CONTRADICTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            410.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D06",
+          "category": "fabricated_number",
+          "expected": "CONTRADICTED",
+          "predicted": "CONTRADICTED",
+          "unmatched": [
+            12.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D07",
+          "category": "fabricated_alongside_query_number",
+          "expected": "CONTRADICTED",
+          "predicted": "CONTRADICTED",
+          "unmatched": [
+            9001.0,
+            12000.0,
+            40000.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D08",
+          "category": "partially_supported",
+          "expected": "PARTIALLY_SUPPORTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            300.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D09",
+          "category": "no_numeric_claim",
+          "expected": "NOT_APPLICABLE",
+          "predicted": "NOT_APPLICABLE",
+          "unmatched": null,
+          "query_sourced": null,
+          "derived": null
+        },
+        {
+          "case_id": "FA-D10",
+          "category": "ordinal_not_a_claim",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D11",
+          "category": "derived_number",
+          "expected": "SUPPORTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            750.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D12",
+          "category": "derived_number_wrong",
+          "expected": "CONTRADICTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            900.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        }
+      ],
+      "test": [
+        {
+          "case_id": "FA-T01",
+          "category": "query_restated_number",
+          "expected": "SUPPORTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            67500.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T02",
+          "category": "query_restated_number",
+          "expected": "SUPPORTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            4.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T03",
+          "category": "query_restated_number",
+          "expected": "SUPPORTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            47.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T04",
+          "category": "evidence_number",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T05",
+          "category": "evidence_number",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T06",
+          "category": "fabricated_number",
+          "expected": "CONTRADICTED",
+          "predicted": "CONTRADICTED",
+          "unmatched": [
+            8.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T07",
+          "category": "fabricated_number",
+          "expected": "CONTRADICTED",
+          "predicted": "CONTRADICTED",
+          "unmatched": [
+            45.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T08",
+          "category": "fabricated_alongside_query_number",
+          "expected": "CONTRADICTED",
+          "predicted": "CONTRADICTED",
+          "unmatched": [
+            140000.0,
+            250000.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T09",
+          "category": "partially_supported",
+          "expected": "PARTIALLY_SUPPORTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            10.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T10",
+          "category": "no_numeric_claim",
+          "expected": "NOT_APPLICABLE",
+          "predicted": "NOT_APPLICABLE",
+          "unmatched": null,
+          "query_sourced": null,
+          "derived": null
+        },
+        {
+          "case_id": "FA-T11",
+          "category": "derived_number",
+          "expected": "SUPPORTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            4.0,
+            300.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T12",
+          "category": "derived_number_wrong",
+          "expected": "CONTRADICTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            4.0,
+            450.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        }
+      ]
+    },
+    "B_query_exempt": {
+      "dev": [
+        {
+          "case_id": "FA-D01",
+          "category": "query_restated_number",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [
+            12000.0
+          ],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D02",
+          "category": "query_restated_number",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [
+            99.85
+          ],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D03",
+          "category": "query_restated_number",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [
+            120000.0
+          ],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D04",
+          "category": "evidence_number",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D05",
+          "category": "fabricated_number",
+          "expected": "CONTRADICTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            410.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D06",
+          "category": "fabricated_number",
+          "expected": "CONTRADICTED",
+          "predicted": "CONTRADICTED",
+          "unmatched": [
+            12.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D07",
+          "category": "fabricated_alongside_query_number",
+          "expected": "CONTRADICTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            9001.0,
+            40000.0
+          ],
+          "query_sourced": [
+            12000.0
+          ],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D08",
+          "category": "partially_supported",
+          "expected": "PARTIALLY_SUPPORTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            300.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D09",
+          "category": "no_numeric_claim",
+          "expected": "NOT_APPLICABLE",
+          "predicted": "NOT_APPLICABLE",
+          "unmatched": null,
+          "query_sourced": null,
+          "derived": null
+        },
+        {
+          "case_id": "FA-D10",
+          "category": "ordinal_not_a_claim",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D11",
+          "category": "derived_number",
+          "expected": "SUPPORTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            750.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D12",
+          "category": "derived_number_wrong",
+          "expected": "CONTRADICTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            900.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        }
+      ],
+      "test": [
+        {
+          "case_id": "FA-T01",
+          "category": "query_restated_number",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [
+            67500.0
+          ],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T02",
+          "category": "query_restated_number",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [
+            4.0
+          ],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T03",
+          "category": "query_restated_number",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [
+            47.0
+          ],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T04",
+          "category": "evidence_number",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T05",
+          "category": "evidence_number",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T06",
+          "category": "fabricated_number",
+          "expected": "CONTRADICTED",
+          "predicted": "CONTRADICTED",
+          "unmatched": [
+            8.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T07",
+          "category": "fabricated_number",
+          "expected": "CONTRADICTED",
+          "predicted": "CONTRADICTED",
+          "unmatched": [
+            45.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T08",
+          "category": "fabricated_alongside_query_number",
+          "expected": "CONTRADICTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            250000.0
+          ],
+          "query_sourced": [
+            140000.0
+          ],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T09",
+          "category": "partially_supported",
+          "expected": "PARTIALLY_SUPPORTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            10.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T10",
+          "category": "no_numeric_claim",
+          "expected": "NOT_APPLICABLE",
+          "predicted": "NOT_APPLICABLE",
+          "unmatched": null,
+          "query_sourced": null,
+          "derived": null
+        },
+        {
+          "case_id": "FA-T11",
+          "category": "derived_number",
+          "expected": "SUPPORTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            300.0
+          ],
+          "query_sourced": [
+            4.0
+          ],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T12",
+          "category": "derived_number_wrong",
+          "expected": "CONTRADICTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            450.0
+          ],
+          "query_sourced": [
+            4.0
+          ],
+          "derived": []
+        }
+      ]
+    },
+    "C_query_derived": {
+      "dev": [
+        {
+          "case_id": "FA-D01",
+          "category": "query_restated_number",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [
+            12000.0
+          ],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D02",
+          "category": "query_restated_number",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [
+            99.85
+          ],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D03",
+          "category": "query_restated_number",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [
+            120000.0
+          ],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D04",
+          "category": "evidence_number",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D05",
+          "category": "fabricated_number",
+          "expected": "CONTRADICTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            410.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D06",
+          "category": "fabricated_number",
+          "expected": "CONTRADICTED",
+          "predicted": "CONTRADICTED",
+          "unmatched": [
+            12.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D07",
+          "category": "fabricated_alongside_query_number",
+          "expected": "CONTRADICTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            9001.0,
+            40000.0
+          ],
+          "query_sourced": [
+            12000.0
+          ],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D08",
+          "category": "partially_supported",
+          "expected": "PARTIALLY_SUPPORTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            300.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D09",
+          "category": "no_numeric_claim",
+          "expected": "NOT_APPLICABLE",
+          "predicted": "NOT_APPLICABLE",
+          "unmatched": null,
+          "query_sourced": null,
+          "derived": null
+        },
+        {
+          "case_id": "FA-D10",
+          "category": "ordinal_not_a_claim",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D11",
+          "category": "derived_number",
+          "expected": "SUPPORTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            750.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-D12",
+          "category": "derived_number_wrong",
+          "expected": "CONTRADICTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            900.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        }
+      ],
+      "test": [
+        {
+          "case_id": "FA-T01",
+          "category": "query_restated_number",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [
+            67500.0
+          ],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T02",
+          "category": "query_restated_number",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [
+            4.0
+          ],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T03",
+          "category": "query_restated_number",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [
+            47.0
+          ],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T04",
+          "category": "evidence_number",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T05",
+          "category": "evidence_number",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T06",
+          "category": "fabricated_number",
+          "expected": "CONTRADICTED",
+          "predicted": "CONTRADICTED",
+          "unmatched": [
+            8.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T07",
+          "category": "fabricated_number",
+          "expected": "CONTRADICTED",
+          "predicted": "CONTRADICTED",
+          "unmatched": [
+            45.0
+          ],
+          "query_sourced": [],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T08",
+          "category": "fabricated_alongside_query_number",
+          "expected": "CONTRADICTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            250000.0
+          ],
+          "query_sourced": [
+            140000.0
+          ],
+          "derived": []
+        },
+        {
+          "case_id": "FA-T09",
+          "category": "partially_supported",
+          "expected": "PARTIALLY_SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [],
+          "derived": [
+            10.0
+          ]
+        },
+        {
+          "case_id": "FA-T10",
+          "category": "no_numeric_claim",
+          "expected": "NOT_APPLICABLE",
+          "predicted": "NOT_APPLICABLE",
+          "unmatched": null,
+          "query_sourced": null,
+          "derived": null
+        },
+        {
+          "case_id": "FA-T11",
+          "category": "derived_number",
+          "expected": "SUPPORTED",
+          "predicted": "SUPPORTED",
+          "unmatched": [],
+          "query_sourced": [
+            4.0
+          ],
+          "derived": [
+            300.0
+          ]
+        },
+        {
+          "case_id": "FA-T12",
+          "category": "derived_number_wrong",
+          "expected": "CONTRADICTED",
+          "predicted": "PARTIALLY_SUPPORTED",
+          "unmatched": [
+            450.0
+          ],
+          "query_sourced": [
+            4.0
+          ],
+          "derived": []
+        }
+      ]
+    }
+  }
+}

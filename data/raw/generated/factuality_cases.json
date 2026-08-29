@@ -1,0 +1,252 @@
+[
+  {
+    "case_id": "FA-D01",
+    "split": "dev",
+    "category": "query_restated_number",
+    "query": "An expense of $12,000 needs approval. Who must approve it?",
+    "answer": "An expense of $12,000 falls in the $5,001 - $25,000 band and requires department director approval.",
+    "evidence": ["Expenses $5,001 - $25,000: Department director approval.", "Expenses > $25,000: VP and Finance sign-off required."],
+    "expected_label": "SUPPORTED",
+    "notes": "The 12,000 comes from the USER'S OWN QUESTION. Restating the figure you were asked about is not an unsupported claim.",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "FA-D02",
+    "split": "dev",
+    "category": "query_restated_number",
+    "query": "Would 99.85% uptime breach our enterprise SLA?",
+    "answer": "Yes. 99.85% is below the 99.9% monthly uptime the contract guarantees, so it is a breach.",
+    "evidence": ["Guarantees 99.9% monthly platform uptime."],
+    "expected_label": "SUPPORTED",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "FA-D03",
+    "split": "dev",
+    "category": "query_restated_number",
+    "query": "A vendor contract is worth $120,000 and covers PII. What applies?",
+    "answer": "At $120,000 the contract exceeds the $100k legal review threshold, and PII processing requires SOC 2 Type II or ISO 27001.",
+    "evidence": ["Contracts exceeding $100k require formal legal review.", "Vendors processing customer PII must hold valid SOC 2 Type II or ISO 27001 certification."],
+    "expected_label": "SUPPORTED",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "FA-D04",
+    "split": "dev",
+    "category": "evidence_number",
+    "query": "What is the hotel allowance in Tier 1 cities?",
+    "answer": "The hotel allowance is $250 per night in Tier 1 cities.",
+    "evidence": ["Hotel allowance is $250/night in Tier 1 cities, $180 elsewhere."],
+    "expected_label": "SUPPORTED",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "FA-D05",
+    "split": "dev",
+    "category": "fabricated_number",
+    "query": "What is the hotel allowance in Tier 1 cities?",
+    "answer": "The hotel allowance is $410 per night in Tier 1 cities.",
+    "evidence": ["Hotel allowance is $250/night in Tier 1 cities, $180 elsewhere."],
+    "expected_label": "CONTRADICTED",
+    "notes": "TRUE POSITIVE that must survive any fix. 410 is in neither the query nor the evidence.",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "FA-D06",
+    "split": "dev",
+    "category": "fabricated_number",
+    "query": "How long do we retain financial transaction records?",
+    "answer": "Financial transaction records are retained for 12 years.",
+    "evidence": ["Customer financial transaction records must be retained for 7 years."],
+    "expected_label": "CONTRADICTED",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "FA-D07",
+    "split": "dev",
+    "category": "fabricated_alongside_query_number",
+    "query": "An expense of $12,000 needs approval. Who must approve it?",
+    "answer": "An expense of $12,000 falls in the $9,001 - $40,000 band and requires VP approval.",
+    "evidence": ["Expenses $5,001 - $25,000: Department director approval."],
+    "expected_label": "CONTRADICTED",
+    "notes": "THE CRITICAL GUARD. The query number 12,000 is legitimate, but 9,001 and 40,000 are fabricated. Excusing query numbers must not excuse the others in the same answer.",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "FA-D08",
+    "split": "dev",
+    "category": "partially_supported",
+    "query": "What are the meal and hotel allowances?",
+    "answer": "Meals are $75/day domestic and the hotel allowance is $300/night in Tier 1 cities.",
+    "evidence": ["Meal reimbursement is up to $75/day domestic, $100/day international.", "Hotel allowance is $250/night in Tier 1 cities."],
+    "expected_label": "PARTIALLY_SUPPORTED",
+    "notes": "One figure right, one wrong -- the label must not collapse to fully SUPPORTED.",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "FA-D09",
+    "split": "dev",
+    "category": "no_numeric_claim",
+    "query": "Who approves vendor contracts covering PII?",
+    "answer": "Vendors processing customer PII must hold a valid certification and sign a bilateral DPA.",
+    "evidence": ["Vendors processing customer PII must hold valid SOC 2 Type II or ISO 27001 certification and sign a bilateral DPA."],
+    "expected_label": "NOT_APPLICABLE",
+    "notes": "No numbers to check. Must report NOT_APPLICABLE rather than inventing a score.",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "FA-D10",
+    "split": "dev",
+    "category": "ordinal_not_a_claim",
+    "query": "What is the Tier 1 hotel allowance?",
+    "answer": "In Tier 1 cities the allowance is $250 per night.",
+    "evidence": ["Hotel allowance is $250/night in Tier 1 cities."],
+    "expected_label": "SUPPORTED",
+    "notes": "'Tier 1' is a label, not a quantity. Treating the 1 as an unverified numeric claim is noise.",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "FA-D11",
+    "split": "dev",
+    "category": "derived_number",
+    "query": "What is the maximum hotel spend for three nights in a Tier 1 city?",
+    "answer": "At $250 per night, three nights cost at most $750.",
+    "evidence": ["Hotel allowance is $250/night in Tier 1 cities."],
+    "expected_label": "SUPPORTED",
+    "notes": "750 is CORRECTLY DERIVED from evidence. A checker that demands literal presence marks correct arithmetic as unsupported. Hardest category; measured, not assumed fixed.",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "FA-D12",
+    "split": "dev",
+    "category": "derived_number_wrong",
+    "query": "What is the maximum hotel spend for three nights in a Tier 1 city?",
+    "answer": "At $250 per night, three nights cost at most $900.",
+    "evidence": ["Hotel allowance is $250/night in Tier 1 cities."],
+    "expected_label": "CONTRADICTED",
+    "notes": "MINIMAL PAIR with FA-D11. Same shape, wrong arithmetic.",
+    "provenance": "SYNTHETIC"
+  },
+
+  {
+    "case_id": "FA-T01",
+    "split": "test",
+    "category": "query_restated_number",
+    "query": "A purchase of $67,500 is planned. What sign-off is needed?",
+    "answer": "A $67,500 purchase exceeds the $25,000 threshold, so it needs VP and Finance sign-off.",
+    "evidence": ["Expenses > $25,000: VP and Finance sign-off required."],
+    "expected_label": "SUPPORTED",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "FA-T02",
+    "split": "test",
+    "category": "query_restated_number",
+    "query": "Is a 4-hour flight eligible for business class?",
+    "answer": "No. Business class applies to international flights over 6 hours, and a 4-hour flight is below that.",
+    "evidence": ["Economy class for flights < 6 hours; Business class permitted for international flights > 6 hours."],
+    "expected_label": "SUPPORTED",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "FA-T03",
+    "split": "test",
+    "category": "query_restated_number",
+    "query": "We had 47 support tickets last week. Does the SLA cover response times?",
+    "answer": "The SLA guarantees 99.9% uptime; the 47 tickets are not themselves governed by an uptime clause.",
+    "evidence": ["Guarantees 99.9% monthly platform uptime."],
+    "expected_label": "SUPPORTED",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "FA-T04",
+    "split": "test",
+    "category": "evidence_number",
+    "query": "What is the minimum password length?",
+    "answer": "The minimum password length is 14 characters.",
+    "evidence": ["Minimum password length is 14 characters; hardware MFA required for all production systems."],
+    "expected_label": "SUPPORTED",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "FA-T05",
+    "split": "test",
+    "category": "evidence_number",
+    "query": "What is the enterprise API rate limit?",
+    "answer": "The rate limit is 5,000 requests per minute for Enterprise partners.",
+    "evidence": ["Rate limit is 5,000 requests/minute for Enterprise partners."],
+    "expected_label": "SUPPORTED",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "FA-T06",
+    "split": "test",
+    "category": "fabricated_number",
+    "query": "What is the minimum password length?",
+    "answer": "The minimum password length is 8 characters.",
+    "evidence": ["Minimum password length is 14 characters."],
+    "expected_label": "CONTRADICTED",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "FA-T07",
+    "split": "test",
+    "category": "fabricated_number",
+    "query": "What is the RTO for the customer gateway?",
+    "answer": "The recovery time objective for the customer gateway is 45 minutes.",
+    "evidence": ["Recovery Time Objective (RTO) for customer routing gateway is 15 minutes."],
+    "expected_label": "CONTRADICTED",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "FA-T08",
+    "split": "test",
+    "category": "fabricated_alongside_query_number",
+    "query": "A contract is worth $140,000. What review does it need?",
+    "answer": "A $140,000 contract exceeds the $250,000 review threshold and needs board approval.",
+    "evidence": ["Contracts exceeding $100k require formal legal review."],
+    "expected_label": "CONTRADICTED",
+    "notes": "Query number legitimate, threshold fabricated. The guard again, on the held-out split.",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "FA-T09",
+    "split": "test",
+    "category": "partially_supported",
+    "query": "What are our retention periods for HR and financial records?",
+    "answer": "Employee HR files are retained for 5 years and financial transaction records for 10 years.",
+    "evidence": ["Employee HR files retained for 5 years post-termination.", "Customer financial transaction records must be retained for 7 years."],
+    "expected_label": "PARTIALLY_SUPPORTED",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "FA-T10",
+    "split": "test",
+    "category": "no_numeric_claim",
+    "query": "What certification must a PII subprocessor hold?",
+    "answer": "A subprocessor handling PII must hold a recognised security certification and sign a data processing agreement.",
+    "evidence": ["Vendors processing customer PII must hold valid SOC 2 Type II or ISO 27001 certification and sign a bilateral DPA."],
+    "expected_label": "NOT_APPLICABLE",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "FA-T11",
+    "split": "test",
+    "category": "derived_number",
+    "query": "What is the total meal allowance for a 4-day domestic trip?",
+    "answer": "At $75 per day domestic, a 4-day trip allows up to $300 in meals.",
+    "evidence": ["Meal reimbursement is up to $75/day domestic, $100/day international."],
+    "expected_label": "SUPPORTED",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "FA-T12",
+    "split": "test",
+    "category": "derived_number_wrong",
+    "query": "What is the total meal allowance for a 4-day domestic trip?",
+    "answer": "At $75 per day domestic, a 4-day trip allows up to $450 in meals.",
+    "evidence": ["Meal reimbursement is up to $75/day domestic, $100/day international."],
+    "expected_label": "CONTRADICTED",
+    "provenance": "SYNTHETIC"
+  }
+]
