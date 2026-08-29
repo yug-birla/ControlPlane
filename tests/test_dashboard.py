@@ -356,3 +356,49 @@ def test_over_control_breakdown_separates_defect_from_correct_behaviour():
     assert by_verdict["CORRECT BEHAVIOUR"]["count"] == 1
     # The headline still counts all three, so runs stay comparable.
     assert breakdown["controlled_total"] == 3
+
+
+# --- Dataset health (spec §58) ----------------------------------
+
+
+def test_dataset_health_counts_from_the_files_not_a_registry():
+    """A registry drifts from the data it describes. These numbers must
+    come from the JSON on disk."""
+    from controlplane.dashboard.dataset_health import build_dataset_health
+
+    health = build_dataset_health()
+    assert health["dataset_count"] > 10
+    by_name = {d["dataset"]: d for d in health["datasets"]}
+    # Counted, not transcribed: this file's real size.
+    assert by_name["baseline_vs_controlplane_cases"]["cases"] == 62
+    assert by_name["enterprise_injection_cases"]["cases"] == 80
+
+
+def test_a_dataset_without_a_held_out_split_is_flagged():
+    """The warning this project has actually been burned by twice."""
+    from controlplane.dashboard.dataset_health import build_dataset_health
+
+    by_name = {d["dataset"]: d for d in build_dataset_health()["datasets"]}
+    single = by_name["baseline_vs_controlplane_cases"]
+    assert any("no held-out split" in w for w in single["warnings"])
+
+    split = by_name["enterprise_injection_cases"]
+    assert not any("no held-out split" in w for w in split["warnings"])
+
+
+def test_split_leakage_is_detected():
+    """k-NN's 'model' IS its reference data, so an evaluation case
+    appearing in two splits makes the reported number meaningless."""
+    from controlplane.dashboard.dataset_health import _split_overlap
+
+    clean = [{"split": "train", "query": "a"}, {"split": "test", "query": "b"}]
+    leaking = [{"split": "train", "query": "a"}, {"split": "test", "query": "a"}]
+    assert _split_overlap(clean) == 0
+    assert _split_overlap(leaking) == 1
+
+
+def test_a_single_class_dataset_is_flagged_as_unable_to_measure_false_positives():
+    from controlplane.dashboard.dataset_health import _warnings
+
+    warnings = _warnings([{}] * 50, {"train": 40, "test": 10}, {"ONLY_ONE": 50}, 0)
+    assert any("single class" in w for w in warnings)

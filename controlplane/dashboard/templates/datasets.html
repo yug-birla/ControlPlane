@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Dataset Health{% endblock %}
+{% block content %}
+
+<h1 style="font-size:20px;margin-bottom:4px;">Dataset Health</h1>
+<p class="note">
+  Counted from the JSON files on disk at page load -- sizes, splits, label distributions and provenance
+  are read from the data itself, never transcribed from a registry that could drift from it.
+  Where a property cannot be determined from the file it is reported as unknown rather than assumed.
+</p>
+
+<div class="panel">
+  <h2>Summary</h2>
+  <table>
+    <tr><th>Datasets</th><td class="mono">{{ health.dataset_count }}</td>
+        <th>Total cases</th><td class="mono">{{ health.total_cases }}</td></tr>
+    <tr><th>With a held-out split</th><td class="mono">{{ health.with_held_out_split }} / {{ health.dataset_count }}</td>
+        <th>Flagged</th><td class="mono">{{ health.flagged }} / {{ health.dataset_count }}</td></tr>
+  </table>
+  <div class="why">
+    <strong>The warnings are the point of this page.</strong> A row with a healthy count and no warnings is
+    less informative than one saying "no held-out split". Two configurations this project measured won on a
+    tuning split and lost on the held-out set -- <code>k=31</code> in the injection experiment, and semantic
+    entailment in the reasoning experiment. Both were caught only because the splits were separate.
+    <br><br>
+    Splits are currently represented two different ways -- a <code>split</code> field inside the file, and
+    separate files (<code>reasoning_cases.json</code> / <code>reasoning_cases_dev.json</code>). This page
+    reports what each file contains, so a dataset whose counterpart lives in another file is shown as
+    single-split. That inconsistency is itself worth fixing, and is recorded rather than papered over.
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Datasets</h2>
+  <table>
+    <tr><th>Dataset</th><th>Cases</th><th>Splits</th><th>Label field</th>
+        <th>Provenance</th><th>Last benchmarked</th></tr>
+    {% for d in health.datasets %}
+    <tr>
+      <td>{{ d.dataset }}<br><span class="note mono">{{ d.path }}</span></td>
+      <td class="mono">{{ d.cases }}</td>
+      <td class="mono">{% for name, n in d.splits.items() %}{{ name }}={{ n }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+      <td class="mono">{{ d.label_field or '--' }}</td>
+      <td class="mono">{% for name, n in d.provenance.items() %}{{ name }}={{ n }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+      <td class="mono">
+        {% if d.last_benchmarked %}<span class="badge status-COMPLETED">measured</span><br>
+          <span class="note">{{ d.last_benchmarked }}</span>
+        {% else %}<span class="badge severity-MEDIUM_RISK">no result file</span>{% endif %}
+      </td>
+    </tr>
+    {% if d.warnings %}
+    <tr>
+      <td colspan="6" style="padding-top:0;">
+        {% for w in d.warnings %}
+        <div class="why" style="border-left-color:#e8c96a;margin:4px 0;">{{ w }}</div>
+        {% endfor %}
+      </td>
+    </tr>
+    {% endif %}
+    {% if d.labels %}
+    <tr><td colspan="6" class="note" style="padding-top:0;">
+      labels: {% for name, n in d.labels.items() %}<code>{{ name }}</code>={{ n }}{% if not loop.last %} &middot; {% endif %}{% endfor %}
+    </td></tr>
+    {% endif %}
+    {% endfor %}
+  </table>
+</div>
+
+{% if health.never_benchmarked %}
+<div class="panel">
+  <h2>Datasets with no result file</h2>
+  <p class="note">
+    These exist and are versioned, but no experiment result under <code>docs/EVALUATION/RESULTS/</code>
+    reports on them. A dataset that has never been measured supports no claim, however well built it is.
+  </p>
+  <p class="mono">{{ health.never_benchmarked|join(', ') }}</p>
+</div>
+{% endif %}
+
+{% endblock %}

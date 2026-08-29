@@ -15,6 +15,7 @@ from fastapi.requests import Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
+from controlplane.dashboard.dataset_health import build_dataset_health
 from controlplane.dashboard.evidence import build_evidence
 from controlplane.dashboard.queries import (
     aggregate_component_health,
@@ -83,6 +84,18 @@ def api_evidence() -> dict:
 @router.get("/evidence", response_class=HTMLResponse)
 def dashboard_evidence(request: Request) -> HTMLResponse:
     return _templates.TemplateResponse(request, "evidence.html", {"evidence": build_evidence()})
+
+
+@router.get("/api/datasets")
+def api_datasets() -> dict:
+    """Dataset inventory with split/label/provenance counted from the
+    files themselves (§58)."""
+    return build_dataset_health()
+
+
+@router.get("/datasets", response_class=HTMLResponse)
+def dashboard_datasets(request: Request) -> HTMLResponse:
+    return _templates.TemplateResponse(request, "datasets.html", {"health": build_dataset_health()})
 
 
 @router.get("/health-map", response_class=HTMLResponse)
