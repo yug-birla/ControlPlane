@@ -87,6 +87,24 @@ from controlplane.runtime import build_default_runtime
 from controlplane.state import ExecutionState
 
 _DATASET_PATH = Path("data/raw/generated/baseline_vs_controlplane_cases.json")
+
+# THE BASE MODEL IS PINNED, not inherited from the router's default role.
+#
+# Two reasons, both about validity rather than convenience:
+#
+# 1. COMPARABILITY. The 26-case run and every ablation condition were
+#    measured on Qwen2.5-1.5B. When Milestone 10 made STRONG resolve to
+#    Qwen3-4B, this benchmark silently began using a different base model,
+#    which would confound every comparison against those results.
+#
+# 2. FEASIBILITY. Qwen3-4B measures ~4s per output token on this CPU, so
+#    62 cases x 2 conditions would take ~20 hours. Qwen2.5-1.5B runs the
+#    same set in ~2.
+#
+# Both conditions use the SAME pinned model, which is what fairness
+# actually requires -- the comparison is ControlPlane vs no ControlPlane,
+# not one model vs another.
+BENCHMARK_MODEL_ROLE = "FAST"
 DATASET_ID = "baseline_vs_controlplane_cases"
 DATASET_VERSION = "v0.1"
 
@@ -218,7 +236,7 @@ def _score_answer(case: dict, answer: str | None, evidence: list[str]) -> dict:
 def _run_baseline(cases: list[dict]) -> list[dict]:
     """Raw model, no ControlPlane. The unmanaged path."""
     settings = get_settings()
-    provider = get_configured_provider(settings, role="STRONG")
+    provider = get_configured_provider(settings, role=BENCHMARK_MODEL_ROLE)
 
     rows = []
     for case in cases:
@@ -257,7 +275,23 @@ def _run_baseline(cases: list[dict]) -> list[dict]:
 
 def _run_controlplane(cases: list[dict]) -> list[dict]:
     """Full ControlPlane runtime, same model underneath."""
-    runtime = build_default_runtime()
+    # Pin the SAME base model the baseline uses. Without this the Model
+    # Router would escalate complex queries to Qwen3-4B while the baseline
+    # stayed on Qwen2.5-1.5B, and the comparison would silently become
+    # "bigger model vs smaller model" rather than "ControlPlane vs no
+    # ControlPlane" -- flattering, and measuring the wrong thing.
+    #
+    # This means model escalation is DISABLED for this experiment, which is
+    # a real limitation: any benefit escalation might provide is excluded
+    # from these numbers. Given the tier benchmark measured the larger
+    # model performing WORSE (0.800 vs 0.900), excluding it is not
+    # obviously costing ControlPlane anything, but it is stated rather
+    # than assumed.
+    runtime = build_default_runtime(
+        provider_factory=lambda settings, role=BENCHMARK_MODEL_ROLE: get_configured_provider(
+            settings, role=BENCHMARK_MODEL_ROLE
+        )
+    )
 
     rows = []
     for case in cases:
@@ -374,7 +408,7 @@ def main() -> None:
     print(f"Loaded {len(cases)} cases from {_DATASET_PATH}")
 
     settings = get_settings()
-    provider = get_configured_provider(settings, role="STRONG")
+    provider = get_configured_provider(settings, role=BENCHMARK_MODEL_ROLE)
     print(f"Model provider: {provider.name}\n")
 
     experiment_id = record_experiment(
