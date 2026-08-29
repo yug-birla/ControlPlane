@@ -44,11 +44,16 @@ from __future__ import annotations
 
 import re
 from functools import lru_cache
+from pathlib import Path
 
 from controlplane.judge.schema import JudgeResult, JudgeStatus
 
 MODEL_REPO = "prometheus-eval/prometheus-7b-v2.0"
 MODEL_REVISION = "66ffb1fc20beebfb60a3964a957d9011723116c5"
+
+# Offloaded layers live on E: alongside the models, never on the
+# near-full C: drive (see BLOCKERS.md B10 for why that matters here).
+_OFFLOAD_DIR = Path("E:/ControlPlane/data/models/offload/prometheus-7b-v2")
 
 
 class PrometheusJudgeError(Exception):
@@ -160,7 +165,20 @@ def parse_prometheus_output(raw: str) -> tuple[int | None, str]:
 class PrometheusJudge:
     name = "prometheus-7b-v2.0"
 
-    def __init__(self, max_new_tokens: int = 256) -> None:
+    def __init__(self, max_new_tokens: int = 256, offload: bool = True) -> None:
+        """``offload=True`` streams layers that do not fit in RAM from
+        disk via ``accelerate``.
+
+        This is what makes the model runnable at all on this machine
+        (~14.5GB bf16 vs 15.7GB total RAM). It is a real trade: a
+        forward pass must read the offloaded layers from disk every
+        token, so generation is dramatically slower than a resident
+        model. The project's stated position is that CPU latency is
+        acceptable and quality comes first, so slow-but-working is
+        preferred to not-running -- but the cost is large enough that it
+        bounds how many cases can be benchmarked, and that bound is
+        reported rather than worked around.
+        """
         try:
             import os
 
@@ -182,26 +200,41 @@ class PrometheusJudge:
         # "refuse if it will not fit" option, so this is that option.
         required_gb = _REQUIRED_RAM_GB
         available_gb = _available_ram_gb()
-        if available_gb is not None and available_gb < required_gb:
+        if not offload and available_gb is not None and available_gb < required_gb:
             raise PrometheusJudgeError(
-                f"refusing to load {MODEL_REPO}: needs ~{required_gb:.1f}GB resident "
+                f"refusing to load {MODEL_REPO} fully resident: needs ~{required_gb:.1f}GB "
                 f"(bf16) but only {available_gb:.1f}GB RAM is available. Loading anyway "
                 "does not fail fast -- it page-thrashes for tens of minutes and degrades "
-                "the whole machine (measured). See docs/PROJECT_STATE/BLOCKERS.md B12 "
-                "for the mitigation options."
+                "the whole machine (measured). Use offload=True, or see "
+                "docs/PROJECT_STATE/BLOCKERS.md B12."
             )
+
+        load_kwargs: dict = {
+            "revision": MODEL_REVISION,
+            "local_files_only": True,
+            "dtype": torch.bfloat16,
+            "low_cpu_mem_usage": True,
+        }
+        if offload:
+            # Cap resident weights well below available RAM and stream the
+            # remainder from disk. accelerate manages the paging itself
+            # rather than leaving it to the OS page file, which is what
+            # thrashed. The offload folder lives on E: with the models,
+            # never on the near-full C:.
+            budget_gb = max(4, int((available_gb or 8) - 2))
+            load_kwargs.update(
+                device_map="auto",
+                max_memory={"cpu": f"{budget_gb}GiB"},
+                offload_folder=str(_OFFLOAD_DIR),
+                offload_state_dict=True,
+            )
+            _OFFLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
         try:
             self._tokenizer = AutoTokenizer.from_pretrained(
                 MODEL_REPO, revision=MODEL_REVISION, local_files_only=True
             )
-            self._model = AutoModelForCausalLM.from_pretrained(
-                MODEL_REPO,
-                revision=MODEL_REVISION,
-                local_files_only=True,
-                dtype=torch.bfloat16,
-                low_cpu_mem_usage=True,
-            )
+            self._model = AutoModelForCausalLM.from_pretrained(MODEL_REPO, **load_kwargs)
         except Exception as exc:
             raise PrometheusJudgeError(
                 f"{MODEL_REPO}@{MODEL_REVISION} could not be loaded. On this machine the "
