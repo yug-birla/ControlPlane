@@ -2,6 +2,87 @@
 
 Reverse-chronological. Each entry: what happened, evidence.
 
+## 2026-08-30 — Milestone 16: Four Metrics That Measured Nothing
+
+A single theme runs through this milestone, and it was not planned. Every P0 I opened turned out to have a component that *existed, was wired, was tested, and reported a number that was structurally always wrong.* None of them failed. None broke a test. Each was found by reading recorded output and asking whether the value could be right.
+
+### §7 — Latency: the decomposition was impossible to produce
+
+**Defect.** Every component reported `latency_ms_p50: null` in the component-health view. Trajectory steps are written after the work finishes, in one call, so `completed_at` was set in Python moments before flush while `started_at` came from a column default evaluated *at* flush. 298 of 400 sampled steps had non-positive elapsed time; one recorded a completion **1ms before its own start**.
+
+**Fix.** `append_step` now takes a `duration_ms` measured by the caller with a monotonic clock and back-dates `started_at`. Wired into query profiling, risk, routing, evaluation and capability nodes — the last of which `GraphExecutor` was **already measuring correctly**; the number simply never reached the trajectory.
+
+**What it then showed** (4 sequential requests, one process, scripted provider so model time is excluded):
+
+| phase | run1 (cold) | run2 | run3 | run4 |
+|---|---:|---:|---:|---:|
+| query_profiling | 42,641 | 47 | 281 | 63 |
+| route:data_rag | 1,750 | 1,718 | 1,422 | 437 |
+| evaluation | 1,141 | 63 | 47 | 47 |
+| **TOTAL** | **45,781** | **1,907** | **1,796** | **578** |
+
+The 42.6s is one-time model loading, not per-request cost. **ControlPlane's own warm overhead is ~1.8s.** So the 2.1× latency is not governance overhead.
+
+**Where it actually comes from** (419 recorded real-model invocations):
+
+- mean model calls per request: **1.07** (367 with one call, 26 with two)
+- correlation(input_tokens, latency) = **0.559**; correlation(output_tokens, latency) = 0.152
+
+| input tokens | n | p50 latency |
+|---|---:|---:|
+| 0–249 | 48 | 29,281 ms |
+| 250–499 | 120 | 43,125 ms |
+| 750–999 | 24 | 103,217 ms |
+| 1000–1249 | 14 | 139,280 ms |
+
+ControlPlane is not making extra model calls. It is making the **single** call much more expensive by putting retrieved evidence in the prompt; CPU prefill scales with input length. Added `prompt_evidence_k`, which caps what the **model** sees while adequacy and grounding still judge the **full** retrieved set — two consumers with genuinely different needs. Default unchanged pending an end-to-end measurement.
+
+### §8 — Over-control: the metric was measuring three different things
+
+Reading all 14 controlled benign cases showed `0.304` is not one behaviour:
+
+| behaviour | rate | verdict |
+|---|---:|---|
+| withheld a **correct** answer | 6/46 = 0.130 | the actual defect |
+| asked for clarification, no answer | 5/46 = 0.109 | conservative |
+| controlled a **wrong** answer | 3/46 = 0.065 | **ControlPlane working** |
+
+The headline simultaneously **overstated the defect by 2.3×** and **charged the system for doing its job**. Recorded rather than corrected: the headline metric is unchanged so runs stay comparable, three new metrics decompose it, and the dashboard labels each bucket DEFECT / CONSERVATIVE / CORRECT.
+
+**Root cause of the largest contributor.** `factuality` fired on 8 of the 14. One mechanism, not eight bugs: every number in the answer was treated as a claim needing evidential support, so the "unsupported" number was usually **the one the user put in their own question**. BVC-060 answered *"$12,000 falls in the $5,001–$25,000 band, director approval"* — correctly — and was flagged because 12,000 appears in no document.
+
+A number has **provenance**: evidence, the question, or arithmetic over those. Measured on 24 cases, dev/test split:
+
+| | A current | B query-exempt | C +derived |
+|---|---:|---:|---:|
+| control accuracy | 0.667 | **0.917** | 0.917 |
+| over-controlled (of 12) | 4 | **1** | 0 |
+| missed fabrications | 0 | **0** | **1** |
+
+**Adopted B. Rejected C** — allowing derived numbers removed the last false alarm but let a real fabrication through (10 years retention where evidence says 7, since 10 = 5+5 from two unrelated figures). One fewer false alarm is not worth one missed fabrication in a safety evaluator.
+
+### §20/§21 — MCP: real access path, dead observability
+
+MCP is **not** a parallel unused implementation — SQL and RAG both execute through it. §20 satisfied. §21 was not:
+
+1. **RAG `evidence_count` was always 0.** The adapter read `output["chunks"]`, a key no capability here has ever produced; `RAGCapability` returns `"evidence"`. 157 recorded steps carried five passages each and reported zero.
+2. **RAG `permissions_used` was always empty** — the descriptor declared no permission while SQL declared `read:enterprise_db`. Permission lineage was blank for the most-used capability in the system.
+3. **No MCP events existed.** 3000 consecutive events contained zero MCP entries.
+
+All three fixed and verified on a real request. Added `CAPABILITY_INVOKED_VIA_MCP`, emitted on success and failure.
+
+### The counter-example worth recording
+
+Making the MCP change I broke the agent path — `_execute_agent_node` had no `ctx` in scope and I referenced it anyway. **Two control-loop tests failed immediately and named the cause.** That is the contrast: paths with behavioural tests fail loudly; fields with only a schema stayed silently wrong for months. The four defects above were all in the second category.
+
+### Also this milestone
+
+- **Evidence dashboard (§59)** at `/dashboard/evidence`, verified live on `127.0.0.1:8010`. Shows baseline vs ControlPlane, per-category outcomes, component attribution for the over-control, ablations, and the six-configuration injection experiment with rejected rows visible. A test asserts regressions render as prominently as wins.
+- **Reasoning evaluator (§30)**, partial: 24-case dev split, clause splitting, deterministic numeric-consistency layer. Held-out test macro-F1 0.550 → 0.582, precision 0.500 → **1.000**. Entailment conditions blocked on RAM.
+- **Data (§28/§29)**: 20 multi-source/conflict cases including two false-positive guards and two requiring abstention; 24 factuality cases; 80 in-domain injection cases.
+
+462 tests passing.
+
 ## 2026-08-29 — Milestone 15: Injection Detector Domain Shift (a fix that took six attempts)
 
 **Where this came from.** The 62-case baseline-vs-ControlPlane benchmark measured ControlPlane over-controlling **30.4% of benign factual queries** — the main cost against an otherwise decisive win (key-fact accuracy 0.065 → 0.826, hallucination 0.304 → 0.043). Reading `flagged_evaluators` per case attributed 2 of those 14 over-controls to one reproducible defect: the k-NN injection detector classifying legitimate enterprise finance queries (BVC-060, BVC-062) as attacks, pushing **correct** answers to `HUMAN_REVIEW`/`REJECTED`.
