@@ -511,3 +511,94 @@ def build_execution_map(detail: dict) -> dict:
         "failed_nodes": [n["id"] for n in nodes if n["status"] == "FAILED"],
         "agent_count": sum(1 for n in nodes if n["kind"] == "agent"),
     }
+
+
+def aggregate_component_health(limit: int = 200) -> dict:
+    """System-wide component health (Milestone 12, spec section 56).
+
+    Answers "which component is failing across the system?", as distinct
+    from the per-request question the diagnostics panel already answers.
+
+    Built with THREE queries regardless of how many requests are scanned
+    -- the dashboard must not reintroduce the N+1 pattern that was fixed
+    in Milestone 5 (a routine test run took 101 seconds because the list
+    view issued two extra queries per row).
+    """
+    from collections import defaultdict
+
+    with session_scope() as session:
+        requests = session.execute(
+            select(RequestRecord).order_by(RequestRecord.created_at.desc()).limit(limit)
+        ).scalars().all()
+        request_ids = [r.id for r in requests]
+        if not request_ids:
+            return {"components": [], "sample_count": 0}
+
+        trajectories = session.execute(
+            select(TrajectoryRecord).where(TrajectoryRecord.request_id.in_(request_ids))
+        ).scalars().all()
+        trajectory_ids = [t.id for t in trajectories]
+
+        steps = session.execute(
+            select(TrajectoryStepRecord)
+            .where(TrajectoryStepRecord.trajectory_id.in_(trajectory_ids))
+        ).scalars().all() if trajectory_ids else []
+
+    # A trajectory step's type is the component that produced it. Route
+    # steps carry the node id, which is the capability that ran.
+    totals: dict[str, dict] = defaultdict(lambda: {"total": 0, "failed": 0, "latencies": []})
+    for step in steps:
+        component = step.step_type or "unknown"
+        if component.startswith("route:"):
+            component = f"capability:{component.split(':', 1)[1]}"
+        elif component.startswith("decision:"):
+            component = "decision"
+        bucket = totals[component]
+        bucket["total"] += 1
+        if step.status == "FAILED":
+            bucket["failed"] += 1
+        if step.started_at and step.completed_at:
+            elapsed_ms = (step.completed_at - step.started_at).total_seconds() * 1000
+            # Only count a POSITIVE elapsed time. Trajectory steps are
+            # frequently written once, after the work completes, so
+            # started_at == completed_at and the "latency" is 0.0 -- an
+            # artefact of when the row was written, not a measurement.
+            # Averaging those produced a confident p50 of 0.0ms across
+            # every component, which is a fabricated metric. Real
+            # per-node latency lives on the execution graph snapshot and
+            # is shown in the execution map.
+            if elapsed_ms > 0:
+                bucket["latencies"].append(elapsed_ms)
+
+    components = []
+    for name, bucket in sorted(totals.items()):
+        latencies = sorted(bucket["latencies"])
+        total = bucket["total"]
+        failed = bucket["failed"]
+        components.append({
+            "component": name,
+            "executions": total,
+            "failures": failed,
+            "failure_rate": round(failed / total, 4) if total else 0.0,
+            # Reported only when there is something to report: an
+            # invented p95 over 2 samples is worse than none.
+            "latency_ms_p50": round(latencies[len(latencies) // 2], 1) if latencies else None,
+            "latency_ms_p95": (
+                round(latencies[int(len(latencies) * 0.95)], 1)
+                if len(latencies) >= 20 else None
+            ),
+            "status": "FAILED" if failed and failed == total
+                      else ("DEGRADED" if failed else "AVAILABLE"),
+        })
+
+    return {
+        "components": components,
+        "sample_count": len(request_ids),
+        "note": "Latency here counts only steps with a positive measured "
+                "elapsed time; many trajectory steps are written once at "
+                "completion, so their elapsed time is an artefact of write "
+                "timing rather than a measurement, and are excluded rather "
+                "than averaged into a confident 0.0ms. p95 needs >=20 "
+                "samples. None means not measured, never zero. Real "
+                "per-node latency is on the execution map.",
+    }

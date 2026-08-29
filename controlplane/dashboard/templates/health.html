@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Component Health -- ControlPlane{% endblock %}
+{% block content %}
+<h1>Component Health</h1>
+<p class="muted">
+  Which component is failing <em>across requests</em> &mdash; the system-level
+  counterpart to the per-request diagnostics panel.
+  Scanned the {{ health.sample_count }} most recent request(s).
+</p>
+<p class="muted"><small>{{ health.note }}</small></p>
+
+{% if health.components %}
+<table>
+  <tr><th>Component</th><th>Executions</th><th>Failures</th><th>Failure rate</th>
+      <th>p50 latency</th><th>p95 latency</th><th>Status</th></tr>
+  {% for c in health.components %}
+  <tr>
+    <td><code>{{ c.component }}</code></td>
+    <td>{{ c.executions }}</td>
+    <td>{{ c.failures }}</td>
+    <td>{{ '%.1f%%'|format(c.failure_rate * 100) }}</td>
+    <td>{% if c.latency_ms_p50 is not none %}{{ c.latency_ms_p50 }}ms{% else %}<span class="muted">not measured</span>{% endif %}</td>
+    <td>{% if c.latency_ms_p95 is not none %}{{ c.latency_ms_p95 }}ms{% else %}<span class="muted">not measured</span>{% endif %}</td>
+    <td class="{{ 'failed' if c.status == 'FAILED' else ('blocked' if c.status == 'DEGRADED' else 'ok') }}">{{ c.status }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p class="muted">No executions recorded yet.</p>
+{% endif %}
+{% endblock %}

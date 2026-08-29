@@ -16,6 +16,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from controlplane.dashboard.queries import (
+    aggregate_component_health,
     aggregate_stats,
     build_execution_map,
     get_request_detail,
@@ -62,3 +63,17 @@ def api_request_detail(request_id: str) -> dict:
 @router.get("/api/stats")
 def api_stats() -> dict:
     return aggregate_stats()
+
+
+@router.get("/api/component-health")
+def api_component_health() -> dict:
+    """System-wide component health: which component is failing across
+    requests, as distinct from the per-request diagnostics panel."""
+    return aggregate_component_health()
+
+
+@router.get("/health-map", response_class=HTMLResponse)
+def dashboard_component_health(request: Request) -> HTMLResponse:
+    return _templates.TemplateResponse(
+        request, "health.html", {"health": aggregate_component_health()}
+    )

@@ -233,3 +233,38 @@ def test_execution_map_adds_no_database_queries():
     # Passing a plain dict proves it never touches the session.
     m = build_execution_map(detail)
     assert m["nodes"]
+
+
+# --- System-wide component health (Milestone 12) ---
+
+def test_component_health_view_and_api_render():
+    client = TestClient(app)
+    assert client.get("/dashboard/health-map").status_code == 200
+    payload = client.get("/dashboard/api/component-health").json()
+    assert "components" in payload and "sample_count" in payload
+
+
+def test_component_health_never_reports_a_fabricated_zero_latency():
+    """Trajectory steps are frequently written once at completion, so
+    started_at == completed_at and the elapsed time is an artefact of
+    write timing. Averaging those produced a confident p50 of 0.0ms for
+    EVERY component -- a fabricated metric. Not-measured must read as
+    None, never as zero."""
+    from controlplane.dashboard.queries import aggregate_component_health
+
+    health = aggregate_component_health()
+    for component in health["components"]:
+        for key in ("latency_ms_p50", "latency_ms_p95"):
+            value = component[key]
+            assert value is None or value > 0, (
+                f"{component['component']}.{key} reported {value!r}; "
+                "zero latency must be None (not measured), not 0.0"
+            )
+
+
+def test_component_health_p95_requires_enough_samples():
+    from controlplane.dashboard.queries import aggregate_component_health
+
+    for component in aggregate_component_health()["components"]:
+        if component["executions"] < 20:
+            assert component["latency_ms_p95"] is None
