@@ -10,7 +10,7 @@ controlplane/db/models.py).
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from sqlalchemy import func, select
 
@@ -83,7 +83,27 @@ class TrajectoryStore:
         output_ref: dict | None = None,
         actor_type: str = "SYSTEM",
         completed: bool = False,
+        duration_ms: float | None = None,
     ) -> str:
+        """``duration_ms`` is how long the component ACTUALLY took,
+        measured by the caller with a monotonic clock.
+
+        WHY THIS PARAMETER EXISTS. Steps are recorded after the work
+        finishes, in one call. ``started_at`` therefore defaulted to
+        flush time while ``completed_at`` was set moments earlier in
+        Python -- so every span came out as zero or, in 298 of 400
+        sampled steps, NEGATIVE (one step recorded a completion 1ms
+        before its own start). The consequence was silent: every
+        component reported ``latency_ms_p50: null`` in the health view,
+        and the latency field the diagnostics spec requires was never
+        actually populated. The view looked fine; it was measuring
+        nothing.
+
+        A duration cannot be reconstructed after the fact, so the caller
+        has to supply it. ``started_at`` is then back-dated from the real
+        completion time by the real measured duration, which keeps the
+        schema unchanged and makes ``completed_at - started_at`` mean
+        what every reader already assumes it means."""
         with session_scope() as session:
             next_seq = session.execute(
                 select(func.coalesce(func.max(TrajectoryStepRecord.sequence_number), 0)).where(
@@ -102,7 +122,16 @@ class TrajectoryStore:
                 output_ref=output_ref or {},
             )
             if completed:
-                step.completed_at = _utcnow()
+                finished = _utcnow()
+                step.completed_at = finished
+                if duration_ms is not None:
+                    step.started_at = finished - timedelta(milliseconds=max(duration_ms, 0.0))
+                else:
+                    # No measurement supplied: record a zero-width span
+                    # explicitly rather than letting the column default
+                    # produce a negative one. An unmeasured component
+                    # must look unmeasured, not fast.
+                    step.started_at = finished
             session.add(step)
             return step_id
 

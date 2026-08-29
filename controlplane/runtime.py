@@ -33,6 +33,8 @@ See controlplane/governance/shadow_mode.py.
 
 from __future__ import annotations
 
+import time
+from contextlib import contextmanager
 from datetime import datetime, timezone
 
 from controlplane.capabilities.agent_capability import AgentCapability
@@ -128,6 +130,28 @@ def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
 
+
+@contextmanager
+def _phase(sink: list):
+    """Measures one ControlPlane phase and appends its duration in ms.
+
+    Used to populate the per-component latency the diagnostics spec
+    requires. Before this, ``started_at`` came from a column default at
+    flush time while ``completed_at`` was set moments earlier in Python,
+    so every recorded span was zero or negative and the component health
+    view reported a null p50 for every single component -- a metric that
+    looked present and measured nothing.
+
+    ``time.monotonic`` rather than wall clock: this is a duration, and
+    must not be distorted by a clock adjustment mid-request.
+    """
+    started = time.monotonic()
+    try:
+        yield
+    finally:
+        sink.append((time.monotonic() - started) * 1000)
+
+
 class Runtime:
     def __init__(
         self,
@@ -153,7 +177,9 @@ class Runtime:
         replanner=None,
         mcp_client=None,
         shadow_mode: bool = False,
+        prompt_evidence_k: int | None = None,
     ) -> None:
+        self._prompt_evidence_k = prompt_evidence_k
         self._trajectory_store = trajectory_store
         self._ledger = ledger
         self._events = event_transport
@@ -337,8 +363,10 @@ class Runtime:
         from controlplane.db.models import QueryProfileRecord
         from controlplane.models.embedding_provider import EmbeddingProviderError
 
+        elapsed: list[float] = []
         try:
-            fingerprint = self._query_profiler.profile(query)
+            with _phase(elapsed):
+                fingerprint = self._query_profiler.profile(query)
         except EmbeddingProviderError as exc:
             # Offline-first (bootstrap SS14): if the local model isn't
             # cached, fail clearly rather than silently falling back to a
@@ -371,6 +399,7 @@ class Runtime:
             status="COMPLETED",
             output_ref={"query_profile_id": profile_id, "intent": fingerprint.intent.value, "complexity": fingerprint.complexity.value},
             completed=True,
+            duration_ms=elapsed[0] if elapsed else None,
         )
         self._publish(
             EventType.QUERY_PROFILED,
@@ -384,7 +413,9 @@ class Runtime:
             },
         )
 
-        risk = self._risk_profiler.profile(query, fingerprint)
+        risk_elapsed: list[float] = []
+        with _phase(risk_elapsed):
+            risk = self._risk_profiler.profile(query, fingerprint)
         with session_scope() as session:
             record = session.get(QueryProfileRecord, profile_id)
             record.risk_vector = risk.model_dump(mode="json")
@@ -393,6 +424,7 @@ class Runtime:
             trajectory_id=ctx.trajectory_id,
             step_type="risk_assessment",
             status="COMPLETED",
+            duration_ms=risk_elapsed[0] if risk_elapsed else None,
             output_ref={"severity": risk.severity.value, "recommended_control_depth": risk.recommended_control_depth.value},
             completed=True,
         )
@@ -420,8 +452,10 @@ class Runtime:
     ) -> tuple[CapabilityRoute, ModelRouteDecision, str]:
         from controlplane.db.engine import session_scope
 
-        capability_route = self._capability_router.route(fingerprint, risk, policy_decision)
-        model_decision = self._model_router.decide(fingerprint, risk, policy_decision)
+        route_elapsed: list[float] = []
+        with _phase(route_elapsed):
+            capability_route = self._capability_router.route(fingerprint, risk, policy_decision)
+            model_decision = self._model_router.decide(fingerprint, risk, policy_decision)
 
         route_record_id = new_id("route")
         with session_scope() as session:
@@ -451,6 +485,7 @@ class Runtime:
             trajectory_id=ctx.trajectory_id,
             step_type="routing",
             status="COMPLETED",
+            duration_ms=route_elapsed[0] if route_elapsed else None,
             output_ref={
                 "selected_capabilities": capability_route.selected_capabilities,
                 "restricted_removed": capability_route.restricted_removed,
@@ -692,6 +727,11 @@ class Runtime:
                 input_ref={"capability": node.capability, "depends_on": list(node.depends_on)},
                 output_ref=node.output_ref if node.status != NodeStatus.FAILED else {"error": node.error},
                 completed=True,
+                # GraphExecutor already measures this node with a
+                # monotonic clock; the number simply never reached the
+                # trajectory, which is why every capability reported a
+                # null p50 in the component health view.
+                duration_ms=node.latency_ms,
             )
             self._publish(
                 EventType.ROUTE_COMPLETED,
@@ -980,7 +1020,9 @@ class Runtime:
             rag_adequacy=rag_adequacy, agent_governance_action=agent_governance_action,
             fingerprint=fingerprint, risk=risk,
         )
-        results = self._evaluation_suite.run(eval_ctx)
+        eval_elapsed: list[float] = []
+        with _phase(eval_elapsed):
+            results = self._evaluation_suite.run(eval_ctx)
 
         with session_scope() as session:
             for r in results:
@@ -1001,6 +1043,7 @@ class Runtime:
             trajectory_id=ctx.trajectory_id,
             step_type="evaluation",
             status="COMPLETED",
+            duration_ms=eval_elapsed[0] if eval_elapsed else None,
             output_ref={
                 "evaluators": [r.evaluator for r in results],
                 "implemented": [r.evaluator for r in results if r.status.value == "IMPLEMENTED"],
@@ -1137,7 +1180,7 @@ class Runtime:
                         rag_node = next((n for n in capability_route.graph.nodes if _effective_capability(n) == "RAG"), None)
                         if rag_node is not None:
                             rag_node.output_ref = self._rag_capability.execute(query, k=spec.new_rag_k)
-                prompt = self._build_generation_prompt(query, capability_route.graph)
+                prompt = self._build_generation_prompt(query, capability_route.graph, self._prompt_evidence_k)
                 if compute_decision is not None and compute_decision.action is ComputeAction.SELF_REFINE:
                     # A bounded corrective pass. The feedback is the
                     # INDEPENDENT evaluator's finding, not the model's own
@@ -1312,7 +1355,7 @@ class Runtime:
         self, ctx: RequestContext, settings: Settings, query: str, role: str, captured: dict, graph: ExecutionGraph
     ):
         def handler(node) -> dict:
-            prompt = self._build_generation_prompt(query, graph)
+            prompt = self._build_generation_prompt(query, graph, self._prompt_evidence_k)
             try:
                 result = self._invoke_model(ctx, settings, prompt, role=role)
             except ControlPlaneError as exc:
@@ -1333,8 +1376,31 @@ class Runtime:
         return handler
 
     @staticmethod
-    def _build_generation_prompt(query: str, graph: ExecutionGraph) -> str:
-        """Milestone 5 fix (found during that milestone's mandatory
+    def _build_generation_prompt(query: str, graph: ExecutionGraph,
+                                 prompt_evidence_k: int | None = None) -> str:
+        """``prompt_evidence_k`` caps how many retrieved chunks reach the
+        MODEL, without changing how many are retrieved, assessed for
+        adequacy, or evaluated for grounding.
+
+        WHY THE TWO NUMBERS ARE SEPARATE. Measured on 212 real
+        invocations of the benchmark model, latency scales with INPUT
+        tokens (correlation 0.559) far more than with output tokens
+        (0.152): p50 rises from 29.3s at under 250 input tokens to
+        139.3s above 1000. Retrieval currently puts all 5 reranked
+        chunks in the prompt, and the reranker's measured recall@1 is
+        1.000 -- the answer-bearing chunk is already first. Chunks 3-5
+        are therefore paid for in prefill on every request.
+
+        Evidence serves two different consumers with different needs:
+        the MODEL needs enough context to answer, while ADEQUACY and
+        GROUNDING need the full retrieved set to judge whether the
+        corpus really covers the question. Capping only the prompt keeps
+        the governance signal intact.
+
+        Default stays None (all chunks, unchanged behaviour) until the
+        trade is measured end-to-end.
+
+        Milestone 5 fix (found during that milestone's mandatory
         architecture audit -- CRITICAL severity): through Milestone 4,
         the "generation" node called ``provider.generate(prompt=query)``
         with the raw query only, completely ignoring any SQL/RAG evidence
@@ -1350,7 +1416,12 @@ class Runtime:
         context_blocks: list[str] = []
         for n in graph.nodes:
             if _effective_capability(n) == "RAG" and n.status == NodeStatus.COMPLETED:
-                for item in n.output_ref.get("evidence", []):
+                evidence = n.output_ref.get("evidence", [])
+                if prompt_evidence_k is not None:
+                    # Already ordered by the cross-encoder, so this keeps
+                    # the most relevant chunks and drops the tail.
+                    evidence = evidence[:prompt_evidence_k]
+                for item in evidence:
                     context_blocks.append(f"[{item['document']}]: {item['text']}")
             if _effective_capability(n) == "SQL" and n.status == NodeStatus.COMPLETED:
                 rows = n.output_ref.get("rows", [])
@@ -1563,6 +1634,7 @@ def build_default_runtime(
     evaluation_suite=None,
     rag_capability=None,
     shadow_mode: bool = False,
+    prompt_evidence_k: int | None = None,
 ) -> Runtime:
     trajectory_store = TrajectoryStore()
     ledger = ExecutionLedger()
@@ -1581,4 +1653,5 @@ def build_default_runtime(
         evaluation_suite=evaluation_suite,
         rag_capability=rag_capability,
         shadow_mode=shadow_mode,
+        prompt_evidence_k=prompt_evidence_k,
     )
