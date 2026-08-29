@@ -57,6 +57,11 @@ from controlplane.intervention.engine import InterventionEngine, InterventionSpe
 from controlplane.events.store import EventStore
 from controlplane.events.transport import EventTransport, InProcessEventTransport
 from controlplane.execution.executor import GraphExecutor
+from controlplane.governance.multi_agent import (
+    CompositionGovernor,
+    CompositionRisk,
+    steps_from_agent_results,
+)
 from controlplane.governance.shadow_mode import verdict_for as shadow_mode_verdict_for
 from controlplane.execution.graph import ExecutionGraph, ExecutionNode, NodeStatus
 from controlplane.ledger.ledger import ConsequenceClass, ExecutionLedger
@@ -139,6 +144,11 @@ class Runtime:
         self._trust_engine = trust_engine or TrustEngine()
         # Dynamic replanning (Milestone 10): proposes real graph changes.
         self._replanner = replanner or Replanner()
+        # Multi-agent composition governance (Milestone 10): evaluates the
+        # agent CHAIN, which per-step AgentGate decisions structurally
+        # cannot see. See controlplane/governance/multi_agent.py.
+        self._composition_governor = CompositionGovernor()
+        self._composition_assessment = None
         # Shadow Mode (Milestone 9): observe and record, never enforce.
         # See controlplane/governance/shadow_mode.py for what is and is
         # not suppressed.
@@ -625,9 +635,53 @@ class Runtime:
             if node.capability == "AGENT" and node.status == NodeStatus.COMPLETED:
                 self._record_agent_action(ctx, node.output_ref)
 
+        self._govern_agent_composition(ctx, capability_route.graph)
+
         if "generation" in graph_result.failed:
             raise captured["error"]
         return captured["result"]
+
+    def _govern_agent_composition(self, ctx: RequestContext, graph: ExecutionGraph) -> None:
+        """Evaluate the COMPOSED agent chain, not just individual steps.
+
+        Milestone 10: ``AgentGate`` evaluates one proposed step against
+        its own risk and structurally cannot see a chain that is
+        individually safe but collectively unsafe (agent A reads
+        confidential data -> ALLOW; agent B sends externally -> ALLOW;
+        together, an exfiltration path). This runs over every completed
+        AGENT node so that composition is actually governed at runtime
+        rather than only in a standalone module -- the same criticism
+        Milestone 7 made of AgentGate itself.
+
+        A one-agent chain is evaluated too; it simply comes back NONE.
+        """
+        agent_results = [
+            (node.node_id, node.output_ref)
+            for node in graph.nodes
+            if node.capability == "AGENT"
+            and node.status == NodeStatus.COMPLETED
+            and node.output_ref
+        ]
+        if not agent_results:
+            return
+
+        steps = steps_from_agent_results(agent_results)
+        assessment = self._composition_governor.evaluate(steps)
+        self._composition_assessment = assessment
+
+        if assessment.risk is not CompositionRisk.NONE:
+            self._publish(
+                EventType.AGENT_ACTION_GOVERNED, ctx, source="controlplane",
+                severity=Severity.HIGH if assessment.risk is CompositionRisk.CRITICAL else Severity.WARNING,
+                payload={
+                    "scope": "COMPOSITION",
+                    "risk": assessment.risk.value,
+                    "reason": assessment.reason,
+                    "recommended_action": assessment.recommended_action,
+                    "agent_chain": assessment.agent_chain,
+                    "sensitive_data_reached_external": assessment.sensitive_data_reached_external,
+                },
+            )
 
     def _record_agent_action(self, ctx: RequestContext, agent_result: dict) -> None:
         """Real audit trail for a governed tool proposal (bootstrap:

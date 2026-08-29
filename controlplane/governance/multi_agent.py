@@ -160,6 +160,71 @@ class CompositionAssessment:
 
 _SENSITIVE = {DataSensitivity.CONFIDENTIAL, DataSensitivity.RESTRICTED}
 
+# How a tool's real recorded output maps onto the composition-relevant
+# properties. Kept here (testable, documented) rather than buried in the
+# runtime, because these classifications are governance judgements:
+# getting "does this tool reach outside the organization?" wrong is the
+# difference between catching an exfiltration path and missing it.
+_TOOL_DESTINATION = {
+    "send_notification": DestinationClass.EXTERNAL,
+    "write_report": DestinationClass.INTERNAL,
+    "sql_read_query": DestinationClass.NONE,
+    "destructive_operation": DestinationClass.NONE,
+    "no_actionable_tool": DestinationClass.NONE,
+}
+
+# Reading the enterprise database returns real business records; the
+# other tools do not themselves source sensitive data.
+_TOOL_DATA_SENSITIVITY = {
+    "sql_read_query": DataSensitivity.CONFIDENTIAL,
+}
+
+_TOOL_ROLE = {
+    "sql_read_query": AgentRole.RETRIEVER,
+    "write_report": AgentRole.ANALYST,
+    "send_notification": AgentRole.NOTIFIER,
+}
+
+
+def steps_from_agent_results(
+    agent_results: list[tuple[str, dict]],
+) -> list[AgentStep]:
+    """Build a composition chain from the AGENT nodes' own recorded output.
+
+    ``agent_results`` is ``[(node_id, agent_capability_output), ...]`` in
+    execution order. Every field consumed here is already produced by
+    ``controlplane.capabilities.agent_capability.AgentCapability`` -- this
+    reads existing data rather than requiring agents to report anything new.
+    """
+    steps: list[AgentStep] = []
+    for index, (node_id, result) in enumerate(agent_results):
+        tool = result.get("proposed_tool", "unknown")
+        identity = AgentIdentity(
+            agent_id=node_id,
+            role=_TOOL_ROLE.get(tool, AgentRole.ANALYST),
+            # Execution order is the lineage: in a single-graph chain each
+            # agent follows the previous one. A richer spawn-tree would
+            # come from real agent-to-agent handoff, which this runtime
+            # does not yet produce.
+            parent_agent=agent_results[index - 1][0] if index > 0 else None,
+            permissions=frozenset(
+                {"read:enterprise_db"} if tool == "sql_read_query"
+                else {"execute:tools"} if tool != "no_actionable_tool"
+                else set()
+            ),
+        )
+        steps.append(
+            AgentStep(
+                agent=identity,
+                tool=tool,
+                governance_action=result.get("governance_action", "UNKNOWN"),
+                data_sensitivity=_TOOL_DATA_SENSITIVITY.get(tool, DataSensitivity.PUBLIC),
+                destination=_TOOL_DESTINATION.get(tool, DestinationClass.NONE),
+                executed=result.get("execution_status") == "EXECUTED",
+            )
+        )
+    return steps
+
 
 class CompositionGovernor:
     """Evaluates a COMPOSED agent trajectory, not individual steps."""
