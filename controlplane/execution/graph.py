@@ -51,6 +51,22 @@ class ExecutionNode:
     the executor should invoke. Kept as ``str`` here so the graph module
     has no dependency on the query_intelligence enum."""
     depends_on: tuple[str, ...] = ()
+    requires_all_dependencies: bool = True
+    """When False, this node becomes ready once every dependency has
+    RESOLVED (completed, failed, skipped or blocked) and AT LEAST ONE
+    completed.
+
+    This is graceful degradation for fan-in nodes: a ``merge`` that
+    demands all of its evidence sources succeed will block generation
+    entirely because one capability failed, even when another returned
+    perfectly good evidence. Milestone 11 hit exactly that -- RAG
+    succeeded, SQL failed, and the whole request died rather than
+    answering from the evidence it did have.
+
+    Deliberately opt-in per node rather than a global executor rule: a
+    node that genuinely needs every input (a comparison across two
+    sources, say) must still block, and silently relaxing that for
+    everything would turn a correctness requirement into a race."""
     status: NodeStatus = NodeStatus.PENDING
     input_ref: dict = field(default_factory=dict)
     output_ref: dict = field(default_factory=dict)
@@ -126,8 +142,19 @@ class ExecutionGraph:
             if node.status != NodeStatus.PENDING:
                 continue
             deps = [self._nodes[d] for d in node.depends_on]
-            if all(d.status == NodeStatus.COMPLETED for d in deps):
-                ready.append(node)
+            if node.requires_all_dependencies:
+                if all(d.status == NodeStatus.COMPLETED for d in deps):
+                    ready.append(node)
+            else:
+                # Partial-evidence node: ready once nothing is still in
+                # flight and at least one dependency produced something.
+                resolved = all(
+                    d.status in (NodeStatus.COMPLETED, NodeStatus.FAILED,
+                                 NodeStatus.SKIPPED, NodeStatus.BLOCKED)
+                    for d in deps
+                )
+                if resolved and any(d.status == NodeStatus.COMPLETED for d in deps):
+                    ready.append(node)
         return ready
 
     def blocked_nodes(self) -> list[ExecutionNode]:
@@ -140,7 +167,16 @@ class ExecutionGraph:
             if node.status != NodeStatus.PENDING:
                 continue
             deps = [self._nodes[d] for d in node.depends_on]
-            if any(d.status in (NodeStatus.FAILED, NodeStatus.SKIPPED, NodeStatus.BLOCKED) for d in deps):
+            unusable = [d for d in deps
+                        if d.status in (NodeStatus.FAILED, NodeStatus.SKIPPED, NodeStatus.BLOCKED)]
+            if not unusable:
+                continue
+            if node.requires_all_dependencies:
+                blocked.append(node)
+            elif len(unusable) == len(deps):
+                # A partial-evidence node is only blocked when EVERY
+                # source failed -- with nothing to merge there is nothing
+                # to degrade to.
                 blocked.append(node)
         return blocked
 

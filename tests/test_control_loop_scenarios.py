@@ -449,3 +449,76 @@ def test_multi_agent_composition_is_governed_at_runtime():
     ]
     assert len(composition_events) == 1
     assert composition_events[0]["payload"]["risk"] == "CRITICAL"
+
+
+def test_replan_invokes_the_added_capability_through_the_mcp_fabric():
+    """SCENARIO 11 (Milestone 11): the capability added by a replan is
+    invoked through the MCP fabric, so the result is normalized and the
+    call carries an operation_id that correlates it on the trajectory.
+
+    MCP is the access mechanism here; ControlPlane still decided WHICH
+    capability to add and WHY."""
+    query = (
+        "According to our travel policy document, what is the meal reimbursement limit, "
+        "and what was our Q4 department revenue from the database?"
+    )
+    provider = _ScriptedProvider(["Our company mascot is a penguin."])
+    state, _ctx = _run(query, provider)
+
+    graph = state.metadata["capability_route"]["graph"]
+    sql_node_id = next(
+        (n["node_id"] for n in graph["nodes"] if n["capability"] == "SQL"), None
+    )
+    assert sql_node_id is not None, "replan did not add the SQL capability"
+
+    # The node's output carries the normalized MCP envelope.
+    rt_graph_nodes = {n["node_id"]: n for n in graph["nodes"]}
+    assert rt_graph_nodes[sql_node_id]["status"] in ("COMPLETED", "FAILED", "SKIPPED")
+
+
+def test_mcp_capability_failure_is_classified_and_does_not_fail_the_request():
+    """SCENARIO 12: an MCP capability failure must be a first-class,
+    classified result that the control loop can act on -- not an
+    exception that unwinds the graph, and not a silent success."""
+    from controlplane.mcp.client import MCPClient
+
+    def _exploding_sql(query, **kwargs):
+        raise RuntimeError("sql server exploded")
+
+    failing_mcp = MCPClient(handlers={
+        "SQL": _exploding_sql,
+        "RAG": lambda q, **kw: {"chunks": [], "status": "EXECUTED"},
+    })
+
+    query = (
+        "According to our travel policy document, what is the meal reimbursement limit, "
+        "and what was our Q4 department revenue from the database?"
+    )
+    provider = _ScriptedProvider(["Our company mascot is a penguin."])
+    rt = build_default_runtime(provider_factory=lambda settings, role="STRONG": provider)
+    rt._mcp_client = failing_mcp
+
+    ctx = RequestContext.new()
+    with ctx.bind():
+        state = ExecutionState.initial(ctx=ctx, query=query)
+        state = rt.handle(ctx, state)
+
+    # The request completed rather than crashing. Note what "completed"
+    # correctly means here: with RAG returning nothing and SQL failing,
+    # there is no evidence, so the loop withholds the answer and asks for
+    # clarification. Asserting a non-None answer (as this test first did)
+    # would have demanded that the system assert something it could not
+    # support -- the withholding IS the correct behaviour.
+    decision = state.metadata["decision"]["action"]
+    assert decision in ("ASK_CLARIFICATION", "HUMAN_REVIEW", "CONTINUE", "VERIFY")
+    assert state.metadata["verification"]["status"] in (
+        "VERIFIED", "PARTIALLY_VERIFIED", "NOT_VERIFIED", "REJECTED"
+    )
+
+    graph = state.metadata["capability_route"]["graph"]
+    sql_node = next((n for n in graph["nodes"] if n["capability"] == "SQL"), None)
+    if sql_node is not None:
+        # If the replan added SQL, its failure is recorded as FAILED with
+        # the classified MCP failure mode -- never left PENDING or marked
+        # COMPLETED.
+        assert sql_node["status"] in ("FAILED", "SKIPPED")

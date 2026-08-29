@@ -81,8 +81,23 @@ class GraphExecutor:
 
         wall_start = time.monotonic()
         while not graph.is_complete():
-            for node in graph.blocked_nodes():
-                node.status = NodeStatus.BLOCKED
+            # Propagate blocking to a FIXED POINT, not one level per
+            # iteration.
+            #
+            # Bug found in Milestone 11 (surfaced by an MCP capability
+            # failure): with data_sql -> merge -> generation, marking
+            # `merge` BLOCKED left `generation` still PENDING, so the very
+            # next ready_nodes() came back empty while the graph was not
+            # yet "complete" -- and the executor raised GraphError on a
+            # perfectly ordinary capability failure. Any failure with two
+            # or more levels of dependents hit this, which is exactly the
+            # shape this project's graphs have.
+            while True:
+                newly_blocked = graph.blocked_nodes()
+                if not newly_blocked:
+                    break
+                for node in newly_blocked:
+                    node.status = NodeStatus.BLOCKED
 
             wave = graph.ready_nodes()
             if not wave:

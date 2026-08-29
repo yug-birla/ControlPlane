@@ -66,6 +66,7 @@ from controlplane.governance.shadow_mode import verdict_for as shadow_mode_verdi
 from controlplane.execution.graph import ExecutionGraph, ExecutionNode, NodeStatus
 from controlplane.ledger.ledger import ConsequenceClass, ExecutionLedger
 from controlplane.logging_config import get_logger
+from controlplane.mcp.client import MCPClient
 from controlplane.models.provider import ModelProviderError, ModelProviderTimeout
 from controlplane.models.registry import get_configured_provider, resolve_model_name
 from controlplane.planning.replanner import Replanner
@@ -121,6 +122,7 @@ class Runtime:
         verification_engine=None,
         trust_engine=None,
         replanner=None,
+        mcp_client=None,
         shadow_mode: bool = False,
     ) -> None:
         self._trajectory_store = trajectory_store
@@ -149,6 +151,15 @@ class Runtime:
         # cannot see. See controlplane/governance/multi_agent.py.
         self._composition_governor = CompositionGovernor()
         self._composition_assessment = None
+        # MCP capability fabric (Milestone 11): uniform discovery and
+        # invocation, normalized results, classified failures. Wired to
+        # the SAME capability instances this Runtime already holds, so
+        # there is one implementation behind the fabric, not a second copy.
+        self._mcp_client = mcp_client or MCPClient(handlers={
+            "RAG": lambda q, **kw: self._rag_capability.execute(q, **kw),
+            "SQL": lambda q, **kw: self._sql_capability.execute(q, **kw),
+            "AGENT": lambda q, **kw: self._agent_capability.execute(q),
+        })
         # Shadow Mode (Milestone 9): observe and record, never enforce.
         # See controlplane/governance/shadow_mode.py for what is and is
         # not suppressed.
@@ -490,26 +501,40 @@ class Runtime:
 
         node_id = applied.added_nodes[0]
         node = capability_route.graph.get(node_id)
-        handler = {"SQL": self._sql_capability, "RAG": self._rag_capability}.get(descriptor.capability_id)
-        if handler is None:
-            # The registry offered a capability this runtime has no live
-            # handler for. Mark it SKIPPED and fall back -- never leave a
-            # PENDING node in the graph pretending it contributed.
-            node.status = NodeStatus.SKIPPED
-            node.error = f"no live handler wired for capability {descriptor.capability_id}"
-            return None
 
-        try:
-            node.output_ref = handler.execute(query)
-            node.status = NodeStatus.COMPLETED
-        except Exception as exc:  # a new capability failing must not fail the request
-            node.status = NodeStatus.FAILED
-            node.error = str(exc)
+        # Invoke through the MCP capability fabric rather than calling the
+        # implementation directly. The fabric normalizes the result shape,
+        # classifies the failure mode (TIMEOUT / UNAVAILABLE /
+        # PERMISSION_DENIED / ...), and issues an operation_id that
+        # correlates the call on the trajectory -- all of which
+        # ControlPlane needs in order to decide what to do next, and none
+        # of which the fabric decides for itself.
+        mcp_result = self._mcp_client.invoke(descriptor.capability_id, query)
+        node.output_ref = {**mcp_result.output, "mcp": mcp_result.to_dict()}
+
+        if not mcp_result.ok:
+            # A newly added capability failing must not fail the request.
+            # SKIPPED vs FAILED is a real distinction: a capability that
+            # is not deployed here never ran, whereas one that errored did.
+            node.status = (
+                NodeStatus.SKIPPED
+                if mcp_result.failure and mcp_result.failure.value in ("UNAVAILABLE", "CAPABILITY_NOT_FOUND")
+                else NodeStatus.FAILED
+            )
+            node.error = f"{mcp_result.failure.value if mcp_result.failure else 'FAILED'}: {mcp_result.error}"
+            self._publish(
+                EventType.ROUTE_COMPLETED, ctx, source="mcp",
+                payload={"node_id": node_id, "capability_id": descriptor.capability_id,
+                          "operation_id": mcp_result.operation_id, "server": mcp_result.server,
+                          "status": node.status.value, "failure": node.error},
+            )
             logger.warning(
                 "replan_capability_execution_failed",
-                extra={"cp_fields": {"capability": descriptor.capability_id, "error": str(exc)}},
+                extra={"cp_fields": {"capability": descriptor.capability_id, "error": node.error}},
             )
             return None
+
+        node.status = NodeStatus.COMPLETED
 
         self._publish(
             EventType.REPLAN_TRIGGERED, ctx, source="controlplane",
@@ -604,9 +629,15 @@ class Runtime:
             "generation": self._generation_handler(
                 ctx, settings, query, model_decision.model_role, captured, capability_route.graph
             ),
-            "SQL": lambda node: self._sql_capability.execute(query),
-            "RAG": lambda node: self._rag_capability.execute(query),
-            "AGENT": lambda node: self._agent_capability.execute(query),
+            # Capability nodes are invoked through the MCP fabric, not by
+            # calling the implementations directly. This is what makes MCP
+            # the actual access path rather than a parallel one used only
+            # by replanning -- an earlier version wired only the replan
+            # path, and a deliberately-failing MCP client still reported
+            # COMPLETED here because this dict bypassed it entirely.
+            "SQL": lambda node: self._invoke_via_mcp("SQL", query),
+            "RAG": lambda node: self._invoke_via_mcp("RAG", query),
+            "AGENT": lambda node: self._invoke_via_mcp("AGENT", query),
         }
         executor = GraphExecutor(handlers=handlers)
         graph_result = executor.run(capability_route.graph, mode="parallel")
@@ -640,6 +671,24 @@ class Runtime:
         if "generation" in graph_result.failed:
             raise captured["error"]
         return captured["result"]
+
+    def _invoke_via_mcp(self, capability_id: str, query: str) -> dict:
+        """Invoke a capability through the MCP fabric for a graph node.
+
+        Raises on failure so the Graph Executor's existing node-failure
+        handling applies unchanged (the node is marked FAILED and
+        dependents BLOCKED). The fabric itself never raises -- it returns
+        a classified failure -- and the classification is preserved in the
+        exception message so the trajectory records *which* failure mode
+        occurred, not just that something went wrong.
+        """
+        result = self._mcp_client.invoke(capability_id, query)
+        if not result.ok:
+            failure = result.failure.value if result.failure else "FAILED"
+            raise ControlPlaneError(
+                f"MCP {capability_id} invocation failed [{failure}]: {result.error}"
+            )
+        return {**result.output, "mcp": result.to_dict()}
 
     def _govern_agent_composition(self, ctx: RequestContext, graph: ExecutionGraph) -> None:
         """Evaluate the COMPOSED agent chain, not just individual steps.

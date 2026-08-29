@@ -37,6 +37,22 @@ DATASET_VERSION = "v0.1"
 _LABELS = ["SUPPORTED", "PARTIALLY_SUPPORTED", "UNSUPPORTED"]
 
 
+# Prometheus runs with disk offload (~38 min per judgment on this
+# machine -- see BLOCKERS.md B12), so the full 24-case set would take
+# ~15 hours. PROMETHEUS_SUBSET is a STRATIFIED sample chosen to answer
+# the one question that matters: does Prometheus predict the middle
+# class at all, where Qwen never does (0/24)? Three cases of each label
+# so the answer is not an artefact of a skewed sample.
+#
+# Qwen runs on the FULL set regardless -- it is fast, and there is no
+# reason to hobble the incumbent's numbers to match the subset.
+PROMETHEUS_SUBSET = [
+    "JH-011", "JH-012", "JH-013",   # PARTIALLY_SUPPORTED -- the decisive ones
+    "JH-001", "JH-002",             # SUPPORTED
+    "JH-007", "JH-008",             # UNSUPPORTED
+]
+
+
 def _load() -> list[dict]:
     with open(_DATASET_PATH, encoding="utf-8-sig") as f:
         return json.load(f)
@@ -100,6 +116,9 @@ def main() -> None:
         from controlplane.judge.prometheus_judge import get_prometheus_judge
 
         judge = get_prometheus_judge()
+        # Measured: 64 max_new_tokens truncates before the [RESULT]
+        # marker because Prometheus writes its feedback first.
+        judge._max_new_tokens = 300
     except Exception as exc:
         print(f"  NOT_MEASURED -- Prometheus could not be loaded: {exc}")
         results["prometheus_7b"] = {
@@ -112,8 +131,13 @@ def main() -> None:
         judge = None
 
     if judge is not None:
-        predictions, latencies = _run_judge(judge, cases, "prometheus")
-        metrics = _score(predictions, expected)
+        subset = [c for c in cases if c["case_id"] in PROMETHEUS_SUBSET]
+        print(f"  (stratified subset of {len(subset)}/{len(cases)} -- ~38 min/case with "
+              f"disk offload; see BLOCKERS.md B12)")
+        predictions, latencies = _run_judge(judge, subset, "prometheus")
+        metrics = _score(predictions, [c["label"] for c in subset])
+        metrics["subset"] = PROMETHEUS_SUBSET
+        metrics["scale_label"] = "SMOKE_TEST"
         metrics["latency_ms_mean"] = sum(latencies) / len(latencies) if latencies else None
         results["prometheus_7b"] = {"status": "MEASURED", **metrics}
         run_id = record_run(

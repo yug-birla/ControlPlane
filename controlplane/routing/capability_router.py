@@ -88,7 +88,14 @@ class CapabilityRouter:
         if data_caps:
             for cap in data_caps:
                 graph.add_node(ExecutionNode(node_id=f"data_{cap.lower()}", capability=cap))
-            graph.add_node(ExecutionNode(node_id="merge", capability="merge", depends_on=tuple(f"data_{c.lower()}" for c in data_caps)))
+            graph.add_node(ExecutionNode(
+                node_id="merge", capability="merge",
+                depends_on=tuple(f"data_{c.lower()}" for c in data_caps),
+                # Answer from whatever evidence arrived. One failing
+                # source must not block generation when another
+                # returned good evidence (graceful degradation).
+                requires_all_dependencies=False,
+            ))
             graph.add_node(ExecutionNode(node_id="generation", capability="generation", depends_on=("merge",)))
         else:
             graph.add_node(ExecutionNode(node_id="generation", capability="generation"))

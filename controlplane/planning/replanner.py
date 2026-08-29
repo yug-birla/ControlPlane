@@ -168,7 +168,10 @@ class Replanner:
             # A plan that had no data capabilities at all has no merge
             # node; introduce one so generation consumes the new evidence.
             generation = next((n for n in graph.nodes if n.node_id == _GENERATION_NODE_ID), None)
-            graph.add_node(ExecutionNode(node_id=_MERGE_NODE_ID, capability="merge", depends_on=(node_id,)))
+            graph.add_node(ExecutionNode(
+                node_id=_MERGE_NODE_ID, capability="merge", depends_on=(node_id,),
+                requires_all_dependencies=False,
+            ))
             if generation is not None:
                 generation.depends_on = tuple(sorted(set(generation.depends_on) | {_MERGE_NODE_ID}))
 
