@@ -129,8 +129,14 @@ class AgentPlanner:
         if is_agentic:
             # The actor depends on every gatherer: it must not act before
             # the evidence it is acting on has arrived.
+            # Deliberately the ESTABLISHED node id, not a new one. The
+            # dashboard's Permission Lineage panel and the trajectory step
+            # names key on "route:agent_action"; renaming the lone actor
+            # would silently break lineage for every single-agent request
+            # while every test still passed. Multi-agent plans add NEW ids
+            # alongside this one rather than replacing it.
             actor = AgentIdentity(
-                agent_id="agent_actor",
+                agent_id="agent_action",
                 role=AgentRole.NOTIFIER,
                 parent_agent=ids[-1] if ids else None,
                 permissions=frozenset({"execute:tools"}),

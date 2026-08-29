@@ -41,6 +41,8 @@ def test_an_action_request_justifies_an_actor_agent():
     plan = AgentPlanner().plan(data_requirements={"RAG_CORPUS"}, is_agentic=True)
     assert plan.agent_count == 1
     assert plan.agents[0].role is AgentRole.NOTIFIER
+    # Established id preserved -- see the planner's comment.
+    assert plan.agents[0].agent_id == "agent_action"
 
 
 def test_data_plus_action_produces_gatherers_and_a_dependent_actor():
@@ -89,7 +91,9 @@ def test_the_actor_node_depends_on_every_gatherer():
     plan = planner.plan(data_requirements={"RAG_CORPUS", "SQL_DB"}, is_agentic=True)
     planner.apply(graph, plan)
 
-    actor = graph.get("agent_actor")
+    # The actor keeps the established node id: the dashboard's Permission
+    # Lineage panel keys on "route:agent_action".
+    actor = graph.get("agent_action")
     assert set(actor.depends_on) == {"agent_retriever", "agent_analyst"}
     # But it should still act on partial evidence rather than be blocked
     # entirely by one failed gatherer.

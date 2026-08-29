@@ -17,6 +17,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from controlplane.execution.graph import ExecutionGraph, ExecutionNode
+from controlplane.governance.multi_agent import AgentRole
+from controlplane.planning.agent_planner import AgentPlanner
 from controlplane.policy.baseline import PolicyDecision
 from controlplane.query_intelligence.fingerprint import CapabilityHint, QueryFingerprint
 from controlplane.risk.profile import RiskProfile
@@ -74,6 +76,11 @@ class CapabilityRoute:
 class CapabilityRouter:
     name = "rules_v0"
 
+    def __init__(self, agent_planner: AgentPlanner | None = None) -> None:
+        # Multi-agent planning (Milestone 12). Injected so a test can
+        # supply a planner without this router importing a registry.
+        self._agent_planner = agent_planner or AgentPlanner()
+
     def route(self, fingerprint: QueryFingerprint, risk: RiskProfile, policy: PolicyDecision) -> CapabilityRoute:
         candidate = {h.value for h in fingerprint.capability_hints} - {CapabilityHint.MULTI_SOURCE.value}
         restricted = sorted(candidate & set(policy.restricted_capabilities))
@@ -100,14 +107,46 @@ class CapabilityRouter:
         else:
             graph.add_node(ExecutionNode(node_id="generation", capability="generation"))
 
-        if agent_selected:
-            graph.add_node(ExecutionNode(node_id="agent_action", capability=CapabilityHint.AGENT.value, depends_on=("generation",)))
+        # MULTI-AGENT PLANNING (Milestone 12). The planner decides how many
+        # agents the task actually justifies, from the query's own measured
+        # data requirements -- rather than this router always emitting
+        # exactly one agent node.
+        #
+        # It is consulted only when the query is agentic or genuinely needs
+        # several independent data sources; for everything else it returns
+        # an empty plan and the single-node path below is used unchanged.
+        # That is the planner's own rule ("a plain capability path does this
+        # work without agent overhead"), not a special case here.
+        agent_plan = None
+        if agent_selected or len(data_caps) > 1:
+            agent_plan = self._agent_planner.plan(
+                data_requirements=set(fingerprint.data_requirement or []),
+                is_agentic=agent_selected,
+                restricted_capabilities=set(policy.restricted_capabilities),
+            )
+
+        if agent_plan is not None and agent_plan.agent_count > 0:
+            self._agent_planner.apply(graph, agent_plan)
+            # The actor must not act before the answer it may act on
+            # exists. Found by ROLE rather than by a hardcoded node id, so
+            # renaming a node cannot silently drop this dependency.
+            actor = next((a for a in agent_plan.agents if a.role is AgentRole.NOTIFIER), None)
+            if actor is not None:
+                node = graph.get(actor.agent_id)
+                node.depends_on = tuple(sorted(set(node.depends_on) | {"generation"}))
+        elif agent_selected:
+            graph.add_node(ExecutionNode(
+                node_id="agent_action", capability=CapabilityHint.AGENT.value,
+                depends_on=("generation",),
+            ))
         graph.validate()
 
         reason_parts = [f"capability_hints={sorted(candidate)}"]
         if restricted:
             reason_parts.append(f"restricted_by_policy(tier={policy.tier.value})={restricted}")
         reason_parts.append(f"selected={sorted(selected)}")
+        if agent_plan is not None and agent_plan.agent_count:
+            reason_parts.append(f"agent_plan={agent_plan.reason}")
 
         node_count = len(graph.nodes)
         expected_cost_class = "HIGH" if agent_selected or node_count > 3 else ("MEDIUM" if data_caps else "LOW")
