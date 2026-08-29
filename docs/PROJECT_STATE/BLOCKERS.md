@@ -75,22 +75,43 @@ Found while reviewing `git status` before committing Milestone 9 — the `.npz` 
 
 **Fix:** the tests now pass an isolated `tmp_path` cache file. The correct 546-example production cache is committed. Root cause class: `REPRODUCIBILITY` / test isolation, not a defect in the detector itself.
 
-## B12 — Prometheus 7B may exceed available RAM on this machine (found 2026-08-29, Milestone 10) — **OPEN**
+## B12 — Prometheus 7B does not fit in this machine's RAM (found 2026-08-29, Milestone 10) — **OPEN, NEEDS A DECISION**
 
-`prometheus-eval/prometheus-7b-v2.0` is ~14.5GB in bf16. This machine has **15.7GB total RAM**, with ~4.9GB free and a 13.4GB page file at the time of measurement.
+**Confirmed by measurement, not prediction.** The model downloaded successfully (14GB, 8 shards, verified on E:). The bf16 load was then attempted and observed directly:
 
-This is a **RAM** constraint, not the CPU-latency constraint the project has explicitly accepted elsewhere. It is the same failure class as the Milestone 6 `OSError: The paging file is too small` (which occurred on a *3GB* model), one order of magnitude larger.
+| Observation | Value |
+|---|---|
+| Model size (bf16) | ~14.5 GB |
+| Machine total RAM | 15.7 GB |
+| Free RAM at load time | 0.3 GB |
+| Resident set growth | ~0.15 GB/min |
+| CPU during that growth | ~4 cores saturated |
+| Projected time to finish loading | ~40 min, if it finished at all |
 
-`controlplane/judge/prometheus_judge.py` surfaces a load failure as a typed `PrometheusJudgeError` naming RAM as the likely cause, and `controlplane/experiments/compare_judges.py` records `NOT_MEASURED` with the real error rather than estimating numbers or silently substituting a different model.
+It **does not fail fast — it page-thrashes and degrades the whole machine**, and every subsequent judgment would thrash identically, making the 24-case benchmark infeasible even if the load eventually completed. The attempt was stopped deliberately; memory recovered immediately afterwards.
 
-**Options if it cannot load, in preference order:**
-1. `torch.ao.quantization.quantize_dynamic` int8 on Linear layers — halves resident memory to ~7GB, CPU-supported, **no new dependency**. Changes numerics, so the judge would need re-validating against the same benchmark rather than assumed equivalent.
-2. A GGUF build via `llama-cpp-python` (Q4 ≈ 4GB) — the standard CPU path for 7B, but a new dependency.
-3. Run the judge on the available GPU server — requires explicit approval per the GPU gate, and would only move the judge, not the rest of the system.
+This is a **RAM** constraint, not the CPU-latency constraint the project has explicitly accepted elsewhere.
 
-**Not yet attempted** — the download must complete first.
+### Mitigation added
 
-## B13 — Prometheus download failed silently on the first attempt (found 2026-08-29, Milestone 10) — **RETRYING**
+`PrometheusJudge` now performs a **pre-flight RAM check** and raises a typed error in under a second rather than attempting a load that cannot succeed. `transformers` offers no "refuse if it will not fit" option, so this is that option. When available RAM cannot be determined the check is skipped rather than guessed, so an unknown environment is never blocked by a check that cannot see it.
+
+`compare_judges.py` records `NOT_MEASURED` with the real error. No numbers are estimated in Prometheus's place.
+
+### Options — and a correction to this entry's first version
+
+An earlier version of this blocker listed **int8 dynamic quantization** (`torch.ao.quantization.quantize_dynamic`) as option 1, on the grounds that it needs no new dependency. **That was wrong and is retracted:** `quantize_dynamic` operates on an *already-loaded* model, so the ~14.5 GB load peak is unchanged. It reduces steady-state memory, not the peak that actually blocks us here. Listing it first would have sent the next person down a dead end.
+
+The genuine options, all of which need a decision:
+
+1. **GGUF + `llama-cpp-python`** (Q4_K_M ≈ 4.4 GB). The standard CPU path for 7B models; loads directly in quantized form, so the load peak is solved rather than deferred. **Cost:** a new runtime dependency, and Q4 quantization changes numerics, so the judge would need validating against the benchmark rather than assumed equivalent.
+2. **Run it on the available GPU server.** **Cost:** requires explicit approval per the project's GPU gate, and moves only the judge, not the rest of the system.
+3. **Accept a smaller judge.** There is no official smaller Prometheus 2; the alternative direction (`prometheus-2-8x7b`) is larger. This would mean abandoning the model the architecture doc names.
+4. **Leave Prometheus `NOT_MEASURED`** and continue with the Qwen judge, whose weakness (0/24 `PARTIALLY_SUPPORTED`) is already documented.
+
+**What is needed:** a decision between 1, 2, and 4. This is a genuine boundary — every path either adds a dependency, needs GPU approval, or accepts the gap.
+
+## B13 — Prometheus download failed silently on the first attempt (found 2026-08-29, Milestone 10) — **RESOLVED**
 
 The first `snapshot_download` reported exit code 0 while having actually failed with:
 
@@ -106,4 +127,9 @@ Only 1 of 8 shards landed and the partial blobs were cleaned up, leaving 753MB o
 1. The exit code was `0` because the command was piped (`python ... | tail -5`) — the shell reported `tail`'s status, not Python's. Any future backgrounded download must not mask its exit status behind a pipe.
 2. An interim status report in this session stated Prometheus was "at 6.1/14.5GB, still downloading" based on directory size. That was true when measured and false shortly after. **Directory size is not download success**; only the process's own success line is.
 
-Retrying with `HF_HUB_DISABLE_XET=1` and `max_workers=2`, which addresses the Xet transfer path that produced the error.
+**Resolution.** Two further attempts were needed, and the second failure was instructive:
+
+- Retry with `HF_HUB_DISABLE_XET=1` failed differently: `httpx.ConnectError: [Errno 11001] getaddrinfo failed`. Disabling Xet routes downloads via `cdn-lfs.huggingface.co`, which **does not resolve from this machine** (while `huggingface.co` and `transfer.xethub.hf.co` both do). So the "fix" moved the transfer onto a dead path.
+- The successful approach was to re-enable Xet (the working host) and wrap `snapshot_download` in a bounded retry loop, relying on its resume behaviour. The original CAS error was transient.
+
+Completed: 14GB, 8 shards plus index, verified on E:, confirmed by the process's own success line rather than by directory size.

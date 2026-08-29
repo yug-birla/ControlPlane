@@ -55,6 +55,46 @@ class PrometheusJudgeError(Exception):
     pass
 
 
+# ~14.5GB of bf16 weights, plus headroom for activations and the KV
+# cache during generation. Deliberately not padded further: the point is
+# to refuse the clearly-impossible case, not to gatekeep a marginal one.
+_REQUIRED_RAM_GB = 15.0
+
+
+def _available_ram_gb() -> float | None:
+    """Available physical RAM, or ``None`` when it cannot be determined.
+
+    Returning ``None`` (rather than a guess) means the pre-flight check
+    is skipped and the load is attempted -- an unknown environment should
+    not be blocked by a check that cannot see it.
+    """
+    try:  # psutil is not a dependency of this project; use it only if present
+        import psutil
+
+        return psutil.virtual_memory().available / (1024 ** 3)
+    except Exception:
+        pass
+    try:
+        import ctypes
+
+        class _MemoryStatusEx(ctypes.Structure):
+            _fields_ = [
+                ("dwLength", ctypes.c_ulong), ("dwMemoryLoad", ctypes.c_ulong),
+                ("ullTotalPhys", ctypes.c_ulonglong), ("ullAvailPhys", ctypes.c_ulonglong),
+                ("ullTotalPageFile", ctypes.c_ulonglong), ("ullAvailPageFile", ctypes.c_ulonglong),
+                ("ullTotalVirtual", ctypes.c_ulonglong), ("ullAvailVirtual", ctypes.c_ulonglong),
+                ("ullAvailExtendedVirtual", ctypes.c_ulonglong),
+            ]
+
+        status = _MemoryStatusEx()
+        status.dwLength = ctypes.sizeof(_MemoryStatusEx)
+        if ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status)):
+            return status.ullAvailPhys / (1024 ** 3)
+    except Exception:
+        pass
+    return None
+
+
 # Prometheus 2's absolute-grading template, as published for the model.
 _ABSOLUTE_TEMPLATE = """###Task Description:
 An instruction (might include an Input inside it), a response to evaluate, and a score rubric representing a evaluation criteria are given.
@@ -130,6 +170,27 @@ class PrometheusJudge:
             raise PrometheusJudgeError("transformers/torch are not installed") from exc
 
         torch.set_num_threads(os.cpu_count() or 4)
+
+        # PRE-FLIGHT RAM CHECK -- refuse rather than thrash.
+        #
+        # Measured on this machine (Milestone 10): attempting the bf16
+        # load with ~0.3GB free drove the process into page-file
+        # thrashing -- resident set grew ~0.15GB/min while burning four
+        # cores, i.e. ~40 minutes to *maybe* finish loading, with every
+        # subsequent judgment thrashing identically. It does not fail
+        # fast; it degrades the whole machine. transformers has no
+        # "refuse if it will not fit" option, so this is that option.
+        required_gb = _REQUIRED_RAM_GB
+        available_gb = _available_ram_gb()
+        if available_gb is not None and available_gb < required_gb:
+            raise PrometheusJudgeError(
+                f"refusing to load {MODEL_REPO}: needs ~{required_gb:.1f}GB resident "
+                f"(bf16) but only {available_gb:.1f}GB RAM is available. Loading anyway "
+                "does not fail fast -- it page-thrashes for tens of minutes and degrades "
+                "the whole machine (measured). See docs/PROJECT_STATE/BLOCKERS.md B12 "
+                "for the mitigation options."
+            )
+
         try:
             self._tokenizer = AutoTokenizer.from_pretrained(
                 MODEL_REPO, revision=MODEL_REVISION, local_files_only=True
