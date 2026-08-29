@@ -1,0 +1,106 @@
+<h2>Failure Localization</h2>
+<p class="muted">
+  Answers <em>which component</em> is responsible, not merely whether the request
+  failed. Attribution names the <strong>earliest</strong> component that explains the
+  outcome &mdash; blaming generation for an ungrounded answer when routing never
+  retrieved anything is exactly how a real defect hides behind
+  &ldquo;every component completed successfully&rdquo;.
+</p>
+
+{% set fl = detail.failure_localization %}
+{% if fl %}
+<table>
+  <tr><th>Attribution</th><td class="{{ 'failed' if fl.attribution == 'COMPONENT_FAILURE' else 'ok' }}">{{ fl.attribution }}</td></tr>
+  <tr><th>Component</th><td><code>{{ fl.component or '&mdash;'|safe }}</code></td></tr>
+  <tr><th>Reason</th><td>{{ fl.reason }}</td></tr>
+  {% if fl.downstream_impact %}<tr><th>Downstream impact</th><td>{{ fl.downstream_impact }}</td></tr>{% endif %}
+  {% if fl.recovered is defined %}<tr><th>Recovered</th><td>{{ fl.recovered }}</td></tr>{% endif %}
+</table>
+{% else %}
+<p class="muted">No failure localization recorded for this request.</p>
+{% endif %}
+
+<h2>Component Diagnostics</h2>
+<p class="muted">
+  Per-component state for this request: what each component received, produced,
+  and how it affected the decision. Structured facts only &mdash; no hidden
+  chain-of-thought.
+</p>
+
+{% if detail.component_health %}
+<table>
+  <tr><th>Component</th><th>Status</th><th>Summary</th><th>Signal</th><th>Latency</th><th>Decision impact</th><th>Error</th></tr>
+  {% for c in detail.component_health %}
+  <tr>
+    <td><code>{{ c.component }}</code></td>
+    <td class="{{ 'failed' if c.status in ('FAILED','BLOCKED') else ('muted' if c.status in ('SKIPPED','NOT_STARTED') else 'ok') }}">{{ c.status }}</td>
+    <td>{{ c.summary or '&mdash;'|safe }}</td>
+    <td>{{ c.signal if c.signal is not none else '&mdash;'|safe }}</td>
+    <td>{% if c.latency_ms %}{{ c.latency_ms }}ms{% else %}<span class="muted">&mdash;</span>{% endif %}</td>
+    <td>{{ c.decision_impact or '&mdash;'|safe }}</td>
+    <td>{% if c.error %}<span class="failed">{{ c.error }}</span>{% else %}&mdash;{% endif %}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p class="muted">No component diagnostics recorded.</p>
+{% endif %}
+
+<h2>MCP Capability Invocations</h2>
+<p class="muted">
+  Capabilities reached through the MCP fabric. MCP provides access; ControlPlane
+  decides what to invoke and what to do about a failure.
+</p>
+
+{% set mcp_nodes = [] %}
+{% for n in (detail.route_decision.execution_graph.nodes if detail.route_decision and detail.route_decision.execution_graph else []) %}
+  {% if n.input_ref and n.input_ref.serves_capability %}{% set _ = mcp_nodes.append(n) %}{% endif %}
+{% endfor %}
+
+{% if mcp_nodes %}
+<table>
+  <tr><th>Node</th><th>Agent</th><th>Capability</th><th>Status</th><th>Latency</th><th>Error</th></tr>
+  {% for n in mcp_nodes %}
+  <tr>
+    <td><code>{{ n.node_id }}</code></td>
+    <td>{{ n.input_ref.agent_id }} ({{ n.input_ref.role }})</td>
+    <td><code>{{ n.input_ref.serves_capability }}</code></td>
+    <td class="{{ 'failed' if n.status == 'FAILED' else ('blocked' if n.status in ('BLOCKED','SKIPPED') else 'ok') }}">{{ n.status }}</td>
+    <td>{% if n.latency_ms %}{{ '%.0f'|format(n.latency_ms) }}ms{% else %}<span class="muted">&mdash;</span>{% endif %}</td>
+    <td>{% if n.error %}<span class="failed">{{ n.error }}</span>{% else %}&mdash;{% endif %}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p class="muted">
+  No MCP-routed capability node ran for this request. Plain capability nodes
+  (<code>data_rag</code>, <code>data_sql</code>) execute directly; the fabric is
+  used for agent-served capabilities and for capabilities added by a replan.
+</p>
+{% endif %}
+
+<h2>Agent Communication</h2>
+{% set agent_msgs = [] %}
+{% for e in detail.events %}{% if e.event_type == 'AGENT_MESSAGE_SENT' %}{% set _ = agent_msgs.append(e) %}{% endif %}{% endfor %}
+
+{% if agent_msgs %}
+<table>
+  <tr><th>Type</th><th>From</th><th>To</th><th>Payload</th><th>Sensitivity</th><th>Triage</th></tr>
+  {% for e in agent_msgs %}
+  <tr>
+    <td><code>{{ e.payload.message_type }}</code></td>
+    <td>{{ e.payload.from_agent }}</td>
+    <td>{{ e.payload.to_agent or 'ControlPlane' }}</td>
+    <td>{{ e.payload.payload_summary }}</td>
+    <td class="{{ 'blocked' if e.payload.data_sensitivity in ('CONFIDENTIAL','RESTRICTED') else '' }}">{{ e.payload.data_sensitivity }}</td>
+    <td>{% if e.payload.triage %}{{ e.payload.triage.triage }}{% else %}&mdash;{% endif %}</td>
+  </tr>
+  {% endfor %}
+</table>
+<p class="muted"><small>
+  Agents never call each other directly &mdash; every message is mediated by
+  ControlPlane and recorded here. A <code>REPLAN_REQUEST</code> is triaged, not obeyed.
+</small></p>
+{% else %}
+<p class="muted">No agent-to-agent communication occurred for this request.</p>
+{% endif %}
