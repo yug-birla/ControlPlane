@@ -1,6 +1,6 @@
 # ControlPlane.ai — Current State
 
-**Last updated:** 2026-08-29 (Milestone 9)
+**Last updated:** 2026-08-29 (Milestone 10, in progress)
 **Context:** Accenture Innovation Challenge 2026, Round 2 — Prototype Development (Problem Track 1, "ControlPlane.ai"). See `Problem_Statement/` for the original brief (partially captured as screenshots; not yet transcribed to text — see `BLOCKERS.md`).
 
 ## What Exists
@@ -10,6 +10,19 @@
 - `docs/EVALUATION/` — 1 new: `BASELINE_VS_CONTROLPLANE.md` (the central product experiment, its methodology, its results, and the two bugs found in the harness itself).
 - `docs/DATA/` — `EXTERNAL_DATASETS.md` (Milestone 8). New dataset this milestone: `data/raw/generated/baseline_vs_controlplane_cases.json` (26 cases, provenance HUMAN).
 - `docs/PROJECT_STATE/` — this folder, updated.
+
+**Application code (Milestone 10 — Component Diagnostics, Dynamic Planning, Multi-Tier Models, Multi-Agent Governance, Prometheus Judge — IN PROGRESS 2026-08-29):**
+
+- **`controlplane/diagnostics/` (NEW):** component-level state + **failure localization** — answers *which* component failed, not just that the request failed. A derived view over already-persisted data (no new table). Correctly attributes an ungrounded answer with no retrieval to **routing**, not generation — which is exactly what let the Milestone 9 bug hide behind "every component completed successfully". Governed hostile input is reported as `INPUT_GOVERNED`, never as a component defect.
+- **`controlplane/capabilities/registry.py` (NEW):** Capability Registry — centralized metadata (status, side-effect level, satisfied data requirements, permissions, cost/latency/risk). Status is never more optimistic than reality: `CHAT_HISTORY`/`MEMORY`/`WEB` are registered `MOCKED` because they run via the placeholder handler.
+- **`controlplane/planning/replanner.py` (NEW):** **dynamic, graph-mutating replanning.** A replan previously bumped `plan_version` and re-ran the same node with a wider `k` — the graph never changed. Now verified end-to-end as a real `PLAN V1 (data_rag) → PLAN V2 (data_rag + data_sql)` mutation, with the added capability selected by registry lookup against the query's own data requirements (not a hard-coded rule), and skipped for CONFLICTING evidence.
+- **`controlplane/governance/multi_agent.py` (NEW):** multi-agent composition governance, **runtime-wired**. Catches chains that are individually safe but collectively unsafe (agent A reads confidential data → ALLOW; agent B sends externally → ALLOW; the composition is an exfiltration path). `AgentGate` evaluates one step and structurally cannot see this.
+- **Real multi-tier model routing:** FAST = Qwen2.5-1.5B, STRONG = Qwen3-4B (the exact tier the architecture doc names; revision verified against the live HF API). `enable_thinking=False` prevents Qwen3's `<think>` blocks from being persisted, per the no-stored-CoT rule.
+- **`controlplane/judge/prometheus_judge.py` (NEW):** Prometheus 2 (7B) judge using the model's own absolute-grading template, mapped back onto the existing `JudgeResult` contract. **Blocked on hardware** — see `BLOCKERS.md` B12.
+- **Two real bugs found by running diagnostics against real persisted data:** `route_decisions.execution_graph` was written *before* execution, so every node status in the DB was frozen at `PENDING` since Milestone 3; and list-valued profile fields stored as `{"values": [...]}` were iterated as dict keys.
+- **An honest negative result:** the STRONG tier (Qwen3-4B) is **not** better than FAST on the tier benchmark (0.800 vs 0.900), at ~2.5x the per-token cost. This corrected an overstated claim in an earlier commit of this same milestone. Model escalation is demonstrated to **change the model, not to improve quality** — see `docs/EVALUATION/MODEL_TIER_RESULTS.md`.
+- `tests/` — 335 automated tests (up from 304), all passing.
+- **Not started this milestone:** MCP capability fabric (§39–§59), chat-history dataset/capability, dataset expansion, multi-agent *planning* (the default router still emits at most one AGENT node — composition governance is real, composition planning is not).
 
 **Application code (Milestone 9 — Local Generative Model, Corpus-Affinity Routing, Shadow Mode, Baseline-vs-ControlPlane Evidence — complete 2026-08-29):**
 
@@ -49,4 +62,4 @@
 
 ## Phase
 
-**Milestone 9 (Local Generative Model + Corpus-Affinity Routing + Shadow Mode + Baseline-vs-ControlPlane Evidence) complete.** Sequence: documentation audit (`4ae6a76`) → Layer 0 (`ac2f243`) → Layer 1 (`008231e`) → Milestone 1 (`463979e`) → Milestone 2 (`d396acb`) → Milestone 3 (`ba4896e`) → Milestones 4+5 (`7dc76a9`) → Milestone 6 (`a543f8c`) → Milestone 7 (`e385ad9`) → Milestone 8 (`5c22e15`) -> Milestone 9 (pending commit). Awaiting explicit instruction before continuing — see `FUTURE_WORK.md`.
+**Milestone 10 in progress** (component diagnostics, dynamic planning, multi-tier models, multi-agent governance, Prometheus judge). **Milestone 9 complete.** Sequence: documentation audit (`4ae6a76`) → Layer 0 (`ac2f243`) → Layer 1 (`008231e`) → Milestone 1 (`463979e`) → Milestone 2 (`d396acb`) → Milestone 3 (`ba4896e`) → Milestones 4+5 (`7dc76a9`) → Milestone 6 (`a543f8c`) → Milestone 7 (`e385ad9`) → Milestone 8 (`5c22e15`) -> Milestone 9 (`c19eafb`) -> Milestone 10 (`8a44d7b`, `7be1f24`, `8576f26`, `b04db58`, `1da687d`). Awaiting explicit instruction before continuing — see `FUTURE_WORK.md`.
