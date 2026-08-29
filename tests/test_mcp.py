@@ -168,3 +168,57 @@ def test_health_recovers_after_a_successful_call():
     client._health["RAG"] = "DEGRADED"
     client.invoke("RAG", "q")
     assert client.health("RAG") == "AVAILABLE"
+
+
+# --- Milestone 16: fields that existed and always reported nothing ---
+#
+# The MCP fabric was genuinely on the runtime path -- SQL and RAG both
+# execute through it -- but three of its observability fields were
+# structurally dead: RAG evidence_count was always 0, RAG
+# permissions_used was always empty, and 3000 consecutive recorded
+# events contained zero MCP entries. Nothing failed; the numbers were
+# simply never right.
+
+
+def test_rag_evidence_is_counted_regression():
+    """The adapter read output["chunks"], a key no capability in this
+    repository produces. RAGCapability returns "evidence", so every RAG
+    operation reported evidence_count=0 while carrying five passages."""
+    from controlplane.mcp.client import _extract_evidence
+
+    output = {"evidence": [{"text": "chunk one"}, {"text": "chunk two"}]}
+    assert _extract_evidence(output) == ["chunk one", "chunk two"]
+
+
+def test_sql_rows_are_still_counted():
+    from controlplane.mcp.client import _extract_evidence
+
+    assert len(_extract_evidence({"rows": [{"a": 1}, {"a": 2}]})) == 2
+
+
+def test_a_capability_with_no_evidence_reports_none_rather_than_guessing():
+    from controlplane.mcp.client import _extract_evidence
+
+    assert _extract_evidence({"status": "EXECUTED"}) == []
+
+
+def test_rag_declares_the_permission_it_uses():
+    """Permission lineage was blank for the most-used capability in the
+    system, because RAG declared no required permission at all while SQL
+    did. Reading the internal corpus is a permissioned action too."""
+    from controlplane.capabilities.registry import get_capability_registry
+
+    registry = get_capability_registry()
+    assert registry.get("RAG").required_permissions
+    assert registry.get("SQL").required_permissions
+
+
+def test_mcp_invocation_emits_an_event_with_the_fields_section_21_requires():
+    from controlplane.mcp.client import get_mcp_client
+
+    result = get_mcp_client().invoke("SQL", "how many support tickets are open?")
+    payload = result.to_dict()
+    for field in ("capability_id", "operation_id", "server", "status", "latency_ms",
+                  "permissions_used", "provenance", "evidence_count"):
+        assert field in payload, f"MCP result lost {field}"
+    assert payload["evidence_count"] > 0

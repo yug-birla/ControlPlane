@@ -706,9 +706,9 @@ class Runtime:
             # by replanning -- an earlier version wired only the replan
             # path, and a deliberately-failing MCP client still reported
             # COMPLETED here because this dict bypassed it entirely.
-            "SQL": lambda node: self._invoke_via_mcp("SQL", query),
-            "RAG": lambda node: self._invoke_via_mcp("RAG", query),
-            "AGENT": lambda node: self._execute_agent_node(node, query),
+            "SQL": lambda node: self._invoke_via_mcp(ctx, "SQL", query),
+            "RAG": lambda node: self._invoke_via_mcp(ctx, "RAG", query),
+            "AGENT": lambda node: self._execute_agent_node(ctx, node, query),
         }
         executor = GraphExecutor(handlers=handlers)
         graph_result = executor.run(capability_route.graph, mode="parallel")
@@ -748,7 +748,7 @@ class Runtime:
             raise captured["error"]
         return captured["result"]
 
-    def _execute_agent_node(self, node, query: str) -> dict:
+    def _execute_agent_node(self, ctx: RequestContext, node, query: str) -> dict:
         """Run one AGENT node.
 
         Two kinds of agent node exist and they do different work:
@@ -770,7 +770,7 @@ class Runtime:
         serves = input_ref.get("serves_capability")
 
         if serves:
-            result = self._invoke_via_mcp(serves, query)
+            result = self._invoke_via_mcp(ctx, serves, query)
             return {
                 **result,
                 "agent_id": agent_id,
@@ -839,7 +839,7 @@ class Runtime:
             budget_exhausted=budget_exhausted,
         )
 
-    def _invoke_via_mcp(self, capability_id: str, query: str) -> dict:
+    def _invoke_via_mcp(self, ctx: RequestContext, capability_id: str, query: str) -> dict:
         """Invoke a capability through the MCP fabric for a graph node.
 
         Raises on failure so the Graph Executor's existing node-failure
@@ -850,6 +850,23 @@ class Runtime:
         occurred, not just that something went wrong.
         """
         result = self._mcp_client.invoke(capability_id, query)
+        self._publish(
+            EventType.CAPABILITY_INVOKED_VIA_MCP,
+            ctx,
+            source="mcp",
+            severity=Severity.WARNING if not result.ok else Severity.INFO,
+            payload={
+                "capability_id": result.capability_id,
+                "operation_id": result.operation_id,
+                "server": result.server,
+                "status": result.status.value,
+                "failure": result.failure.value if result.failure else None,
+                "latency_ms": result.latency_ms,
+                "evidence_count": len(result.evidence),
+                "permissions_used": sorted(result.permissions_used),
+                "provenance": result.provenance,
+            },
+        )
         if not result.ok:
             failure = result.failure.value if result.failure else "FAILED"
             raise ControlPlaneError(

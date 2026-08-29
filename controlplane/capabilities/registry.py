@@ -106,6 +106,14 @@ _DESCRIPTORS: tuple[CapabilityDescriptor, ...] = (
         side_effect_level=SideEffectLevel.READ_ONLY,
         supplies_evidence=True,
         satisfies_data_requirements=frozenset({"RAG_CORPUS"}),
+        # Reading the internal document corpus is a permissioned action
+        # exactly as reading the database is. Its absence meant every
+        # RAG operation reported "permissions_used: []", so permission
+        # lineage was blank for the most frequently used capability in
+        # the system. Nothing gates on this field today -- it is
+        # observability -- but a lineage view that silently omits the
+        # main data access is worse than one that has none.
+        required_permissions=frozenset({"read:enterprise_documents"}),
         latency_class="MEDIUM", cost_class="LOW", risk_class="LOW",
     ),
     CapabilityDescriptor(

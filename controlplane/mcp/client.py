@@ -199,10 +199,20 @@ def _extract_evidence(output: dict) -> list[str]:
     cheaper than rewriting three working capabilities to a new contract.
     """
     evidence: list[str] = []
-    for chunk in output.get("chunks") or []:
-        text = chunk.get("text") if isinstance(chunk, dict) else None
-        if text:
-            evidence.append(text)
+    # "evidence" is what RAGCapability actually returns. The original
+    # adapter read "chunks", a key no capability in this repository has
+    # ever produced, so every RAG operation reported evidence_count=0
+    # while carrying five retrieved passages -- 157 recorded steps with
+    # a field that looked measured and was structurally always zero.
+    # "chunks" is kept because it costs nothing and is the more obvious
+    # name for a future retrieval adapter to use.
+    for key in ("evidence", "chunks"):
+        for item in output.get(key) or []:
+            text = item.get("text") if isinstance(item, dict) else (item if isinstance(item, str) else None)
+            if text:
+                evidence.append(text)
+        if evidence:
+            break
     for row in output.get("rows") or []:
         if isinstance(row, dict):
             evidence.append(", ".join(f"{k}={v}" for k, v in row.items()))

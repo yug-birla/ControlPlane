@@ -97,6 +97,22 @@ class EventType(str, Enum):
     additionally emitted when the outcome is specifically HUMAN_REVIEW,
     reusing that existing event rather than inventing a second one for
     the same meaning."""
+    CAPABILITY_INVOKED_VIA_MCP = "CAPABILITY_INVOKED_VIA_MCP"
+    """One capability access through the MCP fabric, emitted whether it
+    succeeded or failed.
+
+    Added because the fabric was genuinely on the runtime path -- SQL and
+    RAG both execute through it -- yet produced no events at all: 3000
+    consecutive recorded events contained zero MCP entries, so the
+    dashboard could not show which server served a request, how long it
+    took, or which failure mode occurred. The per-operation detail was
+    being written into the node's output_ref and nowhere else, which
+    made it reachable only if you already knew which request to open.
+
+    Carries the operation_id, capability_id, server, status, failure
+    class, latency and permissions -- the fields §21 requires -- and is
+    correlated to request/trace/trajectory like every other event."""
+
     FINAL_RESPONSE_GENERATED = "FINAL_RESPONSE_GENERATED"
 
 
