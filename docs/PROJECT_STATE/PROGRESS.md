@@ -2,6 +2,36 @@
 
 Reverse-chronological. Each entry: what happened, evidence.
 
+## 2026-08-29 — Milestone 12: Multi-Agent Runtime, Agent Communication, Visual Execution Map
+
+**Multi-agent planning is runtime-wired (P0 #1).** `CapabilityRouter` now consults `AgentPlanner` instead of always emitting one agent node. Verified end-to-end, count genuinely derived: simple factual → 0 agents; single-source RAG → 0 agents; multi-source **read** → 0 agents (plain capability path); agentic → 3 agents (2 parallel gatherers + actor).
+
+**Three defects found in my own wiring, each by tracing a real run rather than reading code:**
+
+1. **Duplicated work.** The first wiring produced *both* `data_rag`/`data_sql` **and** gatherer agents — the same evidence fetched twice, with two provenance trails for one piece of evidence. Fixed by making gatherers *replace* data nodes as governed wrappers around real capabilities (each node declares `serves_capability`, and the runtime runs the real capability through the MCP fabric under an agent identity).
+
+2. **A silent governance gap the fix itself created.** The new gatherer emitted `proposed_tool="sql_read"`, which matched nothing in the composition governor's tool tables — so an agent reading the enterprise database scored `PUBLIC`, and **the gather-then-notify exfiltration path would not have fired.** The governor was working; it was being fed a tool name it had never heard of. Classification is now driven by the capability an agent serves, and the case is pinned by a regression test.
+
+3. **A rename that would have broken lineage silently.** The planner initially named its lone actor `agent_actor`; the dashboard's Permission Lineage panel and trajectory step names key on `route:agent_action`. Adopting the new id would have broken lineage for every single-agent request **while the whole suite stayed green**. The established id is preserved, and the router now finds the actor by role rather than by hardcoded id.
+
+**Agent-to-agent communication is real, traceable, and bounded (P0 #4).** `AgentMessage` existed since Milestone 10 as a data structure that nothing produced, so "no hidden agent channel" was a claim rather than a property. `AgentBus` now records every message as an `AGENT_MESSAGE_SENT` event correlated to the trajectory. Verified on a real 3-agent run: two `HANDOFF` messages, the SQL analyst's carrying `CONFIDENTIAL` and the document retriever's `PUBLIC`.
+
+The authority boundary is enforced, not promised: an agent may **request**, never act on the plan. A `REPLAN_REQUEST` is **triaged**, and triage is grounded in what the agent *did* — an agent that returned usable evidence while claiming it could not proceed contradicts its own output and is rejected. Otherwise the persuasiveness of a claim, rather than its truth, would steer the plan. Requests are bounded per agent. A test asserts structurally that `AgentBus` exposes no replan/apply/mutate/execute method.
+
+**Visual execution map (§53–70).** Every element is derived from persisted data: node statuses from the execution snapshot, agent edges from `AGENT_MESSAGE_SENT` events (so the picture cannot claim a handoff that was never recorded), and parallel rows from the same dependency structure the executor scheduled by. An empty request yields an empty map, not a template picture. Self-contained inline SVG — no CDN, works offline — with a `<noscript>` table carrying the same real data.
+
+`ExecutionGraph.to_dict` now persists agent identity, through an **allowlist**: `input_ref` can hold arbitrary caller data, and dumping it wholesale into a persisted, dashboard-rendered structure is how prompts leak into a surface that promises none. A test asserts `raw_prompt`/`internal_notes` are dropped.
+
+**System-wide component health (§56)** — the counterpart to per-request diagnostics. Surfaces real signal: `capability:data_sql` at 10.5% failure and `capability:generation` at 7.7%, both `DEGRADED`.
+
+**A fabricated metric caught and removed.** The first version reported a confident **p50 of 0.0ms for every component**. That was not a fast system — trajectory steps are written once at completion, so `started_at == completed_at` and the elapsed time is an artefact of write timing. Non-positive elapsed times are now excluded rather than averaged in, so unmeasured reads as `None` and never `0.0`; p95 additionally requires ≥20 samples. Both pinned by tests.
+
+**The ablation study was recovered and documented** (`docs/EVALUATION/ABLATIONS.md`) — it had completed just before its background task was killed. Corpus-affinity routing accounts for **~56% of the entire improvement**; dynamic replanning repairs ~half of what broken routing loses (an unplanned finding); and **removing enforcement changes nothing on factual accuracy** — its value is in safety, so accuracy-only ablations always undervalue it.
+
+**Infrastructure note:** a 49-test failure mid-milestone was Docker being down, not a regression. Only ControlPlane's container was restarted; the unrelated `lead_intelligence` stack was left alone.
+
+Tests grew 390 → 409.
+
 ## 2026-08-29 — Milestone 11: Adaptive Compute, MCP Fabric, Chat History, Multi-Agent Planning
 
 **Prometheus unblocked (B12 resolved) without the dependency decision I had escalated.** `accelerate` — first-party HuggingFace, the standard `transformers` companion — streams layers that do not fit in RAM from disk. Prometheus 7B now loads in **12 seconds** on a 15.7GB machine with a 3.5GB working set, instead of the 8.9GB page-thrash measured earlier. I had offered GGUF / GPU / accept-the-gap; disk offload is strictly better than all three (no new runtime, no numerics change, no GPU). The cost is real and bounded: offloaded layers stream from disk every token, so one judgment takes ~38 minutes, which is why the judge comparison runs on a **stratified 7-case subset** rather than the full 24.
