@@ -1,0 +1,273 @@
+{
+  "experiment_id": "exp_381f7792-058f-4960-a152-a2c08013c59e",
+  "sequential": {
+    "sample_count": 9,
+    "wall_ms_mean": 545.1111111162593,
+    "wall_ms_median": 469.00000001187436,
+    "wall_ms_p95": 671.9999999913853,
+    "critical_path_ms_mean": 428.7777777774156
+  },
+  "parallel": {
+    "sample_count": 9,
+    "wall_ms_mean": 432.33333333046176,
+    "wall_ms_median": 405.99999998812564,
+    "wall_ms_p95": 546.9999999913853,
+    "critical_path_ms_mean": 430.6666666622429
+  },
+  "speedup": 1.2608583911793676,
+  "critical_path_ceiling": 1.2657378741219627,
+  "rows": [
+    {
+      "mode": "sequential",
+      "wall_ms": 594.0000000118744,
+      "critical_path_ms": 453.00000000861473,
+      "completed": 3,
+      "failed": 0,
+      "node_latencies": {
+        "data_rag": 453.00000000861473,
+        "data_sql": 141.00000000325963,
+        "merge": 0.0
+      },
+      "query": "According to our travel policy, what is the meal reimburseme",
+      "trial": 0
+    },
+    {
+      "mode": "parallel",
+      "wall_ms": 655.9999999881256,
+      "critical_path_ms": 655.9999999881256,
+      "completed": 3,
+      "failed": 0,
+      "node_latencies": {
+        "data_rag": 655.9999999881256,
+        "data_sql": 46.999999991385266,
+        "merge": 0.0
+      },
+      "query": "According to our travel policy, what is the meal reimburseme",
+      "trial": 0
+    },
+    {
+      "mode": "sequential",
+      "wall_ms": 984.0000000258442,
+      "critical_path_ms": 750.0,
+      "completed": 3,
+      "failed": 0,
+      "node_latencies": {
+        "data_rag": 750.0,
+        "data_sql": 234.0000000258442,
+        "merge": 0.0
+      },
+      "query": "According to our travel policy, what is the meal reimburseme",
+      "trial": 1
+    },
+    {
+      "mode": "parallel",
+      "wall_ms": 546.9999999913853,
+      "critical_path_ms": 546.9999999913853,
+      "completed": 3,
+      "failed": 0,
+      "node_latencies": {
+        "data_rag": 546.9999999913853,
+        "data_sql": 187.9999999946449,
+        "merge": 0.0
+      },
+      "query": "According to our travel policy, what is the meal reimburseme",
+      "trial": 1
+    },
+    {
+      "mode": "sequential",
+      "wall_ms": 671.9999999913853,
+      "critical_path_ms": 483.99999999674037,
+      "completed": 3,
+      "failed": 0,
+      "node_latencies": {
+        "data_rag": 483.99999999674037,
+        "data_sql": 187.9999999946449,
+        "merge": 0.0
+      },
+      "query": "According to our travel policy, what is the meal reimburseme",
+      "trial": 2
+    },
+    {
+      "mode": "parallel",
+      "wall_ms": 437.0000000053551,
+      "critical_path_ms": 421.99999999138527,
+      "completed": 3,
+      "failed": 0,
+      "node_latencies": {
+        "data_rag": 421.99999999138527,
+        "data_sql": 46.999999991385266,
+        "merge": 0.0
+      },
+      "query": "According to our travel policy, what is the meal reimburseme",
+      "trial": 2
+    },
+    {
+      "mode": "sequential",
+      "wall_ms": 469.00000001187436,
+      "critical_path_ms": 437.9999999946449,
+      "completed": 3,
+      "failed": 0,
+      "node_latencies": {
+        "data_rag": 437.9999999946449,
+        "data_sql": 31.000000017229468,
+        "merge": 0.0
+      },
+      "query": "What is our data retention period, and which projects are cu",
+      "trial": 0
+    },
+    {
+      "mode": "parallel",
+      "wall_ms": 405.99999998812564,
+      "critical_path_ms": 405.99999998812564,
+      "completed": 3,
+      "failed": 0,
+      "node_latencies": {
+        "data_rag": 405.99999998812564,
+        "data_sql": 62.999999994644895,
+        "merge": 0.0
+      },
+      "query": "What is our data retention period, and which projects are cu",
+      "trial": 0
+    },
+    {
+      "mode": "sequential",
+      "wall_ms": 421.99999999138527,
+      "critical_path_ms": 391.00000000325963,
+      "completed": 3,
+      "failed": 0,
+      "node_latencies": {
+        "data_rag": 391.00000000325963,
+        "data_sql": 30.999999988125637,
+        "merge": 0.0
+      },
+      "query": "What is our data retention period, and which projects are cu",
+      "trial": 1
+    },
+    {
+      "mode": "parallel",
+      "wall_ms": 516.0000000032596,
+      "critical_path_ms": 516.0000000032596,
+      "completed": 3,
+      "failed": 0,
+      "node_latencies": {
+        "data_rag": 516.0000000032596,
+        "data_sql": 32.00000000651926,
+        "merge": 0.0
+      },
+      "query": "What is our data retention period, and which projects are cu",
+      "trial": 1
+    },
+    {
+      "mode": "sequential",
+      "wall_ms": 469.00000001187436,
+      "critical_path_ms": 328.00000000861473,
+      "completed": 3,
+      "failed": 0,
+      "node_latencies": {
+        "data_rag": 328.00000000861473,
+        "data_sql": 141.00000000325963,
+        "merge": 0.0
+      },
+      "query": "What is our data retention period, and which projects are cu",
+      "trial": 2
+    },
+    {
+      "mode": "parallel",
+      "wall_ms": 280.99999998812564,
+      "critical_path_ms": 280.99999998812564,
+      "completed": 3,
+      "failed": 0,
+      "node_latencies": {
+        "data_rag": 280.99999998812564,
+        "data_sql": 30.999999988125637,
+        "merge": 0.0
+      },
+      "query": "What is our data retention period, and which projects are cu",
+      "trial": 2
+    },
+    {
+      "mode": "sequential",
+      "wall_ms": 469.00000001187436,
+      "critical_path_ms": 391.00000000325963,
+      "completed": 3,
+      "failed": 0,
+      "node_latencies": {
+        "data_rag": 391.00000000325963,
+        "data_sql": 78.00000000861473,
+        "merge": 0.0
+      },
+      "query": "What does the SLA guarantee, and what are the overdue invoic",
+      "trial": 0
+    },
+    {
+      "mode": "parallel",
+      "wall_ms": 375.0,
+      "critical_path_ms": 375.0,
+      "completed": 3,
+      "failed": 0,
+      "node_latencies": {
+        "data_rag": 375.0,
+        "data_sql": 92.99999999348074,
+        "merge": 0.0
+      },
+      "query": "What does the SLA guarantee, and what are the overdue invoic",
+      "trial": 0
+    },
+    {
+      "mode": "sequential",
+      "wall_ms": 467.99999999348074,
+      "critical_path_ms": 342.99999999348074,
+      "completed": 3,
+      "failed": 0,
+      "node_latencies": {
+        "data_rag": 342.99999999348074,
+        "data_sql": 125.0,
+        "merge": 0.0
+      },
+      "query": "What does the SLA guarantee, and what are the overdue invoic",
+      "trial": 1
+    },
+    {
+      "mode": "parallel",
+      "wall_ms": 328.9999999979045,
+      "critical_path_ms": 328.9999999979045,
+      "completed": 3,
+      "failed": 0,
+      "node_latencies": {
+        "data_rag": 328.9999999979045,
+        "data_sql": 32.00000000651926,
+        "merge": 0.0
+      },
+      "query": "What does the SLA guarantee, and what are the overdue invoic",
+      "trial": 1
+    },
+    {
+      "mode": "sequential",
+      "wall_ms": 358.99999999674037,
+      "critical_path_ms": 280.99999998812564,
+      "completed": 3,
+      "failed": 0,
+      "node_latencies": {
+        "data_rag": 280.99999998812564,
+        "data_sql": 78.00000000861473,
+        "merge": 0.0
+      },
+      "query": "What does the SLA guarantee, and what are the overdue invoic",
+      "trial": 2
+    },
+    {
+      "mode": "parallel",
+      "wall_ms": 344.00000001187436,
+      "critical_path_ms": 344.00000001187436,
+      "completed": 3,
+      "failed": 0,
+      "node_latencies": {
+        "data_rag": 344.00000001187436,
+        "data_sql": 31.000000017229468,
+        "merge": 0.0
+      },
+      "query": "What does the SLA guarantee, and what are the overdue invoic",
+      "trial": 2
+    }
+  ]
+}
