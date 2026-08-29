@@ -1,9 +1,52 @@
 # ControlPlane.ai — Current State
 
-**Last updated:** 2026-08-29 (Milestone 13)
+**Last updated:** 2026-08-30 (Milestone 16)
 **Context:** Accenture Innovation Challenge 2026, Round 2 — Prototype Development (Problem Track 1, "ControlPlane.ai"). See `Problem_Statement/` for the original brief (partially captured as screenshots; not yet transcribed to text — see `BLOCKERS.md`).
 
 ## What Exists
+
+### Milestone 16 (2026-08-30) — the "measured nothing" milestone
+
+Four independent components were **implemented, runtime-wired, tested, and reporting a structurally impossible value.** None failed. None broke a test. Each was found by reading recorded output and asking whether the number could be right.
+
+| Component | What it reported | What was wrong |
+|---|---|---|
+| Trajectory latency | `latency_ms_p50: null` for **every** component | `completed_at` set before flush, `started_at` defaulted at flush — 298/400 steps had non-positive spans, one finishing 1ms before it started |
+| MCP evidence count | `0` for every RAG operation across 157 steps | Adapter read `output["chunks"]`; `RAGCapability` returns `"evidence"` |
+| MCP permissions | `[]` for the most-used capability | RAG declared no `required_permissions` while SQL did |
+| MCP events | zero in 3000 consecutive events | No event type existed |
+| `DriftLevel.HIGH` | never emitted; precision 0.000, recall 0.000 | Level derived from signal *count*, saturating at MEDIUM |
+
+All fixed, each with a test asserting on a recorded **value** rather than a code path.
+
+**What the latency fix then revealed (§7).** ControlPlane's warm overhead is **~1.8s**, not the 42s a cold run suggests (that is one-time model loading). Mean model calls per request: **1.07**. Latency correlates with **input** tokens (0.559), not output (0.152) — 29.3s at <250 tokens vs 139.3s above 1000. The 2.1× penalty is **prefill of retrieved evidence**, not governance overhead.
+
+**Over-control decomposed (§8).** The 0.304 headline counts three behaviours: withheld a **correct** answer (0.130, the defect), asked for clarification (0.109), and correctly controlled a **wrong** answer (0.065 — the system working, charged as a cost). Root cause of the largest contributor found and fixed: `factuality` flagged numbers **the user supplied in their own question**.
+
+**Multi-agent, measured (§12).** Four conditions, identical queries and model. `key_fact_accuracy` **0.583 in all four** — decomposition changed nothing. Communication (24 messages vs 0) changed nothing: it is currently **observability, not capability**. Parallelism is the one genuine win (1.84× faster than sequential). The run exposed a **safety gap**: the planner discarded a lone gatherer, so the flagship exfiltration case could not fire (composition risk accuracy 0.000). Fixed.
+
+### Component status after Milestone 16
+
+| Area | Status | Evidence |
+|---|---|---|
+| Baseline vs ControlPlane | `SERIOUS_BENCHMARK` at 62 cases | key-fact 0.065→0.826, hallucination 0.304→0.043, unsafe control 0→1.000 |
+| Latency decomposition | `IMPLEMENTED` + measured | per-component spans now real |
+| Prompt-injection detection | `IMPLEMENTED`, domain-aware | enterprise TEST macro-F1 0.899 |
+| Factuality | `IMPLEMENTED`, provenance-aware | over-control 4→1, 0 missed fabrications |
+| Reasoning | `IMPLEMENTED`, numeric layer | held-out macro-F1 0.582, precision 1.000 |
+| Behavioral drift | `IMPLEMENTED` v2 | held-out exact 0.800, HIGH f1 0.909 |
+| MCP fabric | `IMPLEMENTED`, real access path | SQL+RAG execute through it; events now emitted |
+| Multi-agent | `IMPLEMENTED`, **null result for quality** | 0.583 across all conditions |
+| Agent communication | `IMPLEMENTED`, **observability only** | C vs D identical on every quality metric |
+| Prometheus judge | `NOT_MEASURED` | never run to completion |
+| Model routing benchmark | `NOT_MEASURED` | ALWAYS-FAST / ALWAYS-STRONG / ADAPTIVE not run |
+| Dashboard | `IMPLEMENTED`, verified live | `/dashboard`, `/evidence`, `/datasets`, `/health-map` |
+
+**Dataset health, counted from the files:** 21 datasets, 1,796 cases, **3 with a held-out split**, 19 carrying at least one warning. Visible at `/dashboard/datasets`.
+
+`tests/` — **482 automated tests**, all passing.
+
+
 
 **Documentation:**
 - `docs/ALGORITHMS/` — 17 prior files plus 2 new: `CORPUS_AFFINITY_ROUTING.md`, `SHADOW_MODE.md`.
