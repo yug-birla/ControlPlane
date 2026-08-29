@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}Evidence -- Baseline vs ControlPlane{% endblock %}
+{% block content %}
+
+<h1 style="font-size:20px;margin-bottom:4px;">Baseline vs ControlPlane</h1>
+<p class="note">
+  Every number on this page is read from a committed experiment result file under
+  <code>docs/EVALUATION/RESULTS/</code>. Nothing here is computed, estimated, or interpolated at page load.
+  If a result file is missing, the section says so rather than rendering an empty table that would read like a measured zero.
+</p>
+
+{% set bvc = evidence.baseline_vs_controlplane %}
+{% if not bvc.available %}
+  <div class="panel"><h2>Baseline vs ControlPlane</h2>
+    <p>No <code>baseline_vs_controlplane_*.json</code> result file found. Run
+    <code>python -m controlplane.experiments.evaluate_baseline_vs_controlplane</code>.</p></div>
+{% else %}
+
+<div class="panel">
+  <h2>Run provenance</h2>
+  <table>
+    <tr><th>Source file</th><td class="mono">{{ bvc.source_file }}</td>
+        <th>Experiment</th><td class="mono">{{ bvc.experiment_id }}</td></tr>
+    <tr><th>Dataset</th><td>{{ bvc.dataset_id }} {{ bvc.dataset_version }}</td>
+        <th>Cases</th><td>{{ bvc.sample_count }}</td></tr>
+    <tr><th>Model (both arms)</th><td>{{ bvc.model }}</td>
+        <th>Scale</th><td><span class="badge severity-MEDIUM_RISK">{{ bvc.scale }}</span></td></tr>
+    <tr><th>Provider failures</th><td>{{ bvc.provider_failures }}</td>
+        <th>Controls</th><td class="note">same queries, same base model, same scoring</td></tr>
+  </table>
+  <div class="why">
+    <strong>Read this before the numbers.</strong> At {{ bvc.sample_count }} cases this is
+    <code>DEVELOPMENT_TEST</code> scale, not a benchmark claim. Several per-category rates below rest on
+    as few as one to three cases and should not be quoted as rates.
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Headline metrics</h2>
+  <table>
+    <tr><th>Metric</th><th>Baseline</th><th>ControlPlane</th><th>Change</th><th>Better?</th></tr>
+    {% for m in bvc.comparison %}
+    <tr>
+      <td>{{ m.label }}</td>
+      <td class="mono">{{ '%.3f'|format(m.baseline) }}</td>
+      <td class="mono">{{ '%.3f'|format(m.controlplane) }}</td>
+      <td class="mono">{{ '%+.3f'|format(m.delta) }}</td>
+      <td>
+        {% if m.unchanged %}<span class="badge severity-MEDIUM_RISK">NO CHANGE</span>
+        {% elif m.improved %}<span class="badge status-COMPLETED">BETTER</span>
+        {% else %}<span class="badge status-FAILED">WORSE</span>{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p class="note">
+    "Better" is judged against the direction declared for each metric in
+    <code>controlplane/dashboard/evidence.py</code>, so a lower hallucination rate and a higher
+    abstention rate both count as improvements. Rows marked WORSE and NO CHANGE are shown with the
+    same prominence as the wins -- a comparison view that only surfaced improvements would not be evidence.
+  </p>
+</div>
+
+<div class="panel">
+  <h2>Per-category outcomes</h2>
+  <table>
+    <tr><th>Category</th><th>n</th><th>Baseline correct</th><th>ControlPlane correct</th>
+        <th>Baseline hallucinations</th><th>ControlPlane hallucinations</th></tr>
+    {% for c in bvc.per_category %}
+    <tr>
+      <td>{{ c.category }}</td>
+      <td class="mono">{{ c.n }}</td>
+      <td class="mono">{{ c.baseline_correct }}</td>
+      <td class="mono">{{ c.controlplane_correct }}</td>
+      <td class="mono">{{ c.baseline_hallucinations }}</td>
+      <td class="mono">{{ c.controlplane_hallucinations }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p class="note">
+    Categories where both columns are zero (HIGH_RISK_ACTION, PROMPT_INJECTION, UNANSWERABLE) are
+    <em>designed</em> to have no correct factual answer -- the desired behaviour there is control or
+    abstention, measured in the headline table, not a correct answer.
+  </p>
+</div>
+
+<div class="panel">
+  <h2>Which component caused the over-control</h2>
+  {% if bvc.over_control_attribution %}
+  <table>
+    <tr><th>Evaluator that fired</th><th>Cases</th><th>Share of withheld benign cases</th></tr>
+    {% for a in bvc.over_control_attribution %}
+    <tr>
+      <td>{{ a.evaluator }}</td>
+      <td class="mono">{{ a.cases }}</td>
+      <td class="mono">{{ a.cases }} / {{ a.of_controlled_benign }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p class="note">
+    Counted directly from <code>flagged_evaluators</code> recorded on each benign case ControlPlane withheld.
+    A case can flag several evaluators, so these do not sum to the case count. Cases in the
+    HIGH_RISK_ACTION, PROMPT_INJECTION and UNANSWERABLE categories are excluded: controlling those is
+    correct behaviour, not a cost.
+  </p>
+  {% else %}
+  <p class="note">No benign case was withheld in this run.</p>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <h2>Decision mix (ControlPlane arm)</h2>
+  <table>
+    <tr><th>Decision</th><th>Cases</th><th>Share</th></tr>
+    {% for d in bvc.decision_mix %}
+    <tr><td>{{ d.label }}</td><td class="mono">{{ d.count }}</td><td class="mono">{{ '%.1f'|format(d.share * 100) }}%</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+{% set ab = evidence.ablations %}
+<div class="panel">
+  <h2>Ablations -- which parts create the improvement</h2>
+  {% if not ab.available %}
+    <p class="note">No <code>ablations_*.json</code> result file found.</p>
+  {% else %}
+  <table>
+    <tr><th>Condition</th><th>n</th><th>Key-fact acc.</th><th>Hallucination</th><th>Grounding</th>
+        <th>Control on unsafe</th><th>Over-control</th><th>Latency (ms)</th></tr>
+    {% for c in ab.conditions %}
+    <tr>
+      <td>{{ c.condition }}</td>
+      <td class="mono">{{ c.sample_count }}</td>
+      <td class="mono">{% if c.key_fact_accuracy is not none %}{{ '%.3f'|format(c.key_fact_accuracy) }}{% else %}--{% endif %}</td>
+      <td class="mono">{% if c.hallucination_rate is not none %}{{ '%.3f'|format(c.hallucination_rate) }}{% else %}--{% endif %}</td>
+      <td class="mono">{% if c.grounding_supported is not none %}{{ '%.3f'|format(c.grounding_supported) }}{% else %}--{% endif %}</td>
+      <td class="mono">{% if c.control_on_unsafe is not none %}{{ '%.3f'|format(c.control_on_unsafe) }}{% else %}--{% endif %}</td>
+      <td class="mono">{% if c.over_control_benign is not none %}{{ '%.3f'|format(c.over_control_benign) }}{% else %}--{% endif %}</td>
+      <td class="mono">{% if c.latency_ms_mean is not none %}{{ '%.0f'|format(c.latency_ms_mean) }}{% else %}--{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p class="note">
+    Each condition removes one part of ControlPlane while holding the query set, base model and scoring fixed,
+    so the gap between rows is attributable to that part.
+    {% if ab.note %}<br><strong>Note from the run:</strong> {{ ab.note }}{% endif %}
+  </p>
+  {% endif %}
+</div>
+
+{% set inj = evidence.injection_domain_shift %}
+<div class="panel">
+  <h2>Component experiment -- prompt-injection detector</h2>
+  {% if not inj.available %}
+    <p class="note">No <code>injection_domain_shift_*.json</code> result file found.</p>
+  {% else %}
+  <table>
+    <tr><th>Configuration</th><th>deepset TEST (macro-F1)</th><th>enterprise TEST</th>
+        <th>enterprise VALIDATION</th><th>Live/regression queries</th></tr>
+    {% for c in inj.conditions %}
+    <tr>
+      <td>{{ c.condition }}</td>
+      <td class="mono">{% if c.deepset_macro_f1 is not none %}{{ '%.3f'|format(c.deepset_macro_f1) }}{% else %}--{% endif %}</td>
+      <td class="mono">{% if c.enterprise_macro_f1 is not none %}{{ '%.3f'|format(c.enterprise_macro_f1) }}{% else %}--{% endif %}</td>
+      <td class="mono">{% if c.validation_macro_f1 is not none %}{{ '%.3f'|format(c.validation_macro_f1) }}{% else %}--{% endif %}</td>
+      <td class="mono">{{ c.live_queries_correct if c.live_queries_correct is not none else '--' }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p class="note">
+    Six configurations were measured and five rejected. The rejected rows are kept visible on purpose:
+    the row that scored best on validation (k=31) is among the worst on the larger held-out deepset set,
+    which is the clearest available demonstration of why tuning and testing use separate splits.
+  </p>
+  {% endif %}
+</div>
+
+<p class="note">
+  This page shows outcomes and signals only. It never renders model reasoning traces.
+</p>
+{% endblock %}

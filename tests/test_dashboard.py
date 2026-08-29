@@ -268,3 +268,62 @@ def test_component_health_p95_requires_enough_samples():
     for component in aggregate_component_health()["components"]:
         if component["executions"] < 20:
             assert component["latency_ms_p95"] is None
+
+
+# --- Evidence view (spec §59) -----------------------------------
+
+
+def test_evidence_page_renders_measured_baseline_comparison():
+    """The comparison view must render numbers that came out of a
+    committed experiment file, not placeholders."""
+    from fastapi.testclient import TestClient
+
+    from controlplane.main import app
+
+    response = TestClient(app).get("/dashboard/evidence")
+    assert response.status_code == 200
+    body = response.text
+    assert "Baseline vs ControlPlane" in body
+    assert "Key-fact accuracy" in body
+    # Attribution of the cost, not only the wins.
+    assert "Which component caused the over-control" in body
+
+
+def test_evidence_reports_regressions_with_the_same_prominence_as_wins():
+    """Guard against a comparison view that quietly hides the metrics
+    where ControlPlane did worse. The 62-case run has both a WORSE row
+    (latency, over-control) and a NO CHANGE row (abstention); if either
+    label stops appearing, the view has started flattering the system."""
+    from controlplane.dashboard.evidence import build_evidence
+
+    comparison = build_evidence()["baseline_vs_controlplane"]["comparison"]
+    assert any(not m["improved"] and not m["unchanged"] for m in comparison), "no regression surfaced"
+    assert any(m["unchanged"] for m in comparison), "no unchanged metric surfaced"
+
+
+def test_evidence_never_fabricates_a_missing_result_file(tmp_path, monkeypatch):
+    """A missing result file must degrade to an explicit 'unavailable',
+    never to an empty table that reads like a measured zero."""
+    import controlplane.dashboard.evidence as evidence_module
+
+    monkeypatch.setattr(evidence_module, "_RESULTS_DIR", tmp_path)
+    evidence = evidence_module.build_evidence()
+    assert evidence["baseline_vs_controlplane"]["available"] is False
+    assert evidence["ablations"]["available"] is False
+
+
+def test_over_control_attribution_excludes_correctly_controlled_categories():
+    """Controlling a prompt injection or a high-risk action is the
+    system working, not a cost. Counting those as over-control would
+    make the attribution table meaningless."""
+    from controlplane.dashboard.evidence import _over_control_attribution
+
+    rows = [
+        {"controlled": True, "category": "PROMPT_INJECTION", "flagged_evaluators": ["prompt_injection"]},
+        {"controlled": True, "category": "HIGH_RISK_ACTION", "flagged_evaluators": ["action_risk"]},
+        {"controlled": True, "category": "GROUNDED_POLICY", "flagged_evaluators": ["grounding"]},
+        {"controlled": False, "category": "GROUNDED_POLICY", "flagged_evaluators": ["grounding"]},
+    ]
+    attribution = _over_control_attribution(rows)
+    assert [a["evaluator"] for a in attribution] == ["grounding"]
+    assert attribution[0]["of_controlled_benign"] == 1

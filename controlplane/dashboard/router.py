@@ -15,6 +15,7 @@ from fastapi.requests import Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
+from controlplane.dashboard.evidence import build_evidence
 from controlplane.dashboard.queries import (
     aggregate_component_health,
     aggregate_stats,
@@ -70,6 +71,18 @@ def api_component_health() -> dict:
     """System-wide component health: which component is failing across
     requests, as distinct from the per-request diagnostics panel."""
     return aggregate_component_health()
+
+
+@router.get("/api/evidence")
+def api_evidence() -> dict:
+    """Baseline vs ControlPlane, ablations, and component experiments --
+    read straight from committed experiment result files (§59)."""
+    return build_evidence()
+
+
+@router.get("/evidence", response_class=HTMLResponse)
+def dashboard_evidence(request: Request) -> HTMLResponse:
+    return _templates.TemplateResponse(request, "evidence.html", {"evidence": build_evidence()})
 
 
 @router.get("/health-map", response_class=HTMLResponse)

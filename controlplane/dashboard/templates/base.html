@@ -31,7 +31,12 @@
 </style>
 </head>
 <body>
-<header><a href="/dashboard">ControlPlane Dashboard</a> <span class="note">-- read-only, reflects state at page load, not a live stream</span></header>
+<header>
+  <a href="/dashboard">ControlPlane Dashboard</a>
+  <span class="note">&nbsp;|&nbsp;</span><a href="/dashboard/health-map">Component health</a>
+  <span class="note">&nbsp;|&nbsp;</span><a href="/dashboard/evidence">Evidence</a>
+  <span class="note">&nbsp;-- read-only, reflects state at page load, not a live stream</span>
+</header>
 <main>
 {% block content %}{% endblock %}
 </main>
