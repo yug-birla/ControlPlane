@@ -1,6 +1,6 @@
 # ControlPlane.ai — Current State
 
-**Last updated:** 2026-08-29 (Milestone 10, in progress)
+**Last updated:** 2026-08-29 (Milestone 13)
 **Context:** Accenture Innovation Challenge 2026, Round 2 — Prototype Development (Problem Track 1, "ControlPlane.ai"). See `Problem_Statement/` for the original brief (partially captured as screenshots; not yet transcribed to text — see `BLOCKERS.md`).
 
 ## What Exists
@@ -10,6 +10,21 @@
 - `docs/EVALUATION/` — 1 new: `BASELINE_VS_CONTROLPLANE.md` (the central product experiment, its methodology, its results, and the two bugs found in the harness itself).
 - `docs/DATA/` — `EXTERNAL_DATASETS.md` (Milestone 8). New dataset this milestone: `data/raw/generated/baseline_vs_controlplane_cases.json` (26 cases, provenance HUMAN).
 - `docs/PROJECT_STATE/` — this folder, updated.
+
+**Application code (Milestones 11-13 — Adaptive Compute, MCP Fabric, Multi-Agent Runtime, Visual Dashboard, Corpus Expansion):**
+
+- **Adaptive compute runtime-wired** (`controlplane/routing/adaptive_compute.py` + `model_performance.py`): decides `STOP`/`SELF_REFINE`/`ESCALATE` *after* execution. Escalation must clear an evidence bar from observed model performance; on this project it currently does **not**, so the cheaper same-model refinement runs instead. The belief lives in data, not code.
+- **MCP capability fabric** (`controlplane/mcp/`): discovery, invocation, normalized results, the specified failure taxonomy, health that degrades on observed failure. Labelled `IN_PROCESS`, not a networked deployment. "MCP must never become the brain" is enforced **structurally** — a test parses the AST of every module and fails if any imports decision/policy/risk/trust/routing.
+- **Multi-agent planning + execution + communication**: the planner derives agent count from measured data requirements (0 agents for a single-source read, 3 for an agentic multi-source task). Gatherer agents are governed wrappers around real capabilities. Every agent message is an `AGENT_MESSAGE_SENT` event; a `REPLAN_REQUEST` is **triaged, not obeyed**, and triage is grounded in what the agent *did* rather than how its message reads.
+- **Visual dashboard, verified running**: execution map derived from real persisted execution (never a static diagram), failure localization, component diagnostics, MCP view, agent communication, plan evolution, system-wide component health. Served at `http://127.0.0.1:8000/dashboard`.
+- **Evaluation corpus expanded**: primary benchmark **26 → 62 cases** across 10 categories with every grounded label verified against the corpus; bias **8 → 24 pairs** across 15 dimensions.
+- `tests/` — **410 automated tests**, all passing.
+
+**Four defects found by running the real system, not by tests:**
+1. Gatherer agents produced **no evidence** — collectors keyed on `capability == "RAG"` while a gatherer's capability is `"AGENT"`. The model answered "I don't have direct access to external databases" and the request was still **VERIFIED with trust HIGH**, because grounding was `NOT_APPLICABLE` rather than `UNSUPPORTED`.
+2. Gatherer agents **duplicated** retrieval alongside plain data nodes.
+3. A gatherer's synthesized tool name matched nothing in the composition governor's tables, so an agent reading the enterprise DB scored `PUBLIC` — **the exfiltration path would not have fired**.
+4. Component health reported a confident **p50 of 0.0ms** for every component — an artefact of when trajectory rows are written, not a measurement.
 
 **Application code (Milestone 10 — Component Diagnostics, Dynamic Planning, Multi-Tier Models, Multi-Agent Governance, Prometheus Judge — IN PROGRESS 2026-08-29):**
 
