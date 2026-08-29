@@ -116,3 +116,26 @@ Not separately benchmarked against a labeled dataset (none exists for self-contr
 - Judge calibration sample (20) and bias sample (8 pairs) are both SMOKE_TEST scale, not large-N benchmarks.
 - Remote Judge (Gemini) entirely unmeasured this session.
 - Judge calibration only covers the `grounding` task; `quality`/`reasoning`/`safety` judge prompts exist and are unit-tested but not separately calibrated against ground truth this milestone.
+
+## Judge Model Comparison: Qwen 1.5B vs Prometheus 2 7B (Milestone 10)
+
+**Run:** `controlplane/experiments/compare_judges.py`, 2026-08-29, on the 24-case hard grounding benchmark. Raw: `docs/EVALUATION/RESULTS/judge_comparison_2026-08-29.json`.
+
+| Judge | Status | Accuracy | Macro-F1 | `PARTIALLY_SUPPORTED` predicted | Unparseable |
+|---|---|---|---|---|---|
+| Qwen2.5-1.5B (incumbent) | MEASURED | 0.417 | 0.320 | **0 / 24** | 0 |
+| Prometheus 2 7B | **NOT_MEASURED** | — | — | — | — |
+
+### Qwen: the class collapse is confirmed and reproduced
+
+`PARTIALLY_SUPPORTED` remains at **0/24 predictions** — unchanged since Milestone 7 and unchanged by Milestone 8's few-shot attempt. The model behaves as an effectively binary classifier at this size despite the prompt explicitly offering the third option.
+
+Worth noting as a **reproducibility check**: accuracy 0.417 and macro-F1 0.320 match the Milestone 8 post-few-shot figures exactly, measured here by a *different* script with a different scoring path. The parse rate is perfect (0 unparseable), so the JSON output contract is not the problem — the label distribution is.
+
+### Prometheus: NOT_MEASURED, with the reason recorded
+
+Not "skipped", not estimated, not substituted. The model downloaded successfully (14GB, verified on E:) but **does not fit in this machine's RAM** — 14.5GB bf16 against 15.7GB total. The observed bf16 load page-thrashed at ~0.15GB/min with 0.3GB free, projecting ~40 minutes to maybe finish, with every subsequent judgment thrashing identically.
+
+`PrometheusJudge` now refuses in under a second via a pre-flight RAM check rather than attempting it. See `docs/PROJECT_STATE/BLOCKERS.md` **B12**, which is open and needs a decision between a new GGUF dependency, GPU approval, or accepting the Qwen gap.
+
+**The comparison this milestone set out to make has therefore not been made.** The improvement-ladder step after "few-shot was insufficient" is still open, and no claim is made about whether Prometheus would have helped.
