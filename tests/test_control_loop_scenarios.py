@@ -86,24 +86,37 @@ def test_rag_self_healing_exhausts_budget_and_asks_for_clarification():
     assert state.metadata["verification"]["status"] == VerificationStatus.NOT_VERIFIED.value
 
 
-def test_low_confidence_fast_response_escalates_to_strong_model():
-    """SCENARIO 8 / model escalation: a hedging fast-model response
-    triggers CHANGE_MODEL; the second (STRONG-role) call produces a
-    confident final answer."""
+def test_low_confidence_fast_response_triggers_a_second_attempt_without_unevidenced_escalation():
+    """SCENARIO 8, UPDATED IN MILESTONE 11 -- a deliberate contract change.
+
+    This test previously asserted that a hedging fast-model response
+    always escalates to the STRONG role. Adaptive compute changed that
+    contract: escalation must now be backed by OBSERVED model
+    performance, and on this project it is not (Qwen3-4B has no
+    grounding-scored history, and the tier benchmark measured it scoring
+    LOWER than the 1.5B model at ~2.5x the per-token cost).
+
+    So the correct behaviour is now: still intervene, still produce a
+    second attempt, but spend the cheaper same-model refinement pass
+    rather than escalating on faith. Escalation-when-evidence-supports-it
+    is covered by tests/test_adaptive_compute.py.
+
+    The old assertion is not "fixed" here -- it encoded the old contract,
+    and the new one is deliberate."""
     provider = _ScriptedProvider([
         "I'm not sure, it's unclear to me.",
         "The capital of France is Paris, a well-established fact.",
     ])
     state, ctx = _run("What is the capital of France?", provider)
 
-    assert provider.calls == 2
+    assert provider.calls == 2, "the control loop must still make a second attempt"
     assert "Paris" in state.metadata["answer"]
     assert state.metadata["decision"]["action"] == ControlAction.CONTINUE.value  # resolved by attempt 2
-    assert state.metadata["model"]["role"] == "STRONG"
 
     events = [e["event_type"] for e in EventStore().get_by_trajectory(ctx.trajectory_id)]
+    # MODEL_ESCALATION is still emitted -- it now carries the adaptive
+    # compute decision, including the reason escalation was declined.
     assert "MODEL_ESCALATION" in events
-    assert "REPLAN_TRIGGERED" in events
 
     first_decision = next(d for d in TrajectoryStore().get_history(ctx.trajectory_id) if d["step_type"] == "decision:1")
     assert first_decision["output_ref"]["action"] == ControlAction.CHANGE_MODEL.value

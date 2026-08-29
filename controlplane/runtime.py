@@ -75,6 +75,11 @@ from controlplane.query_intelligence.fingerprint import QueryFingerprint
 from controlplane.query_intelligence.knn_profiler import HybridQueryProfiler
 from controlplane.risk.baseline import BaselineRiskProfiler
 from controlplane.risk.profile import RiskProfile, RiskSeverity
+from controlplane.routing.adaptive_compute import (
+    AdaptiveComputePolicy,
+    ComputeAction,
+    build_refinement_prompt,
+)
 from controlplane.routing.capability_router import CapabilityRoute, CapabilityRouter
 from controlplane.routing.model_router import ModelRouteAction, ModelRouteDecision, ModelRouter
 from controlplane.state import ExecutionState, ExecutionStatus
@@ -149,6 +154,10 @@ class Runtime:
         # Multi-agent composition governance (Milestone 10): evaluates the
         # agent CHAIN, which per-step AgentGate decisions structurally
         # cannot see. See controlplane/governance/multi_agent.py.
+        # Adaptive compute (Milestone 11): decides HOW MUCH compute an
+        # intervention deserves, from observed model performance.
+        self._adaptive_compute = AdaptiveComputePolicy()
+        self._model_profiles_cache: dict | None = None
         self._composition_governor = CompositionGovernor()
         self._composition_assessment = None
         # MCP capability fabric (Milestone 11): uniform discovery and
@@ -672,6 +681,58 @@ class Runtime:
             raise captured["error"]
         return captured["result"]
 
+    def _decide_compute(
+        self,
+        *,
+        evaluation_results: list[EvaluationResult],
+        current_role: str,
+        refinement_passes_used: int,
+        risk_severity: str,
+        budget_exhausted: bool,
+    ):
+        """How much compute does this quality problem justify?
+
+        Escalation is gated on OBSERVED model performance rather than on
+        the assumption that a larger model is better -- on this project
+        the measured tier comparison found the larger model scoring lower
+        at ~2.5x the cost, so escalating by default would reliably spend
+        more to get less.
+        """
+        from controlplane.models.local_generation_provider import _ROLE_MODELS
+        from controlplane.routing.model_performance import (
+            build_model_profiles,
+            escalation_is_evidence_backed,
+        )
+
+        concerns = [
+            r.evaluator for r in evaluation_results
+            if r.recommended_signal in ("FLAG_FOR_REVIEW", "BLOCK")
+        ]
+
+        # Profiles are read once per Runtime, not per request: this is a
+        # DB aggregate, and routing must not add a query to every request.
+        if self._model_profiles_cache is None:
+            self._model_profiles_cache = build_model_profiles()
+
+        try:
+            from_model = _ROLE_MODELS.get(current_role, _ROLE_MODELS["FAST"])[0]
+            to_model = _ROLE_MODELS["STRONG"][0]
+            supported, reason = escalation_is_evidence_backed(
+                self._model_profiles_cache, from_model=from_model, to_model=to_model
+            )
+        except Exception:
+            supported, reason = False, "model performance history unavailable"
+
+        return self._adaptive_compute.decide(
+            quality_concerns=concerns,
+            current_role=current_role,
+            refinement_passes_used=refinement_passes_used,
+            risk_severity=risk_severity,
+            escalation_supported=supported,
+            escalation_reason=reason,
+            budget_exhausted=budget_exhausted,
+        )
+
     def _invoke_via_mcp(self, capability_id: str, query: str) -> dict:
         """Invoke a capability through the MCP fabric for a graph node.
 
@@ -871,6 +932,7 @@ class Runtime:
         from controlplane.db.engine import session_scope
 
         current_role = model_decision.model_role
+        refinement_passes_used = 0
         attempt = 1
         decision = self._decision_engine.decide(evaluation_results, risk, model_decision, attempt_number=attempt)
         decision_id = self._record_decision(ctx, decision)
@@ -892,9 +954,51 @@ class Runtime:
                 )
 
             spec = self._intervention_engine.plan(decision, current_model_role=current_role)
+
+            # ADAPTIVE COMPUTE (Milestone 11). The Intervention Engine says
+            # *what kind* of intervention the decision implies; this decides
+            # HOW MUCH COMPUTE to spend on it, from observed evidence rather
+            # than from an assumption that bigger is better.
+            #
+            # It can only downgrade or redirect a model change -- it never
+            # invents an intervention the Decision Engine did not ask for,
+            # and it never touches a safety-driven action.
+            compute_decision = None
+            if spec.intervention_type in (InterventionType.CHANGE_MODEL, InterventionType.REGENERATE):
+                compute_decision = self._decide_compute(
+                    evaluation_results=evaluation_results,
+                    current_role=current_role,
+                    refinement_passes_used=refinement_passes_used,
+                    risk_severity=risk.severity.value,
+                    budget_exhausted=not decision.can_retry,
+                )
+                self._publish(
+                    EventType.MODEL_ESCALATION, ctx, source="controlplane",
+                    payload={"scope": "ADAPTIVE_COMPUTE", **compute_decision.to_dict()},
+                )
+                if compute_decision.action is ComputeAction.STOP:
+                    # Spending more compute is not justified. Keep the
+                    # current result and let Verification/Trust report it
+                    # honestly rather than burning another model call.
+                    logger.info("adaptive_compute_stop",
+                                extra={"cp_fields": {"reason": compute_decision.reason}})
+                    break
+                if compute_decision.action is ComputeAction.SELF_REFINE:
+                    # Same model, one bounded corrective pass driven by the
+                    # evaluator's findings -- cheaper than escalating, and on
+                    # this project escalation is not evidence-backed.
+                    # InterventionSpec is a pydantic model, not a dataclass.
+                    spec = spec.model_copy(update={
+                        "intervention_type": InterventionType.REGENERATE,
+                        "new_model_role": current_role,
+                        "reason": spec.reason + " | adaptive compute: " + compute_decision.reason,
+                    })
+                    refinement_passes_used += 1
+
             self._publish(
                 EventType.INTERVENTION_TRIGGERED, ctx, source="controlplane",
-                payload={"intervention_type": spec.intervention_type.value, "reason": spec.reason},
+                payload={"intervention_type": spec.intervention_type.value, "reason": spec.reason,
+                          "adaptive_compute": compute_decision.to_dict() if compute_decision else None},
             )
             intervention_id = self._record_intervention(ctx, decision_id, spec)
 
@@ -929,6 +1033,16 @@ class Runtime:
                         if rag_node is not None:
                             rag_node.output_ref = self._rag_capability.execute(query, k=spec.new_rag_k)
                 prompt = self._build_generation_prompt(query, capability_route.graph)
+                if compute_decision is not None and compute_decision.action is ComputeAction.SELF_REFINE:
+                    # A bounded corrective pass. The feedback is the
+                    # INDEPENDENT evaluator's finding, not the model's own
+                    # self-critique -- a 1.5B model asked to critique
+                    # itself tends to agree with itself.
+                    prompt = build_refinement_prompt(
+                        original_prompt=prompt,
+                        previous_answer=result["content"],
+                        concerns=compute_decision.triggering_evaluators,
+                    )
                 new_result = self._invoke_model(ctx, settings, prompt, role=new_role)
                 actual_effect = {"status": "EXECUTED", "new_content_preview": new_result["content"][:200]}
                 if plan_change is not None and plan_change.changed:
