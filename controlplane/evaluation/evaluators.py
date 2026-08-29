@@ -609,9 +609,32 @@ class ReasoningEvaluator(Evaluator):
     the live per-request suite, see docs/ALGORITHMS/EVALUATION_LAYER.md).
 
     Deliberately reports ``NO_CONTRADICTION_DETECTED``, not "CONSISTENT"
-    or "SOUND" -- this checks for one narrow failure pattern (the answer
-    asserting both a claim and its direct polarity opposite about the
-    same subject), not general logical validity. A judge-backed
+    or "SOUND" -- this checks for two narrow failure patterns (a direct
+    polarity opposite about the same subject, and two numeric claims
+    that share a subject and unit but disagree), not general logical
+    validity.
+
+    SEMANTIC ENTAILMENT WAS TRIED AND REJECTED. Spec §30 named it as the
+    principled alternative to more keyword pairs, so it was implemented
+    with ``google/flan-t5-base`` and measured in a four-way comparison:
+
+                          dev macro-F1   TEST macro-F1   test precision
+      A polarity only         0.351          0.550           0.500
+      B + numeric             0.525          0.582           1.000
+      C entailment only       0.467          0.415           0.000
+      D numeric + entailment  0.590          0.550           0.500
+
+    Entailment was the best condition on DEV and the worst on the
+    held-out TEST split, where it found zero contradictions and added
+    one false positive. The dev split was authored while looking at the
+    failure shapes it was meant to catch, so its apparent gain did not
+    survive contact with cases written earlier -- which is exactly what
+    a held-out split is for. It also cost 60-545ms per evaluation in a
+    live per-request suite.
+
+    Only the numeric layer is wired in. The entailment code remains in
+    ``controlplane.evaluation.reasoning_consistency`` so the negative
+    result stays reproducible. A judge-backed
     evaluator for deeper reasoning-quality checks exists
     (``controlplane.evaluation.judge_evaluators.JudgeBackedEvaluator``
     with ``task="reasoning"``) and is measured in
@@ -628,6 +651,21 @@ class ReasoningEvaluator(Evaluator):
             )
         lowered = ctx.answer.lower()
         contradictions = [f"{pos!r} and {neg!r}" for pos, neg in _CONTRADICTION_PAIRS if pos in lowered and neg in lowered]
+
+        # NUMERIC SELF-CONTRADICTION (Milestone 16, adopted on measured
+        # evidence). The polarity-pair list structurally cannot see
+        # "Managers must give 60 days notice. The required notice for
+        # managers is 30 days." -- there are no polarity words in it at
+        # all. This layer compares numeric claims that share a subject
+        # and a unit.
+        #
+        # Measured on 24 held-out cases (evaluate_reasoning_consistency):
+        #   A polarity only   macro-F1 0.550, precision 0.500, 1 FP
+        #   B + numeric       macro-F1 0.582, precision 1.000, 0 FP
+        from controlplane.evaluation.reasoning_consistency import check_numeric_consistency
+
+        contradictions += [f.detail for f in check_numeric_consistency(ctx.answer)]
+
         if contradictions:
             return EvaluationResult(
                 evaluator=self.name,

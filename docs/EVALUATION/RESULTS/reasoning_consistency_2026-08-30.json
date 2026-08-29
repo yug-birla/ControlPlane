@@ -1,0 +1,1707 @@
+{
+  "experiment_id": "exp_7da2b60a-af53-4088-9837-b899ddf56033",
+  "results": {
+    "A_current": {
+      "dev": {
+        "n": 24,
+        "accuracy": 0.5416666666666666,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0,
+        "contradiction_f1": 0.0,
+        "consistent_f1": 0.7027027027027027,
+        "macro_f1": 0.35135135135135137,
+        "false_positives": 0,
+        "false_negatives": 11,
+        "mean_latency_ms": 4.541666666666667
+      },
+      "test": {
+        "n": 24,
+        "accuracy": 0.75,
+        "contradiction_precision": 0.5,
+        "contradiction_recall": 0.16666666666666666,
+        "contradiction_f1": 0.25,
+        "consistent_f1": 0.85,
+        "macro_f1": 0.55,
+        "false_positives": 1,
+        "false_negatives": 5,
+        "mean_latency_ms": 0.0
+      }
+    },
+    "B_numeric": {
+      "dev": {
+        "n": 24,
+        "accuracy": 0.625,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 0.18181818181818182,
+        "contradiction_f1": 0.3076923076923077,
+        "consistent_f1": 0.7428571428571429,
+        "macro_f1": 0.5252747252747253,
+        "false_positives": 0,
+        "false_negatives": 9,
+        "mean_latency_ms": 0.0
+      },
+      "test": {
+        "n": 24,
+        "accuracy": 0.7916666666666666,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 0.16666666666666666,
+        "contradiction_f1": 0.2857142857142857,
+        "consistent_f1": 0.878048780487805,
+        "macro_f1": 0.5818815331010454,
+        "false_positives": 0,
+        "false_negatives": 5,
+        "mean_latency_ms": 0.0
+      }
+    },
+    "C_entailment": {
+      "dev": {
+        "n": 24,
+        "accuracy": 0.5416666666666666,
+        "contradiction_precision": 0.5,
+        "contradiction_recall": 0.18181818181818182,
+        "contradiction_f1": 0.26666666666666666,
+        "consistent_f1": 0.6666666666666667,
+        "macro_f1": 0.4666666666666667,
+        "false_positives": 2,
+        "false_negatives": 9,
+        "mean_latency_ms": 545.6666666666666
+      },
+      "test": {
+        "n": 24,
+        "accuracy": 0.7083333333333334,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0,
+        "contradiction_f1": 0.0,
+        "consistent_f1": 0.8292682926829269,
+        "macro_f1": 0.41463414634146345,
+        "false_positives": 1,
+        "false_negatives": 6,
+        "mean_latency_ms": 60.875
+      }
+    },
+    "D_numeric_nli": {
+      "dev": {
+        "n": 24,
+        "accuracy": 0.625,
+        "contradiction_precision": 0.6666666666666666,
+        "contradiction_recall": 0.36363636363636365,
+        "contradiction_f1": 0.4705882352941177,
+        "consistent_f1": 0.7096774193548387,
+        "macro_f1": 0.5901328273244782,
+        "false_positives": 2,
+        "false_negatives": 7,
+        "mean_latency_ms": 119.25
+      },
+      "test": {
+        "n": 24,
+        "accuracy": 0.75,
+        "contradiction_precision": 0.5,
+        "contradiction_recall": 0.16666666666666666,
+        "contradiction_f1": 0.25,
+        "consistent_f1": 0.85,
+        "macro_f1": 0.55,
+        "false_positives": 1,
+        "false_negatives": 5,
+        "mean_latency_ms": 62.208333333333336
+      }
+    }
+  },
+  "detail": {
+    "A_current": {
+      "dev": [
+        {
+          "case_id": "RD-001",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 109
+        },
+        {
+          "case_id": "RD-002",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-003",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-004",
+          "category": "numeric_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-005",
+          "category": "numeric_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-006",
+          "category": "numeric_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-007",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-008",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-009",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-010",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-011",
+          "category": "numeric_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-012",
+          "category": "numeric_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-013",
+          "category": "comparison_wrong",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-014",
+          "category": "comparison_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-015",
+          "category": "scope_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-016",
+          "category": "scope_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-017",
+          "category": "scope_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-018",
+          "category": "arithmetic_wrong",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-019",
+          "category": "arithmetic_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-020",
+          "category": "threshold_boundary",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-021",
+          "category": "easy_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-022",
+          "category": "direct_self_contradiction_same_subject",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-023",
+          "category": "multi_step_constraint",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-024",
+          "category": "misleading_but_plausible",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        }
+      ],
+      "test": [
+        {
+          "case_id": "RE-001",
+          "category": "easy_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-002",
+          "category": "direct_self_contradiction",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "SELF_CONTRADICTORY",
+          "why": [
+            "'is mandatory'+'is optional'"
+          ],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-003",
+          "category": "direct_self_contradiction_same_subject",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "SELF_CONTRADICTORY",
+          "why": [
+            "'is allowed'+'is not allowed'"
+          ],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-004",
+          "category": "arithmetic_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-005",
+          "category": "arithmetic_incorrect",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-006",
+          "category": "comparison_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-007",
+          "category": "comparison_incorrect",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-008",
+          "category": "constraint_satisfaction_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-009",
+          "category": "misleading_but_plausible",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-010",
+          "category": "multi_step_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-011",
+          "category": "direct_self_contradiction_same_subject",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-012",
+          "category": "easy_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-013",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-014",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-015",
+          "category": "numeric_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-016",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-017",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-018",
+          "category": "arithmetic",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-019",
+          "category": "arithmetic_wrong",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-020",
+          "category": "threshold_boundary",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-021",
+          "category": "threshold_boundary",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-022",
+          "category": "multi_step_constraint",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-023",
+          "category": "comparison",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-024",
+          "category": "comparison_wrong",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        }
+      ]
+    },
+    "B_numeric": {
+      "dev": [
+        {
+          "case_id": "RD-001",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-002",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-003",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-004",
+          "category": "numeric_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "SELF_CONTRADICTORY",
+          "why": [
+            "NUMERIC: same subject and unit, conflicting values: 90 days vs 180 days"
+          ],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-005",
+          "category": "numeric_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "SELF_CONTRADICTORY",
+          "why": [
+            "NUMERIC: same subject and unit, conflicting values: $10,000  vs $25,000 "
+          ],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-006",
+          "category": "numeric_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-007",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-008",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-009",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-010",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-011",
+          "category": "numeric_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-012",
+          "category": "numeric_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-013",
+          "category": "comparison_wrong",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-014",
+          "category": "comparison_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-015",
+          "category": "scope_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-016",
+          "category": "scope_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-017",
+          "category": "scope_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-018",
+          "category": "arithmetic_wrong",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-019",
+          "category": "arithmetic_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-020",
+          "category": "threshold_boundary",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-021",
+          "category": "easy_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-022",
+          "category": "direct_self_contradiction_same_subject",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-023",
+          "category": "multi_step_constraint",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-024",
+          "category": "misleading_but_plausible",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        }
+      ],
+      "test": [
+        {
+          "case_id": "RE-001",
+          "category": "easy_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-002",
+          "category": "direct_self_contradiction",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-003",
+          "category": "direct_self_contradiction_same_subject",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-004",
+          "category": "arithmetic_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-005",
+          "category": "arithmetic_incorrect",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-006",
+          "category": "comparison_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-007",
+          "category": "comparison_incorrect",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-008",
+          "category": "constraint_satisfaction_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-009",
+          "category": "misleading_but_plausible",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-010",
+          "category": "multi_step_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-011",
+          "category": "direct_self_contradiction_same_subject",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-012",
+          "category": "easy_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-013",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-014",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-015",
+          "category": "numeric_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "SELF_CONTRADICTORY",
+          "why": [
+            "NUMERIC: same subject and unit, conflicting values: 60 days vs 30 days"
+          ],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-016",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-017",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-018",
+          "category": "arithmetic",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-019",
+          "category": "arithmetic_wrong",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-020",
+          "category": "threshold_boundary",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-021",
+          "category": "threshold_boundary",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-022",
+          "category": "multi_step_constraint",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-023",
+          "category": "comparison",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-024",
+          "category": "comparison_wrong",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        }
+      ]
+    },
+    "C_entailment": {
+      "dev": [
+        {
+          "case_id": "RD-001",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 10389
+        },
+        {
+          "case_id": "RD-002",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 188
+        },
+        {
+          "case_id": "RD-003",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 155
+        },
+        {
+          "case_id": "RD-004",
+          "category": "numeric_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 125
+        },
+        {
+          "case_id": "RD-005",
+          "category": "numeric_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 155
+        },
+        {
+          "case_id": "RD-006",
+          "category": "numeric_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 141
+        },
+        {
+          "case_id": "RD-007",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 140
+        },
+        {
+          "case_id": "RD-008",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 139
+        },
+        {
+          "case_id": "RD-009",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 125
+        },
+        {
+          "case_id": "RD-010",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 156
+        },
+        {
+          "case_id": "RD-011",
+          "category": "numeric_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-012",
+          "category": "numeric_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "SELF_CONTRADICTORY",
+          "why": [
+            "ENTAILMENT: clauses cannot both hold: 'A $30,000 purchase needs 2 approvals: it exceeds the $10,000 manager limit' vs 'it also requires a director signature.'"
+          ],
+          "latency_ms": 139
+        },
+        {
+          "case_id": "RD-013",
+          "category": "comparison_wrong",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 140
+        },
+        {
+          "case_id": "RD-014",
+          "category": "comparison_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 139
+        },
+        {
+          "case_id": "RD-015",
+          "category": "scope_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 157
+        },
+        {
+          "case_id": "RD-016",
+          "category": "scope_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "SELF_CONTRADICTORY",
+          "why": [
+            "ENTAILMENT: clauses cannot both hold: 'The retention policy applies to every system we operate.' vs 'Archived email is one of our systems and falls outside the policy.'"
+          ],
+          "latency_ms": 139
+        },
+        {
+          "case_id": "RD-017",
+          "category": "scope_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "SELF_CONTRADICTORY",
+          "why": [
+            "ENTAILMENT: clauses cannot both hold: 'The retention policy applies to every production system.' vs 'Archived email is a production system'"
+          ],
+          "latency_ms": 265
+        },
+        {
+          "case_id": "RD-018",
+          "category": "arithmetic_wrong",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-019",
+          "category": "arithmetic_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-020",
+          "category": "threshold_boundary",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-021",
+          "category": "easy_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-022",
+          "category": "direct_self_contradiction_same_subject",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "SELF_CONTRADICTORY",
+          "why": [
+            "ENTAILMENT: clauses cannot both hold: 'The staging environment is publicly accessible' vs 'the staging environment is not publicly accessible.'"
+          ],
+          "latency_ms": 140
+        },
+        {
+          "case_id": "RD-023",
+          "category": "multi_step_constraint",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 125
+        },
+        {
+          "case_id": "RD-024",
+          "category": "misleading_but_plausible",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 139
+        }
+      ],
+      "test": [
+        {
+          "case_id": "RE-001",
+          "category": "easy_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-002",
+          "category": "direct_self_contradiction",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 140
+        },
+        {
+          "case_id": "RE-003",
+          "category": "direct_self_contradiction_same_subject",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 139
+        },
+        {
+          "case_id": "RE-004",
+          "category": "arithmetic_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-005",
+          "category": "arithmetic_incorrect",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-006",
+          "category": "comparison_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-007",
+          "category": "comparison_incorrect",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-008",
+          "category": "constraint_satisfaction_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-009",
+          "category": "misleading_but_plausible",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-010",
+          "category": "multi_step_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-011",
+          "category": "direct_self_contradiction_same_subject",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 172
+        },
+        {
+          "case_id": "RE-012",
+          "category": "easy_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-013",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 140
+        },
+        {
+          "case_id": "RE-014",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 155
+        },
+        {
+          "case_id": "RE-015",
+          "category": "numeric_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 140
+        },
+        {
+          "case_id": "RE-016",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 139
+        },
+        {
+          "case_id": "RE-017",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "SELF_CONTRADICTORY",
+          "why": [
+            "ENTAILMENT: clauses cannot both hold: 'Vendors cannot access production data directly' vs 'they may receive anonymised extracts under a signed DPA.'"
+          ],
+          "latency_ms": 141
+        },
+        {
+          "case_id": "RE-018",
+          "category": "arithmetic",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-019",
+          "category": "arithmetic_wrong",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-020",
+          "category": "threshold_boundary",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-021",
+          "category": "threshold_boundary",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-022",
+          "category": "multi_step_constraint",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 155
+        },
+        {
+          "case_id": "RE-023",
+          "category": "comparison",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-024",
+          "category": "comparison_wrong",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 140
+        }
+      ]
+    },
+    "D_numeric_nli": {
+      "dev": [
+        {
+          "case_id": "RD-001",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 125
+        },
+        {
+          "case_id": "RD-002",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 125
+        },
+        {
+          "case_id": "RD-003",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 156
+        },
+        {
+          "case_id": "RD-004",
+          "category": "numeric_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "SELF_CONTRADICTORY",
+          "why": [
+            "NUMERIC: same subject and unit, conflicting values: 90 days vs 180 days"
+          ],
+          "latency_ms": 140
+        },
+        {
+          "case_id": "RD-005",
+          "category": "numeric_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "SELF_CONTRADICTORY",
+          "why": [
+            "NUMERIC: same subject and unit, conflicting values: $10,000  vs $25,000 "
+          ],
+          "latency_ms": 139
+        },
+        {
+          "case_id": "RD-006",
+          "category": "numeric_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 140
+        },
+        {
+          "case_id": "RD-007",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 140
+        },
+        {
+          "case_id": "RD-008",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 155
+        },
+        {
+          "case_id": "RD-009",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 139
+        },
+        {
+          "case_id": "RD-010",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 141
+        },
+        {
+          "case_id": "RD-011",
+          "category": "numeric_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-012",
+          "category": "numeric_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "SELF_CONTRADICTORY",
+          "why": [
+            "ENTAILMENT: clauses cannot both hold: 'A $30,000 purchase needs 2 approvals: it exceeds the $10,000 manager limit' vs 'it also requires a director signature.'"
+          ],
+          "latency_ms": 155
+        },
+        {
+          "case_id": "RD-013",
+          "category": "comparison_wrong",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 140
+        },
+        {
+          "case_id": "RD-014",
+          "category": "comparison_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 140
+        },
+        {
+          "case_id": "RD-015",
+          "category": "scope_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 170
+        },
+        {
+          "case_id": "RD-016",
+          "category": "scope_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "SELF_CONTRADICTORY",
+          "why": [
+            "ENTAILMENT: clauses cannot both hold: 'The retention policy applies to every system we operate.' vs 'Archived email is one of our systems and falls outside the policy.'"
+          ],
+          "latency_ms": 125
+        },
+        {
+          "case_id": "RD-017",
+          "category": "scope_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "SELF_CONTRADICTORY",
+          "why": [
+            "ENTAILMENT: clauses cannot both hold: 'The retention policy applies to every production system.' vs 'Archived email is a production system'"
+          ],
+          "latency_ms": 282
+        },
+        {
+          "case_id": "RD-018",
+          "category": "arithmetic_wrong",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-019",
+          "category": "arithmetic_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-020",
+          "category": "threshold_boundary",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-021",
+          "category": "easy_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RD-022",
+          "category": "direct_self_contradiction_same_subject",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "SELF_CONTRADICTORY",
+          "why": [
+            "ENTAILMENT: clauses cannot both hold: 'The staging environment is publicly accessible' vs 'the staging environment is not publicly accessible.'"
+          ],
+          "latency_ms": 139
+        },
+        {
+          "case_id": "RD-023",
+          "category": "multi_step_constraint",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 156
+        },
+        {
+          "case_id": "RD-024",
+          "category": "misleading_but_plausible",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 155
+        }
+      ],
+      "test": [
+        {
+          "case_id": "RE-001",
+          "category": "easy_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-002",
+          "category": "direct_self_contradiction",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 156
+        },
+        {
+          "case_id": "RE-003",
+          "category": "direct_self_contradiction_same_subject",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 140
+        },
+        {
+          "case_id": "RE-004",
+          "category": "arithmetic_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-005",
+          "category": "arithmetic_incorrect",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-006",
+          "category": "comparison_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-007",
+          "category": "comparison_incorrect",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-008",
+          "category": "constraint_satisfaction_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-009",
+          "category": "misleading_but_plausible",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-010",
+          "category": "multi_step_correct",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-011",
+          "category": "direct_self_contradiction_same_subject",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 171
+        },
+        {
+          "case_id": "RE-012",
+          "category": "easy_consistent",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-013",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 139
+        },
+        {
+          "case_id": "RE-014",
+          "category": "same_subject_split_polarity",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 155
+        },
+        {
+          "case_id": "RE-015",
+          "category": "numeric_contradiction",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "SELF_CONTRADICTORY",
+          "why": [
+            "NUMERIC: same subject and unit, conflicting values: 60 days vs 30 days"
+          ],
+          "latency_ms": 125
+        },
+        {
+          "case_id": "RE-016",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 157
+        },
+        {
+          "case_id": "RE-017",
+          "category": "consistent_with_qualifier",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "SELF_CONTRADICTORY",
+          "why": [
+            "ENTAILMENT: clauses cannot both hold: 'Vendors cannot access production data directly' vs 'they may receive anonymised extracts under a signed DPA.'"
+          ],
+          "latency_ms": 139
+        },
+        {
+          "case_id": "RE-018",
+          "category": "arithmetic",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-019",
+          "category": "arithmetic_wrong",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-020",
+          "category": "threshold_boundary",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-021",
+          "category": "threshold_boundary",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-022",
+          "category": "multi_step_constraint",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 171
+        },
+        {
+          "case_id": "RE-023",
+          "category": "comparison",
+          "expected": "NO_CONTRADICTION_DETECTED",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 0
+        },
+        {
+          "case_id": "RE-024",
+          "category": "comparison_wrong",
+          "expected": "SELF_CONTRADICTORY",
+          "predicted": "NO_CONTRADICTION_DETECTED",
+          "why": [],
+          "latency_ms": 140
+        }
+      ]
+    }
+  }
+}

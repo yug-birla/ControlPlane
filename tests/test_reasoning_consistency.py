@@ -163,3 +163,57 @@ def test_some_cases_require_abstention_rather_than_an_answer():
 
     cases = json.loads(Path("data/raw/generated/multi_source_conflict_cases.json").read_text(encoding="utf-8-sig"))
     assert sum(1 for c in cases if c.get("expected_abstention")) >= 2
+
+
+# --- the numeric layer is actually wired into the live evaluator ----
+#
+# The whole point of §30 is that the EVALUATOR improves, not that a
+# module exists. These assert on ReasoningEvaluator, the thing the
+# runtime evaluation suite actually calls.
+
+
+def test_the_live_evaluator_catches_a_numeric_self_contradiction():
+    from controlplane.evaluation.evaluators import EvaluationContext, ReasoningEvaluator
+
+    result = ReasoningEvaluator().evaluate(EvaluationContext(
+        query="How long is the notice period for managers?",
+        answer="Managers must give 60 days notice. The required notice for managers is 30 days.",
+    ))
+    assert result.label == "SELF_CONTRADICTORY"
+
+
+def test_the_live_evaluator_still_catches_the_polarity_case():
+    """Guard: adding a layer must not lose the one the evaluator already
+    handled."""
+    from controlplane.evaluation.evaluators import EvaluationContext, ReasoningEvaluator
+
+    result = ReasoningEvaluator().evaluate(EvaluationContext(
+        query="Is remote work allowed for new hires?",
+        answer="Remote work is allowed for new hires, but remote work is not allowed for new hires.",
+    ))
+    assert result.label == "SELF_CONTRADICTORY"
+
+
+def test_the_live_evaluator_does_not_flag_an_ordinary_comparison():
+    from controlplane.evaluation.evaluators import EvaluationContext, ReasoningEvaluator
+
+    result = ReasoningEvaluator().evaluate(EvaluationContext(
+        query="What notice period applies to a six-month contract?",
+        answer="A six-month contract requires 30 days notice, which is half the 60 days required for annual contracts.",
+    ))
+    assert result.label == "NO_CONTRADICTION_DETECTED"
+
+
+def test_the_live_evaluator_does_not_load_a_model():
+    """The entailment layer was measured and rejected partly on latency:
+    60-545ms per call inside a live per-request suite. If it is ever
+    wired in by accident, this fails."""
+    import sys
+
+    from controlplane.evaluation.evaluators import EvaluationContext, ReasoningEvaluator
+
+    before = "transformers" in sys.modules
+    ReasoningEvaluator().evaluate(EvaluationContext(
+        query="q", answer="The limit is $500 and the limit is $900 for the same category."))
+    if not before:
+        assert "transformers" not in sys.modules, "the live reasoning evaluator loaded a model"
