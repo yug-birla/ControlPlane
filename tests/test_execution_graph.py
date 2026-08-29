@@ -69,4 +69,27 @@ def test_critical_path_sums_longest_dependency_chain():
 def test_to_dict_is_json_serializable_and_hides_no_reasoning():
     graph = ExecutionGraph([ExecutionNode(node_id="a", capability="SQL")])
     d = graph.to_dict()
-    assert d == {"nodes": [{"node_id": "a", "capability": "SQL", "depends_on": [], "status": "PENDING", "latency_ms": None}]}
+    assert d == {"nodes": [{
+        "node_id": "a", "capability": "SQL", "depends_on": [], "status": "PENDING",
+        "latency_ms": None, "input_ref": None, "error": None,
+    }]}
+
+
+def test_to_dict_exposes_agent_identity_but_not_arbitrary_input_payloads():
+    """Milestone 12 extended the snapshot with agent identity so the
+    dashboard can show WHICH agent did WHAT. The allowlist matters: a
+    node's input_ref can hold arbitrary caller data, and dumping it
+    wholesale into a persisted, dashboard-rendered structure is exactly
+    how prompts or payloads leak into a surface that promises none."""
+    graph = ExecutionGraph([ExecutionNode(
+        node_id="agent_analyst", capability="AGENT",
+        input_ref={
+            "agent_id": "agent_analyst", "role": "ANALYST", "serves_capability": "SQL",
+            "raw_prompt": "SHOULD NOT BE PERSISTED",
+            "internal_notes": "SHOULD NOT BE PERSISTED",
+        },
+    )])
+    persisted = graph.to_dict()["nodes"][0]["input_ref"]
+    assert persisted == {"agent_id": "agent_analyst", "role": "ANALYST", "serves_capability": "SQL"}
+    assert "raw_prompt" not in persisted
+    assert "internal_notes" not in persisted

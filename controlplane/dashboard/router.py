@@ -15,7 +15,12 @@ from fastapi.requests import Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from controlplane.dashboard.queries import aggregate_stats, get_request_detail, list_recent_requests
+from controlplane.dashboard.queries import (
+    aggregate_stats,
+    build_execution_map,
+    get_request_detail,
+    list_recent_requests,
+)
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 _templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
@@ -33,7 +38,12 @@ def dashboard_request_detail(request: Request, request_id: str) -> HTMLResponse:
     detail = get_request_detail(request_id)
     if detail is None:
         raise HTTPException(status_code=404, detail="request not found")
-    return _templates.TemplateResponse(request, "detail.html", {"detail": detail})
+    # Derived from the detail dict already fetched -- no extra queries, so
+    # drawing the map costs the request nothing.
+    execution_map = build_execution_map(detail)
+    return _templates.TemplateResponse(
+        request, "detail.html", {"detail": detail, "execution_map": execution_map}
+    )
 
 
 @router.get("/api/requests")

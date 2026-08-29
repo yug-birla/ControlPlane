@@ -1,0 +1,168 @@
+<h2>Execution Map</h2>
+<p class="muted">
+  The graph that <em>actually ran</em> &mdash; drawn from the persisted execution
+  snapshot and the event stream, not a static diagram. Dashed purple edges are
+  agent-to-agent communication. Nodes sharing a row had no dependency between
+  them and were scheduled concurrently.
+</p>
+
+{% if execution_map and execution_map.nodes %}
+<div class="execmap-legend">
+  <span><i class="sw ok"></i>completed</span>
+  <span><i class="sw failed"></i>failed</span>
+  <span><i class="sw blocked"></i>blocked</span>
+  <span><i class="sw skipped"></i>skipped</span>
+  <span><i class="sw pending"></i>pending</span>
+  {% if execution_map.agent_count %}<span><b>{{ execution_map.agent_count }}</b> agent node(s)</span>{% endif %}
+  {% if execution_map.parallel_groups %}<span><b>parallel:</b> {{ execution_map.parallel_groups[0]|join(', ') }}</span>{% endif %}
+  {% if execution_map.failed_nodes %}<span class="failed"><b>failed:</b> {{ execution_map.failed_nodes|join(', ') }}</span>{% endif %}
+</div>
+
+<div class="execmap" id="execmap"
+     data-nodes='{{ execution_map.nodes|tojson }}'
+     data-edges='{{ execution_map.edges|tojson }}'></div>
+
+<noscript>
+  <table>
+    <tr><th>Node</th><th>Kind</th><th>Status</th><th>Latency</th><th>Depends on</th></tr>
+    {% for n in execution_map.nodes %}
+    <tr>
+      <td><code>{{ n.id }}</code></td>
+      <td>{{ n.kind }}{% if n.serves_capability %} &rarr; {{ n.serves_capability }}{% endif %}</td>
+      <td class="{{ n.status_class }}">{{ n.status }}</td>
+      <td>{% if n.latency_ms is not none %}{{ n.latency_ms }}ms{% else %}&mdash;{% endif %}</td>
+      <td>{% for e in execution_map.edges %}{% if e.target == n.id and e.kind == 'depends_on' %}<code>{{ e.source }}</code> {% endif %}{% endfor %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</noscript>
+
+{% if execution_map.plan_versions %}
+<h3>Plan Evolution</h3>
+<table>
+  <tr><th>Version</th><th>Trigger</th><th>Reason</th></tr>
+  {% for pv in execution_map.plan_versions %}
+  <tr><td>v{{ pv.plan_version }}</td><td>{{ pv.trigger }}</td><td>{{ pv.reason }}</td></tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+<style>
+.execmap { border:1px solid #d0d7de; border-radius:6px; background:#fbfcfd; overflow:auto; }
+.execmap svg { display:block; margin:0 auto; }
+.execmap-legend { margin:.4rem 0 .6rem; font-size:.85rem; color:#57606a; display:flex; flex-wrap:wrap; gap:1rem; }
+.execmap-legend .sw { display:inline-block; width:11px; height:11px; border-radius:2px; margin-right:.35rem; vertical-align:middle; }
+.sw.ok{background:#2da44e}.sw.failed{background:#cf222e}.sw.blocked{background:#bf8700}
+.sw.skipped{background:#8c959f}.sw.pending{background:#d0d7de}.sw.running{background:#0969da}
+</style>
+
+<script>
+(function () {
+  var host = document.getElementById('execmap');
+  if (!host) return;
+  var nodes, edges;
+  try {
+    nodes = JSON.parse(host.dataset.nodes);
+    edges = JSON.parse(host.dataset.edges);
+  } catch (err) { return; }   // a drawing must never break the page
+  if (!nodes.length) return;
+
+  var FILL = { ok:'#2da44e', failed:'#cf222e', blocked:'#bf8700',
+               skipped:'#8c959f', pending:'#d0d7de', running:'#0969da' };
+  var ARROW = '#8c959f', COMM = '#8250df';
+
+  // Layer nodes by longest dependency depth. Nodes that genuinely had no
+  // dependency between them land on the same row, so the picture of
+  // "what ran in parallel" is DERIVED from the same dependency structure
+  // the executor scheduled by -- it is not drawn by hand.
+  var deps = {};
+  nodes.forEach(function (n) { deps[n.id] = []; });
+  edges.forEach(function (e) {
+    if (e.kind === 'depends_on' && deps[e.target]) deps[e.target].push(e.source);
+  });
+
+  var depth = {}, visiting = {};
+  function depthOf(id) {
+    if (depth[id] !== undefined) return depth[id];
+    if (visiting[id]) return 0;             // a cycle must not hang the browser
+    visiting[id] = true;
+    var parents = deps[id] || [], d = 0;
+    for (var i = 0; i < parents.length; i++) d = Math.max(d, depthOf(parents[i]) + 1);
+    visiting[id] = false;
+    depth[id] = d;
+    return d;
+  }
+  nodes.forEach(function (n) { depthOf(n.id); });
+
+  var rows = {};
+  nodes.forEach(function (n) { (rows[depth[n.id]] = rows[depth[n.id]] || []).push(n); });
+  var levels = Object.keys(rows).map(Number).sort(function (a, b) { return a - b; });
+
+  var NW = 172, NH = 46, GX = 36, GY = 82, PAD = 26;
+  var widest = 1;
+  levels.forEach(function (l) { widest = Math.max(widest, rows[l].length); });
+  var W = PAD * 2 + widest * NW + (widest - 1) * GX;
+  var H = PAD * 2 + levels.length * NH + Math.max(0, levels.length - 1) * (GY - NH);
+
+  var pos = {};
+  levels.forEach(function (lvl, li) {
+    var row = rows[lvl];
+    var rowW = row.length * NW + (row.length - 1) * GX;
+    row.forEach(function (n, i) {
+      pos[n.id] = { x: (W - rowW) / 2 + i * (NW + GX), y: PAD + li * GY };
+    });
+  });
+
+  function esc(t) {
+    return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) {
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c];
+    });
+  }
+
+  var out = [];
+  out.push('<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" xmlns="http://www.w3.org/2000/svg">');
+  out.push('<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="' + ARROW + '"/></marker></defs>');
+
+  edges.forEach(function (e) {
+    var a = pos[e.source], b = pos[e.target];
+    if (!a || !b) return;                   // never draw a phantom edge
+    var comm = e.kind === 'communicates';
+    var x1 = a.x + NW / 2, y1 = a.y + NH, x2 = b.x + NW / 2, y2 = b.y;
+    var my = (y1 + y2) / 2;
+    out.push('<path d="M' + x1 + ',' + y1 + ' C' + x1 + ',' + my + ' ' + x2 + ',' + my + ' ' + x2 + ',' + y2 +
+             '" fill="none" stroke="' + (comm ? COMM : ARROW) + '" stroke-width="' + (comm ? 1.6 : 1.3) + '"' +
+             (comm ? ' stroke-dasharray="5,4"' : '') + ' marker-end="url(#ar)"/>');
+    if (comm && e.label) {
+      var tag = esc(e.label);
+      if (e.sensitivity && e.sensitivity !== 'PUBLIC') tag += ' · ' + esc(e.sensitivity);
+      out.push('<text x="' + ((x1 + x2) / 2) + '" y="' + (my - 5) + '" font-size="9" fill="' + COMM + '" text-anchor="middle">' + tag + '</text>');
+    }
+  });
+
+  nodes.forEach(function (n) {
+    var p = pos[n.id];
+    var fill = FILL[n.status_class] || '#d0d7de';
+    var sub = n.serves_capability ? (n.capability + ' → ' + n.serves_capability)
+                                  : (n.agent_role || n.capability || '');
+    var tip = n.id + ' — ' + n.status;
+    if (n.latency_ms != null) tip += ' — ' + n.latency_ms + 'ms';
+    if (n.error) tip += ' — ' + n.error;
+
+    out.push('<g><title>' + esc(tip) + '</title>');
+    out.push('<rect x="' + p.x + '" y="' + p.y + '" width="' + NW + '" height="' + NH + '" rx="6" fill="#fff" stroke="' + fill + '" stroke-width="2"/>');
+    out.push('<rect x="' + p.x + '" y="' + p.y + '" width="4" height="' + NH + '" rx="2" fill="' + fill + '"/>');
+    out.push('<text x="' + (p.x + 13) + '" y="' + (p.y + 19) + '" font-size="12" font-weight="600" fill="#1f2328">' + esc(n.label) + '</text>');
+    var line2 = esc(sub);
+    if (n.latency_ms != null) line2 += ' · ' + n.latency_ms + 'ms';
+    out.push('<text x="' + (p.x + 13) + '" y="' + (p.y + 34) + '" font-size="10" fill="#57606a">' + line2 + '</text>');
+    out.push('</g>');
+  });
+
+  out.push('</svg>');
+  host.innerHTML = out.join('');
+})();
+</script>
+
+{% else %}
+<p class="muted">No execution graph was persisted for this request.</p>
+{% endif %}

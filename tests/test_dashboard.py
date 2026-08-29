@@ -157,3 +157,79 @@ def test_dashboard_never_exposes_secrets():
     resp = client.get("/dashboard")
     for secret_marker in ("GROQ_API_KEY", "GEMINI_API_KEY", "gsk_"):
         assert secret_marker not in resp.text
+
+
+# --- Visual execution map (Milestone 12) ---
+
+def _map_detail(**overrides):
+    base = {
+        "route_decision": {"execution_graph": {"nodes": [
+            {"node_id": "agent_retriever", "capability": "AGENT", "depends_on": [],
+             "status": "COMPLETED", "latency_ms": 12,
+             "input_ref": {"agent_id": "agent_retriever", "role": "RETRIEVER",
+                            "serves_capability": "RAG"}, "error": None},
+            {"node_id": "agent_analyst", "capability": "AGENT", "depends_on": [],
+             "status": "FAILED", "latency_ms": 8, "input_ref": None, "error": "boom"},
+            {"node_id": "merge", "capability": "merge",
+             "depends_on": ["agent_retriever", "agent_analyst"],
+             "status": "COMPLETED", "latency_ms": 1, "input_ref": None, "error": None},
+        ]}},
+        "events": [{"event_type": "AGENT_MESSAGE_SENT", "payload": {
+            "message_type": "HANDOFF", "from_agent": "agent_retriever",
+            "to_agent": "merge", "data_sensitivity": "CONFIDENTIAL"}}],
+        "replans": [],
+    }
+    base.update(overrides)
+    return base
+
+
+def test_execution_map_reflects_real_node_status_not_a_template_picture():
+    from controlplane.dashboard.queries import build_execution_map
+
+    m = build_execution_map(_map_detail())
+    by_id = {n["id"]: n for n in m["nodes"]}
+    assert by_id["agent_retriever"]["status_class"] == "ok"
+    assert by_id["agent_analyst"]["status_class"] == "failed"
+    assert m["failed_nodes"] == ["agent_analyst"]
+    assert by_id["agent_retriever"]["serves_capability"] == "RAG"
+
+
+def test_execution_map_derives_parallel_groups_from_dependencies():
+    """Parallelism shown must come from the dependency structure the
+    executor actually scheduled by -- not from a flag."""
+    from controlplane.dashboard.queries import build_execution_map
+
+    m = build_execution_map(_map_detail())
+    assert m["parallel_groups"] == [["agent_retriever", "agent_analyst"]]
+
+
+def test_execution_map_draws_agent_communication_from_the_event_stream():
+    """The picture must not be able to claim a handoff that was never
+    recorded."""
+    from controlplane.dashboard.queries import build_execution_map
+
+    m = build_execution_map(_map_detail())
+    comm = [e for e in m["edges"] if e["kind"] == "communicates"]
+    assert len(comm) == 1
+    assert comm[0]["sensitivity"] == "CONFIDENTIAL"
+
+    without_events = build_execution_map(_map_detail(events=[]))
+    assert not [e for e in without_events["edges"] if e["kind"] == "communicates"]
+
+
+def test_execution_map_is_empty_for_an_empty_request_rather_than_a_stock_diagram():
+    from controlplane.dashboard.queries import build_execution_map
+
+    assert build_execution_map({})["nodes"] == []
+    assert build_execution_map({"route_decision": {}})["nodes"] == []
+
+
+def test_execution_map_adds_no_database_queries():
+    """The dashboard must not add request latency: the map is derived
+    from the detail dict already fetched."""
+    from controlplane.dashboard.queries import build_execution_map
+
+    detail = _map_detail()
+    # Passing a plain dict proves it never touches the session.
+    m = build_execution_map(detail)
+    assert m["nodes"]

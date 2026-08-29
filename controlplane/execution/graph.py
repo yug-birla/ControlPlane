@@ -223,6 +223,15 @@ class ExecutionGraph:
                     "depends_on": list(n.depends_on),
                     "status": n.status.value,
                     "latency_ms": n.latency_ms,
+                    # Agent identity and the capability a gatherer agent
+                    # serves. Structured facts only -- no reasoning, no
+                    # payloads -- so the dashboard can show WHICH agent did
+                    # WHAT without exposing anything it should not.
+                    "input_ref": {
+                        k: v for k, v in (n.input_ref or {}).items()
+                        if k in ("agent_id", "role", "serves_capability")
+                    } or None,
+                    "error": n.error,
                 }
                 for n in self._nodes.values()
             ]

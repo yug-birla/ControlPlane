@@ -398,3 +398,116 @@ def aggregate_stats() -> dict:
         "verification_distribution": dict(verification_counts),
         "intervention_rate": f"{len(intervened_requests)}/{len(requests)}" if requests else "0/0",
     }
+
+
+# ---------------------------------------------------------------------
+# VISUAL EXECUTION MAP (Milestone 12)
+#
+# Turns already-persisted execution data into a node/edge graph the
+# dashboard can draw. It is DERIVED, never a second source of truth, and
+# it reflects what actually ran: node statuses come from the persisted
+# final graph snapshot, agent edges from AGENT_MESSAGE_SENT events, and
+# plan versions from the replan records.
+#
+# The spec is explicit that this must not be "a fake static diagram", so
+# nothing here is hardcoded shape -- an empty request yields an empty
+# graph rather than a template picture.
+# ---------------------------------------------------------------------
+
+_STAGE_ORDER = ["query", "risk", "plan", "execution", "evaluation", "decision", "verification", "answer"]
+
+# Node status -> the single visual class the template renders. Kept as
+# data so the template contains no status logic.
+_STATUS_CLASS = {
+    "COMPLETED": "ok",
+    "RUNNING": "running",
+    "FAILED": "failed",
+    "BLOCKED": "blocked",
+    "SKIPPED": "skipped",
+    "PENDING": "pending",
+}
+
+
+def build_execution_map(detail: dict) -> dict:
+    """Assemble the visual execution map for one request.
+
+    ``detail`` is the dict returned by ``get_request_detail`` -- this adds
+    no queries of its own, so drawing the map costs nothing extra
+    (the spec forbids the dashboard adding request latency).
+    """
+    if not detail:
+        return {"nodes": [], "edges": [], "parallel_groups": [], "plan_versions": []}
+
+    # NOTE the key: get_request_detail returns "route_decision", not
+    # "route". Reading the wrong key yielded an empty node list while the
+    # communication edges still rendered -- a half-drawn map that looked
+    # plausible, which is why this is verified against a real request.
+    route = detail.get("route_decision") or {}
+    graph = (route.get("execution_graph") or {}) if isinstance(route, dict) else {}
+    raw_nodes = graph.get("nodes") or []
+
+    nodes: list[dict] = []
+    edges: list[dict] = []
+
+    for raw in raw_nodes:
+        node_id = raw.get("node_id")
+        capability = raw.get("capability", "")
+        status = raw.get("status", "PENDING")
+        input_ref = raw.get("input_ref") or {}
+        is_agent = capability == "AGENT"
+        nodes.append({
+            "id": node_id,
+            "label": node_id,
+            "kind": "agent" if is_agent else ("capability" if capability not in ("generation", "merge") else capability),
+            "capability": capability,
+            "serves_capability": input_ref.get("serves_capability"),
+            "agent_role": input_ref.get("role"),
+            "status": status,
+            "status_class": _STATUS_CLASS.get(status, "pending"),
+            "latency_ms": raw.get("latency_ms"),
+            "error": raw.get("error"),
+        })
+        for dependency in raw.get("depends_on") or []:
+            edges.append({"source": dependency, "target": node_id, "kind": "depends_on"})
+
+    # Agent-to-agent communication, drawn from the event stream so the
+    # picture cannot claim a handoff that was never recorded.
+    for event in detail.get("events") or []:
+        if event.get("event_type") != "AGENT_MESSAGE_SENT":
+            continue
+        payload = event.get("payload") or {}
+        source, target = payload.get("from_agent"), payload.get("to_agent")
+        if source and target:
+            edges.append({
+                "source": source, "target": target, "kind": "communicates",
+                "label": payload.get("message_type"),
+                "sensitivity": payload.get("data_sensitivity"),
+            })
+
+    # Nodes with no dependencies AND no dependents among the evidence
+    # producers ran concurrently. Derived from the dependency structure,
+    # not from a flag -- the same rule the executor itself schedules by.
+    dependents: dict[str, set[str]] = {}
+    for edge in edges:
+        if edge["kind"] == "depends_on":
+            dependents.setdefault(edge["source"], set()).add(edge["target"])
+    independent = [n["id"] for n in nodes
+                   if not any(e["target"] == n["id"] and e["kind"] == "depends_on" for e in edges)]
+    parallel_groups = [independent] if len(independent) > 1 else []
+
+    plan_versions = []
+    for replan in detail.get("replans") or []:
+        plan_versions.append({
+            "plan_version": replan.get("new_plan_version"),
+            "trigger": replan.get("trigger"),
+            "reason": replan.get("reason"),
+        })
+
+    return {
+        "nodes": nodes,
+        "edges": edges,
+        "parallel_groups": parallel_groups,
+        "plan_versions": plan_versions,
+        "failed_nodes": [n["id"] for n in nodes if n["status"] == "FAILED"],
+        "agent_count": sum(1 for n in nodes if n["kind"] == "agent"),
+    }
