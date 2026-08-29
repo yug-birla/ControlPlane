@@ -104,6 +104,26 @@ _RISK_TO_EVENT_SEVERITY = {
 }
 
 
+
+def _effective_capability(node) -> str:
+    """The capability a node actually EXECUTES.
+
+    A gatherer agent node has ``capability == "AGENT"`` but runs a real
+    RAG/SQL capability declared in ``input_ref["serves_capability"]``.
+    Anything asking "did RAG run?" or "where is the evidence?" must ask
+    this, not ``node.capability``.
+
+    This exists because of a real regression: when gatherer agents
+    replaced plain data nodes, every evidence collector still keyed on
+    ``capability == "RAG"``, so a successful retrieval produced NO
+    evidence in the prompt, grounding reported NOT_APPLICABLE ("no RAG
+    node ran"), and the request was still VERIFIED with HIGH trust while
+    the model itself answered "I do not have direct access to external
+    databases or documents". Green tests throughout.
+    """
+    return (node.input_ref or {}).get("serves_capability") or node.capability
+
+
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
@@ -947,10 +967,10 @@ class Runtime:
         rag_adequacy: str | None = None
         agent_governance_action: str | None = None
         for node in capability_route.graph.nodes:
-            if node.capability == "RAG" and node.status == NodeStatus.COMPLETED:
+            if _effective_capability(node) == "RAG" and node.status == NodeStatus.COMPLETED:
                 evidence_texts.extend(item["text"] for item in node.output_ref.get("evidence", []))
                 rag_adequacy = node.output_ref.get("adequacy", {}).get("label")
-            if node.capability == "SQL" and node.status == NodeStatus.COMPLETED:
+            if _effective_capability(node) == "SQL" and node.status == NodeStatus.COMPLETED:
                 sql_rows.extend(node.output_ref.get("rows", []))
             if node.capability == "AGENT" and node.status == NodeStatus.COMPLETED:
                 agent_governance_action = node.output_ref.get("governance_action")
@@ -1114,7 +1134,7 @@ class Runtime:
                         ctx, query, capability_route, fingerprint, evaluation_results
                     )
                     if plan_change is None or not plan_change.changed:
-                        rag_node = next((n for n in capability_route.graph.nodes if n.capability == "RAG"), None)
+                        rag_node = next((n for n in capability_route.graph.nodes if _effective_capability(n) == "RAG"), None)
                         if rag_node is not None:
                             rag_node.output_ref = self._rag_capability.execute(query, k=spec.new_rag_k)
                 prompt = self._build_generation_prompt(query, capability_route.graph)
@@ -1329,10 +1349,10 @@ class Runtime:
 
         context_blocks: list[str] = []
         for n in graph.nodes:
-            if n.capability == "RAG" and n.status == NodeStatus.COMPLETED:
+            if _effective_capability(n) == "RAG" and n.status == NodeStatus.COMPLETED:
                 for item in n.output_ref.get("evidence", []):
                     context_blocks.append(f"[{item['document']}]: {item['text']}")
-            if n.capability == "SQL" and n.status == NodeStatus.COMPLETED:
+            if _effective_capability(n) == "SQL" and n.status == NodeStatus.COMPLETED:
                 rows = n.output_ref.get("rows", [])
                 if rows:
                     context_blocks.append(f"[SQL result -- {n.output_ref.get('template')}]: {json.dumps(rows[:10], default=str)}")

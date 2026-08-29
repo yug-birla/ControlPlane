@@ -26,8 +26,14 @@ class _ScriptedProvider(ModelProvider):
     def __init__(self, responses: list[str]) -> None:
         self._responses = responses
         self.calls = 0
+        # Recorded so tests can assert on what the model ACTUALLY saw.
+        # Asserting only on node statuses let a real evidence-collection
+        # regression pass every test -- see the gatherer-evidence
+        # regression test below.
+        self.prompts: list[str] = []
 
     def generate(self, *, prompt: str) -> ModelResult:
+        self.prompts.append(prompt)
         content = self._responses[min(self.calls, len(self._responses) - 1)]
         self.calls += 1
         return ModelResult(provider=self.name, model="fake-scripted", content=content, latency_ms=1, finish_reason="stop")
@@ -535,3 +541,40 @@ def test_mcp_capability_failure_is_classified_and_does_not_fail_the_request():
         # the classified MCP failure mode -- never left PENDING or marked
         # COMPLETED.
         assert sql_node["status"] in ("FAILED", "SKIPPED")
+
+
+def test_gatherer_agents_evidence_reaches_the_prompt_and_grounding_regression():
+    """REGRESSION (Milestone 12): when gatherer agents replaced plain data
+    nodes, every evidence collector still keyed on `capability == "RAG"`.
+    A gatherer runs RAG but its node capability is "AGENT", so:
+
+      - no evidence reached the generation prompt,
+      - grounding reported NOT_APPLICABLE ("no RAG node ran"),
+      - and the request was still VERIFIED with HIGH trust while the model
+        itself answered "I do not have direct access to external databases
+        or documents".
+
+    Every unit test stayed green. Found only by issuing a real request
+    against the running server and reading the answer, which is why this
+    test asserts on the PROMPT CONTENT rather than on node statuses."""
+    query = ("Look up Q4 revenue in the database and the travel policy document, "
+             "then send a notification to finance.")
+    provider = _ScriptedProvider(["Q4 revenue was 140000 and meals are capped at $75/day."])
+    state, _ctx = _run(query, provider)
+
+    graph = state.metadata["capability_route"]["graph"]
+    gatherers = [n for n in graph["nodes"]
+                 if (n.get("input_ref") or {}).get("serves_capability")]
+    assert gatherers, "expected gatherer agent nodes for an agentic multi-source query"
+
+    # The prompt the model actually received must contain retrieved evidence.
+    assert provider.prompts, "model was never invoked"
+    prompt = provider.prompts[-1]
+    assert "Context:" in prompt, (
+        "gatherer agents ran but no evidence reached the generation prompt -- "
+        "the evidence collector is keying on the wrong capability again"
+    )
+
+    # And grounding must not claim nothing ran.
+    grounding = next(e for e in state.metadata["evaluation"] if e["evaluator"] == "grounding")
+    assert grounding["label"] != "NOT_APPLICABLE" or "no evidence" not in (grounding["rationale"] or "")
