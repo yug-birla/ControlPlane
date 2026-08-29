@@ -110,3 +110,56 @@ def test_a_wrong_but_internally_consistent_answer_is_not_flagged():
     nothing in the answer contradicts anything else in it, and claiming
     otherwise would misreport what this evaluator can know."""
     assert not check_numeric_consistency("The total is $600.")
+
+
+# --- multi-source / conflict dataset integrity ------------------
+#
+# A benchmark case whose "expected value" appears nowhere in the corpus
+# is unscoreable: it can never be answered correctly, and it would show
+# up as a permanent model failure rather than as a broken case. This
+# guards the dataset itself.
+
+
+def test_multi_source_expected_values_are_present_in_the_corpus_or_derived():
+    import csv  # noqa: F401  (kept for symmetry with the data layout)
+    import json
+    from pathlib import Path
+
+    cases = json.loads(Path("data/raw/generated/multi_source_conflict_cases.json").read_text(encoding="utf-8-sig"))
+    corpus = " ".join(p.read_text(encoding="utf-8", errors="ignore")
+                      for p in Path("data/synthetic_enterprise/documents").glob("*.txt"))
+    database = " ".join(p.read_text(encoding="utf-8-sig", errors="ignore")
+                        for p in Path("data/synthetic_enterprise/database").glob("*.csv"))
+    haystack = (corpus + " " + database).replace(",", "")
+
+    unscoreable = []
+    for case in cases:
+        derived = set(case.get("derived_expected_values") or [])
+        for value in case.get("expected_values") or []:
+            if value in derived:
+                continue  # computed, deliberately not quotable from source
+            if value.replace(",", "") not in haystack:
+                unscoreable.append((case["case_id"], value))
+    assert not unscoreable, f"expected values absent from corpus and DB: {unscoreable}"
+
+
+def test_conflict_cases_include_a_false_positive_guard():
+    """Without a case where sources merely LOOK inconsistent, a system
+    that reports a conflict on every cross-document difference scores
+    perfectly on conflict detection and is useless."""
+    import json
+    from pathlib import Path
+
+    cases = json.loads(Path("data/raw/generated/multi_source_conflict_cases.json").read_text(encoding="utf-8-sig"))
+    assert any(c.get("expected_conflict") is False for c in cases)
+    assert any(c.get("expected_conflict") is True for c in cases)
+
+
+def test_some_cases_require_abstention_rather_than_an_answer():
+    """Multi-source questions where the sources are jointly insufficient
+    must be represented, or the dataset only rewards answering."""
+    import json
+    from pathlib import Path
+
+    cases = json.loads(Path("data/raw/generated/multi_source_conflict_cases.json").read_text(encoding="utf-8-sig"))
+    assert sum(1 for c in cases if c.get("expected_abstention")) >= 2

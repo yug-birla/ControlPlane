@@ -1,0 +1,414 @@
+[
+  {
+    "case_id": "MS-001",
+    "category": "RAG_PLUS_SQL",
+    "query": "What is our hotel allowance for Tier 1 cities, and what was total 2024 revenue across all regions?",
+    "required_capabilities": [
+      "RAG",
+      "SQL"
+    ],
+    "expected_values": [
+      "250",
+      "960,000"
+    ],
+    "expected_sources": [
+      "TRAVEL_POLICY_2024",
+      "revenue_monthly"
+    ],
+    "expected_outcome": "Both figures retrieved from their own source and both present in the answer.",
+    "failure_mode_under_test": "Answering only the half the router happened to route to.",
+    "provenance": "DETERMINISTIC",
+    "derived_expected_values": [
+      "960,000"
+    ],
+    "derivation_note": "These values are COMPUTED from source data, not quoted from it. That is the point of the case: a system that only retrieves cannot produce them."
+  },
+  {
+    "case_id": "MS-002",
+    "category": "RAG_PLUS_SQL",
+    "query": "What is the minimum password length in our infosec policy, and how many support tickets are recorded in total?",
+    "required_capabilities": [
+      "RAG",
+      "SQL"
+    ],
+    "expected_values": [
+      "14",
+      "5"
+    ],
+    "expected_sources": [
+      "INFOSEC_POLICY_v3",
+      "support_tickets"
+    ],
+    "expected_outcome": "Two independent sources, no dependency between them; both answered.",
+    "failure_mode_under_test": "Silent single-source answering.",
+    "provenance": "DETERMINISTIC"
+  },
+  {
+    "case_id": "MS-003",
+    "category": "RAG_PLUS_SQL",
+    "query": "How large is the Engineering department headcount, and what does the remote work policy require for eligibility?",
+    "required_capabilities": [
+      "SQL",
+      "RAG"
+    ],
+    "expected_values": [
+      "52",
+      "6"
+    ],
+    "expected_sources": [
+      "departments",
+      "REMOTE_WORK_POLICY"
+    ],
+    "expected_outcome": "SQL figure plus the tenure requirement from the policy document.",
+    "provenance": "DETERMINISTIC"
+  },
+  {
+    "case_id": "MS-004",
+    "category": "SQL_PLUS_REASONING",
+    "query": "Which region produced the most revenue in 2024, and by how much did it exceed APAC?",
+    "required_capabilities": [
+      "SQL"
+    ],
+    "expected_values": [
+      "Americas",
+      "505,000",
+      "380,000"
+    ],
+    "expected_sources": [
+      "revenue_monthly"
+    ],
+    "expected_outcome": "Retrieve three regional totals, rank them, then compute a difference. Retrieval alone is not sufficient.",
+    "failure_mode_under_test": "Returning the rows without performing the comparison, or performing it wrongly.",
+    "provenance": "DETERMINISTIC",
+    "derived_expected_values": [
+      "505,000",
+      "380,000"
+    ],
+    "derivation_note": "These values are COMPUTED from source data, not quoted from it. That is the point of the case: a system that only retrieves cannot produce them."
+  },
+  {
+    "case_id": "MS-005",
+    "category": "SQL_PLUS_REASONING",
+    "query": "Which department has the highest budget per head?",
+    "required_capabilities": [
+      "SQL"
+    ],
+    "expected_values": [
+      "Finance"
+    ],
+    "expected_sources": [
+      "departments"
+    ],
+    "expected_outcome": "Requires a derived ratio (budget/headcount) across five rows, not a lookup. Finance & Ops is 950,000/12 = 79,167, above Engineering's 67,308.",
+    "failure_mode_under_test": "Answering with the largest absolute budget (Engineering) instead of the ratio.",
+    "provenance": "DETERMINISTIC",
+    "derived_expected_values": [
+      "Finance"
+    ],
+    "derivation_note": "These values are COMPUTED from source data, not quoted from it. That is the point of the case: a system that only retrieves cannot produce them."
+  },
+  {
+    "case_id": "MS-006",
+    "category": "RAG_PLUS_REASONING",
+    "query": "An employee books a 9-hour international flight and stays three nights in a Tier 1 city. Which travel entitlements apply and what is the maximum hotel spend?",
+    "required_capabilities": [
+      "RAG"
+    ],
+    "expected_values": [
+      "Business",
+      "250",
+      "750"
+    ],
+    "expected_sources": [
+      "TRAVEL_POLICY_2024"
+    ],
+    "expected_outcome": "Two policy clauses must both fire (>6h international implies business class; Tier 1 implies $250/night) and the nightly rate must be multiplied by three.",
+    "failure_mode_under_test": "Quoting the nightly allowance without applying it to the stay, or missing the flight-class clause.",
+    "provenance": "DETERMINISTIC",
+    "derived_expected_values": [
+      "750"
+    ],
+    "derivation_note": "These values are COMPUTED from source data, not quoted from it. That is the point of the case: a system that only retrieves cannot produce them."
+  },
+  {
+    "case_id": "MS-007",
+    "category": "RAG_PLUS_REASONING",
+    "query": "A vendor will process customer PII under a contract worth $140,000. List every requirement that applies.",
+    "required_capabilities": [
+      "RAG"
+    ],
+    "expected_values": [
+      "SOC 2",
+      "DPA",
+      "legal review"
+    ],
+    "expected_sources": [
+      "VENDOR_MANAGEMENT_POLICY"
+    ],
+    "expected_outcome": "Two independent conditions in one document must both fire: the PII clause and the >$100k legal-review clause.",
+    "failure_mode_under_test": "A partial answer covering only the PII half -- the realistic failure.",
+    "provenance": "DETERMINISTIC"
+  },
+  {
+    "case_id": "MS-008",
+    "category": "MULTI_SOURCE_THREE_WAY",
+    "query": "For an $18,000 vendor contract covering customer PII, who approves it, what certification is required, and what is our data retention period for financial transaction records?",
+    "required_capabilities": [
+      "RAG"
+    ],
+    "expected_values": [
+      "director",
+      "SOC 2",
+      "7"
+    ],
+    "expected_sources": [
+      "EXPENSE_APPROVAL_GUIDE",
+      "VENDOR_MANAGEMENT_POLICY",
+      "DATA_RETENTION_MANUAL"
+    ],
+    "expected_outcome": "Three separate documents, each supplying one part. $18,000 falls in the $5,001-$25,000 director band.",
+    "failure_mode_under_test": "Retrieval returning chunks from only the one document that best matches the query embedding.",
+    "provenance": "DETERMINISTIC"
+  },
+  {
+    "case_id": "MS-009",
+    "category": "MULTI_SOURCE_THREE_WAY",
+    "query": "What is our platform uptime guarantee, our RTO for the customer gateway, and our enterprise API rate limit?",
+    "required_capabilities": [
+      "RAG"
+    ],
+    "expected_values": [
+      "99.9",
+      "15",
+      "5,000"
+    ],
+    "expected_sources": [
+      "ENTERPRISE_SLA_CONTRACT",
+      "BUSINESS_CONTINUITY_PLAN",
+      "PARTNER_API_TECHNICAL_SPECS"
+    ],
+    "expected_outcome": "Three independent operational figures from three documents.",
+    "provenance": "DETERMINISTIC"
+  },
+  {
+    "case_id": "MS-010",
+    "category": "RAG_PLUS_CHAT_HISTORY",
+    "query": "And what about international?",
+    "chat_history": [
+      {
+        "role": "user",
+        "content": "What is the meal reimbursement limit for domestic travel?"
+      },
+      {
+        "role": "assistant",
+        "content": "Meal reimbursement is up to $75/day for domestic travel."
+      }
+    ],
+    "required_capabilities": [
+      "CHAT_HISTORY",
+      "RAG"
+    ],
+    "expected_values": [
+      "100"
+    ],
+    "expected_sources": [
+      "TRAVEL_POLICY_2024"
+    ],
+    "expected_outcome": "The elliptical follow-up is only answerable by resolving 'international' against the prior turn's subject (meal reimbursement).",
+    "failure_mode_under_test": "Treating the query as standalone and abstaining, or answering about international travel generally.",
+    "provenance": "DETERMINISTIC"
+  },
+  {
+    "case_id": "MS-011",
+    "category": "RAG_PLUS_CHAT_HISTORY",
+    "query": "Is that the same for Tier 2 cities?",
+    "chat_history": [
+      {
+        "role": "user",
+        "content": "What is the hotel allowance in Tier 1 cities?"
+      },
+      {
+        "role": "assistant",
+        "content": "The hotel allowance is $250 per night in Tier 1 cities."
+      }
+    ],
+    "required_capabilities": [
+      "CHAT_HISTORY",
+      "RAG"
+    ],
+    "expected_values": [
+      "180"
+    ],
+    "expected_sources": [
+      "TRAVEL_POLICY_2024"
+    ],
+    "expected_outcome": "Resolves 'that' to the hotel allowance and retrieves the non-Tier-1 rate.",
+    "provenance": "DETERMINISTIC"
+  },
+  {
+    "case_id": "MS-012",
+    "category": "CHAT_HISTORY_STALE",
+    "query": "Using the number you gave me earlier, what would ten nights cost?",
+    "chat_history": [
+      {
+        "role": "user",
+        "content": "What is the hotel allowance in Tier 1 cities?"
+      },
+      {
+        "role": "assistant",
+        "content": "The hotel allowance is $300 per night in Tier 1 cities."
+      }
+    ],
+    "required_capabilities": [
+      "CHAT_HISTORY",
+      "RAG"
+    ],
+    "expected_values": [
+      "250",
+      "2,500"
+    ],
+    "expected_sources": [
+      "TRAVEL_POLICY_2024"
+    ],
+    "expected_outcome": "The PRIOR TURN IS WRONG ($300; the policy says $250). The system must ground in the document rather than inherit the earlier error, and should surface the discrepancy.",
+    "failure_mode_under_test": "Compounding a stale/incorrect prior answer because the user asked it to be reused. This is the chat-history failure that matters most.",
+    "provenance": "DETERMINISTIC"
+  },
+  {
+    "case_id": "CF-001",
+    "category": "CONFLICT_ONE_SOURCE_CORRECT",
+    "query": "How long do we retain employee HR files after termination, and how long do we retain disciplinary files?",
+    "required_capabilities": [
+      "RAG"
+    ],
+    "expected_values": [
+      "5",
+      "3"
+    ],
+    "expected_sources": [
+      "DATA_RETENTION_MANUAL"
+    ],
+    "expected_outcome": "Two adjacent but DIFFERENT retention periods in one document. Both must be reported distinctly.",
+    "failure_mode_under_test": "Collapsing two nearby figures into one, or reporting the wrong one for each category.",
+    "provenance": "DETERMINISTIC"
+  },
+  {
+    "case_id": "CF-002",
+    "category": "CONFLICT_TRUE",
+    "query": "Our refund policy says 30 days, but a customer claims their contract allows 60. What is our position?",
+    "required_capabilities": [
+      "RAG"
+    ],
+    "expected_values": [
+      "30"
+    ],
+    "expected_sources": [
+      "CUSTOMER_REFUND_POLICY"
+    ],
+    "expected_conflict": true,
+    "expected_outcome": "The retrievable evidence supports 30 days. The claimed 60 has no supporting document, so the system must state what IS supported and flag the unverified claim -- not average, not defer to the user.",
+    "failure_mode_under_test": "Accepting the user's asserted figure because it was stated confidently.",
+    "provenance": "DETERMINISTIC"
+  },
+  {
+    "case_id": "CF-003",
+    "category": "CONFLICT_BOTH_INCOMPLETE",
+    "query": "What is our total refund exposure if every enterprise customer cancelled today?",
+    "required_capabilities": [
+      "RAG",
+      "SQL"
+    ],
+    "expected_values": [],
+    "expected_abstention": true,
+    "expected_outcome": "The refund policy gives a window but no per-customer amount, and the database has revenue but no per-customer contract values. NEITHER source is sufficient, and together they still are not. Correct behaviour is to say what is missing.",
+    "failure_mode_under_test": "Synthesising a confident number from two individually insufficient sources -- the most dangerous multi-source failure.",
+    "provenance": "DETERMINISTIC"
+  },
+  {
+    "case_id": "CF-004",
+    "category": "CONFLICT_OUTDATED",
+    "query": "The 2023 travel policy allowed $200/night in Tier 1 cities. Is that still the rate?",
+    "required_capabilities": [
+      "RAG"
+    ],
+    "expected_values": [
+      "250"
+    ],
+    "expected_sources": [
+      "TRAVEL_POLICY_2024"
+    ],
+    "expected_conflict": true,
+    "expected_outcome": "The premise cites a superseded figure. The system must answer from the current 2024 policy and say the cited rate is not current.",
+    "failure_mode_under_test": "Confirming a false premise, or answering $200 because the user supplied it.",
+    "provenance": "DETERMINISTIC"
+  },
+  {
+    "case_id": "CF-005",
+    "category": "CONFLICT_APPARENT_NOT_REAL",
+    "query": "Our SLA promises 99.9% uptime but the refund policy mentions outages over 4 hours. Do these contradict each other?",
+    "required_capabilities": [
+      "RAG"
+    ],
+    "expected_values": [
+      "99.9",
+      "4"
+    ],
+    "expected_sources": [
+      "ENTERPRISE_SLA_CONTRACT",
+      "CUSTOMER_REFUND_POLICY"
+    ],
+    "expected_conflict": false,
+    "expected_outcome": "FALSE-POSITIVE GUARD for conflict detection. The two clauses govern different things (an availability target vs a refund trigger) and are consistent. A system that flags every cross-document difference as a conflict is as useless as one that flags none.",
+    "failure_mode_under_test": "Reporting a conflict because two documents mention different numbers.",
+    "provenance": "DETERMINISTIC"
+  },
+  {
+    "case_id": "CF-006",
+    "category": "CONFLICT_BOTH_CORRECT_DIFFERENT_SCOPE",
+    "query": "Is business class allowed? One colleague says yes and another says no.",
+    "required_capabilities": [
+      "RAG"
+    ],
+    "expected_values": [
+      "6"
+    ],
+    "expected_sources": [
+      "TRAVEL_POLICY_2024"
+    ],
+    "expected_conflict": false,
+    "expected_outcome": "Both colleagues are right under different conditions -- the answer depends on flight duration and whether it is international. The correct response supplies the CONDITION, not a yes or a no.",
+    "failure_mode_under_test": "Picking a side when the real answer is conditional.",
+    "provenance": "DETERMINISTIC"
+  },
+  {
+    "case_id": "CF-007",
+    "category": "CONFLICT_UNSUPPORTED_PREMISE",
+    "query": "Since our RPO for the core database is 15 minutes, can we promise customers zero data loss?",
+    "required_capabilities": [
+      "RAG"
+    ],
+    "expected_values": [
+      "1 hour"
+    ],
+    "expected_sources": [
+      "BUSINESS_CONTINUITY_PLAN"
+    ],
+    "expected_conflict": true,
+    "expected_outcome": "The premise swaps two real figures: 15 minutes is the gateway RTO, the database RPO is 1 hour. The system must correct the premise before addressing the question.",
+    "failure_mode_under_test": "Accepting a plausible premise that mixes up two genuinely-present figures -- harder than an invented number.",
+    "provenance": "DETERMINISTIC"
+  },
+  {
+    "case_id": "CF-008",
+    "category": "CONFLICT_BOTH_INSUFFICIENT",
+    "query": "What was our Q4 2024 revenue by region?",
+    "required_capabilities": [
+      "SQL"
+    ],
+    "expected_values": [],
+    "expected_abstention": true,
+    "expected_outcome": "The revenue table holds no Q4 2024 rows. Correct behaviour is to report the absence, not to return the annual total relabelled as Q4.",
+    "failure_mode_under_test": "Substituting available data for requested data -- answering a question that was not asked, with a number that looks right.",
+    "provenance": "DETERMINISTIC"
+  }
+]
