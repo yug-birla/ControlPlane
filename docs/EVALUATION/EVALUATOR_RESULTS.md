@@ -139,3 +139,44 @@ Not "skipped", not estimated, not substituted. The model downloaded successfully
 `PrometheusJudge` now refuses in under a second via a pre-flight RAM check rather than attempting it. See `docs/PROJECT_STATE/BLOCKERS.md` **B12**, which is open and needs a decision between a new GGUF dependency, GPU approval, or accepting the Qwen gap.
 
 **The comparison this milestone set out to make has therefore not been made.** The improvement-ladder step after "few-shot was insufficient" is still open, and no claim is made about whether Prometheus would have helped.
+
+## Reasoning Evaluator: Expanded Benchmark Reveals Near-Total Recall Failure (Milestone 14)
+
+**Run:** 2026-08-29 against the expanded `reasoning_cases.json` (12 → 24 cases, 9 new categories).
+
+| Metric | 12-case set (Milestone 7) | **24-case set** |
+|---|---|---|
+| Accuracy | 0.833 | **0.750** |
+| Precision (SELF_CONTRADICTORY) | — | **0.500** |
+| **Recall (SELF_CONTRADICTORY)** | 0.500 | **0.167** |
+| Confusion | — | tp=1, fp=1, fn=5, tn=17 |
+
+### Accuracy is hiding the failure
+
+**0.750 accuracy is carried almost entirely by the 17 true negatives.** On the class that actually matters — detecting a self-contradiction — the evaluator finds **1 of 6**. A component that flagged nothing at all would score 0.708 on this set. The headline metric is nearly uninformative here, which is precisely why the per-class breakdown is reported alongside it.
+
+The 12-case set reported recall 0.500 (1 of 2). That was not wrong, but with two positive cases it could not distinguish 0.500 from 0.167 — the expansion did not make the evaluator worse, it made an existing weakness **visible**.
+
+### What it misses, and why
+
+`ReasoningEvaluator` matches fixed *adjacent* polarity phrase-pairs. That structurally cannot see:
+
+| Case | Failure mode |
+|---|---|
+| `RE-013`, `RE-014` | Polarity split across a clause ("must complete… though not required") rather than adjacent |
+| `RE-015` | Numeric contradiction ("60 days… 30 days") with **no polarity words at all** |
+| `RE-024` | States correct figures then draws the opposite conclusion — the contradiction is between evidence and conclusion |
+
+These are not gaps in the phrase list. They are gaps in the *representation*: a lexical adjacent-pair matcher has no notion of subject, scope, or numeric equality.
+
+### Deliberately not patched with more keywords
+
+Adding phrase pairs for each of the five misses would raise the number without fixing the class of failure — the same anti-hardcoding trap this project hit in Milestone 3 (actionability) and Milestone 9 (RAG routing). Both were resolved by changing the representation, not by extending a list.
+
+The principled fix is a semantic entailment check (the answer's claims against each other), which is the same machinery the factuality evaluator would need. Recorded as the next step rather than attempted here, because it needs a model comparison and RAM is currently committed to the 62-case benchmark.
+
+### Two false-positive guards were added and both pass
+
+`RE-016` and `RE-017` contain opposite-polarity phrases about the same subject that are **consistent** once scope is considered ("not available during the first six months, but permitted afterwards"). A naive fix that loosened matching to catch the five misses would very likely break these — which is why they exist.
+
+**Status: `HEURISTIC`, measured, and known-weak.** Its `NO_CONTRADICTION_DETECTED` label is deliberately named to never claim more than "this narrow check found nothing".
