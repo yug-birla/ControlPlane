@@ -115,7 +115,50 @@ def _run(detector, cases: list[dict]) -> list[dict]:
     return rows
 
 
+CONDITIONS = {
+    "v1_signal_count": {"severity_aware": False},
+    "v2_severity_aware": {"severity_aware": True},
+}
+
+
 def main() -> None:
+    cases = _load()
+    all_metrics, all_rows = {}, {}
+    for name, cfg in CONDITIONS.items():
+        rows = _run(BehavioralDriftDetector(**cfg), cases)
+        all_rows[name] = rows
+        all_metrics[name] = {
+            "overall": _metrics(rows),
+            **{split: _metrics([r for r in rows if r["split"] == split])
+               for split in sorted({r["split"] for r in rows})},
+        }
+
+    print(f"{'METRIC':<30}" + "".join(f"{c[:16]:>18}" for c in CONDITIONS))
+    print("=" * (30 + 18 * len(CONDITIONS)))
+    for split in ("dev", "test", "overall"):
+        print(f"-- {split} --")
+        for metric in ("exact_level_accuracy", "alert_decision_accuracy", "macro_f1",
+                       "false_alarm_count", "missed_drift_count"):
+            row = f"  {metric:<28}"
+            for c in CONDITIONS:
+                v = all_metrics[c][split][metric]
+                row += f"{v:>18.3f}" if isinstance(v, float) else f"{v:>18}"
+            print(row)
+    print("")
+    print("HIGH class f1:")
+    for c in CONDITIONS:
+        print(f"  {c:<22}{all_metrics[c]['overall']['per_level']['HIGH']['f1']:.3f}")
+
+    out_dir = Path("docs/EVALUATION/RESULTS")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir / f"behavioral_drift_v1_vs_v2_{date.today().isoformat()}.json"
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump({"results": all_metrics, "rows": all_rows}, f, indent=2, default=str)
+    print("")
+    print(f"Saved to {out_path}")
+
+
+def _legacy_single_condition_report() -> None:
     cases = _load()
     detector = BehavioralDriftDetector()
     rows = _run(detector, cases)

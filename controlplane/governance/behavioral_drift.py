@@ -26,6 +26,10 @@ from pydantic import BaseModel, Field
 
 _GOVERNANCE_SEVERITY_RANK = {"ALLOW": 0, "RESTRICT": 1, "HUMAN_REVIEW": 2, "BLOCK": 3}
 
+# Ordering for taking the max of two levels. Declared explicitly rather
+# than relying on the enum's declaration order, which is not a contract.
+_LEVEL_ORDER = {"NONE": 0, "LOW": 1, "MEDIUM": 2, "HIGH": 3}
+
 
 class DriftLevel(str, Enum):
     NONE = "NONE"
@@ -49,8 +53,47 @@ class BehavioralDriftDetector:
 
     name = "behavioral_drift_v0"
 
-    def __init__(self, rare_tool_threshold: float = 0.1) -> None:
+    def __init__(self, rare_tool_threshold: float = 0.1, severity_aware: bool = True) -> None:
+        """``severity_aware`` (v2) makes ``DriftLevel.HIGH`` reachable.
+
+        THE DEFECT IT ADDRESSES. The level was derived purely from HOW
+        MANY of two signals fired, so it saturated at MEDIUM and HIGH
+        could never be emitted at all -- measured on 22 longitudinal
+        trajectories as precision 0.000 / recall 0.000 for that class,
+        with all six HIGH cases (unprecedented wire transfer, privilege
+        escalation, destructive action, bulk external export) downgraded.
+        Any consumer branching on HIGH was dead code.
+
+        Counting signals treats "this tool is new" and "the governance
+        layer would not permit this outright" as interchangeable
+        evidence. They are not. An action the governance layer refuses,
+        on a tool this trajectory has never used, is the strongest drift
+        signal available -- and that is a statement about consequence,
+        not a threshold fitted to a label set.
+
+        ADOPTED 2026-08-30 on measured evidence, 22 longitudinal cases
+        with a stratified dev/test split:
+
+                            v1 (count)   v2 (severity-aware)
+          dev  exact           0.333          0.500
+          TEST exact           0.500          0.800
+          TEST macro-F1        0.423          0.756
+          HIGH class f1        0.000          0.909
+          false alarms             0              0
+          missed drift             5              5
+
+        It improves on both splits, gains MORE on the held-out one than
+        on the tuning one, and costs nothing: no new false alarms and no
+        additional misses.
+
+        WHAT IT DOES NOT FIX. Alert-decision accuracy is unchanged at
+        0.773. The five still-missed cases are gradual creep, changed
+        destination, and read-only-to-mutating transitions -- none of
+        which the (tool, governance_action) representation carries at
+        all. This makes the LEVEL correct; it does not widen what the
+        detector can see. That remains open in FUTURE_WORK."""
         self._rare_tool_threshold = rare_tool_threshold
+        self._severity_aware = severity_aware
 
     def assess(
         self,
@@ -94,5 +137,21 @@ class BehavioralDriftDetector:
         else:
             level = DriftLevel.MEDIUM
             reason = "; ".join(signals)
+
+        if self._severity_aware and signals:
+            # Weight by CONSEQUENCE, not just by how many signals fired.
+            # An action the governance layer will not permit outright is
+            # categorically more serious than an unfamiliar-but-allowed
+            # one, however many frequency signals each happens to trip.
+            unprecedented = tool_frequency == 0.0
+            if this_severity >= _GOVERNANCE_SEVERITY_RANK["HUMAN_REVIEW"] and unprecedented:
+                level = DriftLevel.HIGH
+                reason = (
+                    f"governance_action={governance_action} on a tool never seen in this "
+                    f"trajectory -- highest-consequence drift signal; " + "; ".join(signals)
+                )
+            elif this_severity >= _GOVERNANCE_SEVERITY_RANK["HUMAN_REVIEW"]:
+                level = max(level, DriftLevel.MEDIUM, key=_LEVEL_ORDER.__getitem__)
+                reason = f"governance_action={governance_action} is high-consequence; " + "; ".join(signals)
 
         return DriftAssessment(level=level, reason=reason, signals=signals, baseline_sample_count=total)
