@@ -189,3 +189,16 @@ The judge comparison crashed with **SIGSEGV (exit 139)** after completing 1 of 7
 It was visible only because three conditions matching exactly is implausible. Had the numbers merely been *close*, the run would have read as "the change makes little difference".
 
 **Fix.** Every condition now pins its own flags explicitly, so the harness measures what it names regardless of what the runtime currently ships. Applied to this experiment; the same pattern should be checked wherever an experiment constructs a component with no arguments and calls it the baseline.
+
+
+## B19 — Prometheus judge run is at 8h against a 4.5h estimate (2026-08-30) — **OPEN, watching**
+
+The re-run started with exclusive access after B16 is still executing at **8h05m** elapsed, against an estimate of ~4.5h derived from case 1 of the crashed run (38.75 min). It is not hung: CPU time continues to accumulate at roughly 2.3 cores, and RSS is stable at ~3.4 GB.
+
+**Why the estimate was probably wrong rather than the run.** The 38.75 min figure came from `JH-001`, a `SUPPORTED` case. The stratified set is weighted toward `PARTIALLY_SUPPORTED` (`JH-011/012/013`), which are the decisive cases precisely because they require the judge to discriminate rather than agree — longer generations, and the ones the estimate had no sample of.
+
+**Contention is a partial contributor and is acknowledged.** Development continued alongside it under a RAM check before every command, in small test batches rather than full-suite runs, and twice held entirely when free RAM fell to ~1.3 GB. That is a real but bounded slowdown, and it is recorded here rather than left out of the accounting.
+
+**What is not affected.** No result has been claimed from it. Everything measured this milestone runs on embeddings or is deterministic; the judge comparison remains `NOT_MEASURED` and the quality ablation is explicitly queued behind it.
+
+**On completion, verify before comparing anything:** `PIPESTATUS_PYTHON` in the log (never the harness's reported code), the result file exists, and it contains **7/7** cases.

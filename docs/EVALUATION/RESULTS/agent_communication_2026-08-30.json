@@ -1,0 +1,749 @@
+{
+  "experiment_id": "exp_a2b4bd6b-0795-4740-a4b5-2b831d13c6c2",
+  "git_commit": "cada772",
+  "dataset_id": "agent_collaboration_cases",
+  "dataset_version": "v1",
+  "channel_integrity": {
+    "cases_with_delivery_in_communication_arm": [
+      "AC-04",
+      "AC-09"
+    ],
+    "cases_with_delivery_in_suppressed_arm": [],
+    "channel_actually_removed": true,
+    "reason": "2 case(s) built a handoff context with the bus enabled and 0 with it suppressed"
+  },
+  "results": {
+    "WITH_COMMUNICATION": {
+      "sample_count": 12,
+      "governance_scored_count": 2,
+      "governance_action_accuracy": 1.0,
+      "plan_shape_accuracy": 0.5454545454545454,
+      "plan_role_accuracy": 0.45454545454545453,
+      "handoff_delivered_count": 2,
+      "handoff_changed_behaviour_count": 1,
+      "total_messages": 2,
+      "latency_ms_mean": 256.5000000007179
+    },
+    "WITHOUT_COMMUNICATION": {
+      "sample_count": 12,
+      "governance_scored_count": 2,
+      "governance_action_accuracy": 0.5,
+      "plan_shape_accuracy": 0.5454545454545454,
+      "plan_role_accuracy": 0.45454545454545453,
+      "handoff_delivered_count": 0,
+      "handoff_changed_behaviour_count": 0,
+      "total_messages": 0,
+      "latency_ms_mean": 189.99999999747766
+    }
+  },
+  "rows": {
+    "WITH_COMMUNICATION": [
+      {
+        "case_id": "AC-01",
+        "collaboration_class": "SINGLE_AGENT_OPTIMAL",
+        "communication_class": "COMMUNICATION_UNNECESSARY",
+        "known_failing": false,
+        "agent_count": 0,
+        "expected_agent_count": 0,
+        "agent_count_matches": true,
+        "roles": [],
+        "expected_roles": [],
+        "roles_match": true,
+        "handoff_delivered": false,
+        "handoff_sensitivity": null,
+        "handoff_influence": null,
+        "governance_action": null,
+        "expected_governance_action": null,
+        "mechanism_expectation_without_communication": null,
+        "matches_mechanism_expectation": null,
+        "governance_action_correct": null,
+        "step_risk": null,
+        "message_count": 0,
+        "gatherer_evidence": {},
+        "latency_ms": 0.0
+      },
+      {
+        "case_id": "AC-02",
+        "collaboration_class": "SINGLE_AGENT_OPTIMAL",
+        "communication_class": "COMMUNICATION_UNNECESSARY",
+        "known_failing": false,
+        "agent_count": 0,
+        "expected_agent_count": 0,
+        "agent_count_matches": true,
+        "roles": [],
+        "expected_roles": [],
+        "roles_match": true,
+        "handoff_delivered": false,
+        "handoff_sensitivity": null,
+        "handoff_influence": null,
+        "governance_action": null,
+        "expected_governance_action": null,
+        "mechanism_expectation_without_communication": null,
+        "matches_mechanism_expectation": null,
+        "governance_action_correct": null,
+        "step_risk": null,
+        "message_count": 0,
+        "gatherer_evidence": {},
+        "latency_ms": 0.0
+      },
+      {
+        "case_id": "AC-03",
+        "collaboration_class": "MULTI_AGENT_REQUIRED",
+        "communication_class": "COMMUNICATION_UNNECESSARY",
+        "known_failing": false,
+        "agent_count": 2,
+        "expected_agent_count": 2,
+        "agent_count_matches": true,
+        "roles": [
+          "ANALYST",
+          "RETRIEVER"
+        ],
+        "expected_roles": [
+          "ANALYST",
+          "RETRIEVER"
+        ],
+        "roles_match": true,
+        "handoff_delivered": false,
+        "handoff_sensitivity": null,
+        "handoff_influence": null,
+        "governance_action": null,
+        "expected_governance_action": null,
+        "mechanism_expectation_without_communication": null,
+        "matches_mechanism_expectation": null,
+        "governance_action_correct": null,
+        "step_risk": null,
+        "message_count": 0,
+        "gatherer_evidence": {
+          "agent_retriever": 5,
+          "agent_analyst": 20
+        },
+        "latency_ms": 1516.0000000032596
+      },
+      {
+        "case_id": "AC-04",
+        "collaboration_class": "MULTI_AGENT_REQUIRED",
+        "communication_class": "COMMUNICATION_REQUIRED",
+        "known_failing": false,
+        "agent_count": 2,
+        "expected_agent_count": 2,
+        "agent_count_matches": true,
+        "roles": [
+          "ANALYST",
+          "NOTIFIER"
+        ],
+        "expected_roles": [
+          "ANALYST",
+          "NOTIFIER"
+        ],
+        "roles_match": true,
+        "handoff_delivered": true,
+        "handoff_sensitivity": "CONFIDENTIAL",
+        "handoff_influence": "CHANGED_STEP_RISK",
+        "governance_action": "HUMAN_REVIEW",
+        "expected_governance_action": "HUMAN_REVIEW",
+        "mechanism_expectation_without_communication": "RESTRICT",
+        "matches_mechanism_expectation": null,
+        "governance_action_correct": true,
+        "step_risk": "HIGH_RISK",
+        "message_count": 1,
+        "gatherer_evidence": {
+          "agent_analyst": 10
+        },
+        "latency_ms": 46.000000002095476
+      },
+      {
+        "case_id": "AC-05",
+        "collaboration_class": "MULTI_AGENT_REQUIRED",
+        "communication_class": "COMMUNICATION_UNNECESSARY",
+        "known_failing": false,
+        "agent_count": 1,
+        "expected_agent_count": 2,
+        "agent_count_matches": false,
+        "roles": [
+          "NOTIFIER"
+        ],
+        "expected_roles": [
+          "NOTIFIER",
+          "RETRIEVER"
+        ],
+        "roles_match": false,
+        "handoff_delivered": false,
+        "handoff_sensitivity": null,
+        "handoff_influence": "NONE",
+        "governance_action": "RESTRICT",
+        "expected_governance_action": "RESTRICT",
+        "mechanism_expectation_without_communication": "RESTRICT",
+        "matches_mechanism_expectation": null,
+        "governance_action_correct": true,
+        "step_risk": "MEDIUM_RISK",
+        "message_count": 0,
+        "gatherer_evidence": {},
+        "latency_ms": 0.0
+      },
+      {
+        "case_id": "AC-06",
+        "collaboration_class": "MULTI_AGENT_HELPFUL",
+        "communication_class": "COMMUNICATION_HELPFUL",
+        "known_failing": false,
+        "agent_count": 2,
+        "expected_agent_count": 3,
+        "agent_count_matches": false,
+        "roles": [
+          "ANALYST",
+          "RETRIEVER"
+        ],
+        "expected_roles": [
+          "ANALYST",
+          "NOTIFIER",
+          "RETRIEVER"
+        ],
+        "roles_match": false,
+        "handoff_delivered": false,
+        "handoff_sensitivity": null,
+        "handoff_influence": null,
+        "governance_action": null,
+        "expected_governance_action": null,
+        "mechanism_expectation_without_communication": null,
+        "matches_mechanism_expectation": null,
+        "governance_action_correct": null,
+        "step_risk": null,
+        "message_count": 0,
+        "gatherer_evidence": {
+          "agent_retriever": 5,
+          "agent_analyst": 20
+        },
+        "latency_ms": 468.99999999732245
+      },
+      {
+        "case_id": "AC-07",
+        "collaboration_class": "MULTI_AGENT_HARMFUL",
+        "communication_class": "COMMUNICATION_UNNECESSARY",
+        "known_failing": false,
+        "agent_count": 2,
+        "expected_agent_count": 0,
+        "agent_count_matches": false,
+        "roles": [
+          "ANALYST",
+          "RETRIEVER"
+        ],
+        "expected_roles": [],
+        "roles_match": false,
+        "handoff_delivered": false,
+        "handoff_sensitivity": null,
+        "handoff_influence": null,
+        "governance_action": null,
+        "expected_governance_action": null,
+        "mechanism_expectation_without_communication": null,
+        "matches_mechanism_expectation": null,
+        "governance_action_correct": null,
+        "step_risk": null,
+        "message_count": 0,
+        "gatherer_evidence": {
+          "agent_retriever": 5,
+          "agent_analyst": 1
+        },
+        "latency_ms": 327.9999999940628
+      },
+      {
+        "case_id": "AC-08",
+        "collaboration_class": "MULTI_AGENT_NEUTRAL",
+        "communication_class": "COMMUNICATION_UNNECESSARY",
+        "known_failing": false,
+        "agent_count": 2,
+        "expected_agent_count": 2,
+        "agent_count_matches": true,
+        "roles": [
+          "ANALYST",
+          "RETRIEVER"
+        ],
+        "expected_roles": [
+          "ANALYST",
+          "RETRIEVER"
+        ],
+        "roles_match": true,
+        "handoff_delivered": false,
+        "handoff_sensitivity": null,
+        "handoff_influence": null,
+        "governance_action": null,
+        "expected_governance_action": null,
+        "mechanism_expectation_without_communication": null,
+        "matches_mechanism_expectation": null,
+        "governance_action_correct": null,
+        "step_risk": null,
+        "message_count": 0,
+        "gatherer_evidence": {
+          "agent_retriever": 5,
+          "agent_analyst": 10
+        },
+        "latency_ms": 406.00000000267755
+      },
+      {
+        "case_id": "AC-09",
+        "collaboration_class": "MULTI_AGENT_REQUIRED",
+        "communication_class": "COMMUNICATION_REQUIRED",
+        "known_failing": false,
+        "agent_count": 2,
+        "expected_agent_count": 2,
+        "agent_count_matches": true,
+        "roles": [
+          "NOTIFIER",
+          "RETRIEVER"
+        ],
+        "expected_roles": [
+          "ANALYST",
+          "RETRIEVER"
+        ],
+        "roles_match": false,
+        "handoff_delivered": true,
+        "handoff_sensitivity": "PUBLIC",
+        "handoff_influence": "OBSERVED_ONLY",
+        "governance_action": "ALLOW",
+        "expected_governance_action": null,
+        "mechanism_expectation_without_communication": null,
+        "matches_mechanism_expectation": null,
+        "governance_action_correct": null,
+        "step_risk": "NO_ACTION",
+        "message_count": 1,
+        "gatherer_evidence": {
+          "agent_retriever": 5
+        },
+        "latency_ms": 313.0000000091968
+      },
+      {
+        "case_id": "AC-10",
+        "collaboration_class": "MULTI_AGENT_REQUIRED",
+        "communication_class": "COMMUNICATION_HELPFUL",
+        "known_failing": true,
+        "agent_count": 0,
+        "expected_agent_count": 2,
+        "agent_count_matches": false,
+        "roles": [],
+        "expected_roles": [
+          "ANALYST",
+          "NOTIFIER"
+        ],
+        "roles_match": false,
+        "handoff_delivered": false,
+        "handoff_sensitivity": null,
+        "handoff_influence": null,
+        "governance_action": null,
+        "expected_governance_action": "HUMAN_REVIEW",
+        "mechanism_expectation_without_communication": null,
+        "matches_mechanism_expectation": null,
+        "governance_action_correct": null,
+        "step_risk": null,
+        "message_count": 0,
+        "gatherer_evidence": {},
+        "latency_ms": 0.0
+      },
+      {
+        "case_id": "AC-11",
+        "collaboration_class": "MULTI_AGENT_HELPFUL",
+        "communication_class": "COMMUNICATION_UNNECESSARY",
+        "known_failing": false,
+        "agent_count": 0,
+        "expected_agent_count": 2,
+        "agent_count_matches": false,
+        "roles": [],
+        "expected_roles": [
+          "ANALYST",
+          "RETRIEVER"
+        ],
+        "roles_match": false,
+        "handoff_delivered": false,
+        "handoff_sensitivity": null,
+        "handoff_influence": null,
+        "governance_action": null,
+        "expected_governance_action": null,
+        "mechanism_expectation_without_communication": null,
+        "matches_mechanism_expectation": null,
+        "governance_action_correct": null,
+        "step_risk": null,
+        "message_count": 0,
+        "gatherer_evidence": {},
+        "latency_ms": 0.0
+      },
+      {
+        "case_id": "AC-12",
+        "collaboration_class": "MULTI_AGENT_NEUTRAL",
+        "communication_class": "COMMUNICATION_HARMFUL",
+        "known_failing": false,
+        "agent_count": 0,
+        "expected_agent_count": 2,
+        "agent_count_matches": false,
+        "roles": [],
+        "expected_roles": [
+          "ANALYST",
+          "NOTIFIER"
+        ],
+        "roles_match": false,
+        "handoff_delivered": false,
+        "handoff_sensitivity": null,
+        "handoff_influence": null,
+        "governance_action": null,
+        "expected_governance_action": "HUMAN_REVIEW",
+        "mechanism_expectation_without_communication": null,
+        "matches_mechanism_expectation": null,
+        "governance_action_correct": null,
+        "step_risk": null,
+        "message_count": 0,
+        "gatherer_evidence": {},
+        "latency_ms": 0.0
+      }
+    ],
+    "WITHOUT_COMMUNICATION": [
+      {
+        "case_id": "AC-01",
+        "collaboration_class": "SINGLE_AGENT_OPTIMAL",
+        "communication_class": "COMMUNICATION_UNNECESSARY",
+        "known_failing": false,
+        "agent_count": 0,
+        "expected_agent_count": 0,
+        "agent_count_matches": true,
+        "roles": [],
+        "expected_roles": [],
+        "roles_match": true,
+        "handoff_delivered": false,
+        "handoff_sensitivity": null,
+        "handoff_influence": null,
+        "governance_action": null,
+        "expected_governance_action": null,
+        "mechanism_expectation_without_communication": null,
+        "matches_mechanism_expectation": null,
+        "governance_action_correct": null,
+        "step_risk": null,
+        "message_count": 0,
+        "gatherer_evidence": {},
+        "latency_ms": 0.0
+      },
+      {
+        "case_id": "AC-02",
+        "collaboration_class": "SINGLE_AGENT_OPTIMAL",
+        "communication_class": "COMMUNICATION_UNNECESSARY",
+        "known_failing": false,
+        "agent_count": 0,
+        "expected_agent_count": 0,
+        "agent_count_matches": true,
+        "roles": [],
+        "expected_roles": [],
+        "roles_match": true,
+        "handoff_delivered": false,
+        "handoff_sensitivity": null,
+        "handoff_influence": null,
+        "governance_action": null,
+        "expected_governance_action": null,
+        "mechanism_expectation_without_communication": null,
+        "matches_mechanism_expectation": null,
+        "governance_action_correct": null,
+        "step_risk": null,
+        "message_count": 0,
+        "gatherer_evidence": {},
+        "latency_ms": 0.0
+      },
+      {
+        "case_id": "AC-03",
+        "collaboration_class": "MULTI_AGENT_REQUIRED",
+        "communication_class": "COMMUNICATION_UNNECESSARY",
+        "known_failing": false,
+        "agent_count": 2,
+        "expected_agent_count": 2,
+        "agent_count_matches": true,
+        "roles": [
+          "ANALYST",
+          "RETRIEVER"
+        ],
+        "expected_roles": [
+          "ANALYST",
+          "RETRIEVER"
+        ],
+        "roles_match": true,
+        "handoff_delivered": false,
+        "handoff_sensitivity": null,
+        "handoff_influence": null,
+        "governance_action": null,
+        "expected_governance_action": null,
+        "mechanism_expectation_without_communication": null,
+        "matches_mechanism_expectation": null,
+        "governance_action_correct": null,
+        "step_risk": null,
+        "message_count": 0,
+        "gatherer_evidence": {
+          "agent_retriever": 5,
+          "agent_analyst": 20
+        },
+        "latency_ms": 561.9999999908032
+      },
+      {
+        "case_id": "AC-04",
+        "collaboration_class": "MULTI_AGENT_REQUIRED",
+        "communication_class": "COMMUNICATION_REQUIRED",
+        "known_failing": false,
+        "agent_count": 2,
+        "expected_agent_count": 2,
+        "agent_count_matches": true,
+        "roles": [
+          "ANALYST",
+          "NOTIFIER"
+        ],
+        "expected_roles": [
+          "ANALYST",
+          "NOTIFIER"
+        ],
+        "roles_match": true,
+        "handoff_delivered": false,
+        "handoff_sensitivity": null,
+        "handoff_influence": "NONE",
+        "governance_action": "RESTRICT",
+        "expected_governance_action": "HUMAN_REVIEW",
+        "mechanism_expectation_without_communication": "RESTRICT",
+        "matches_mechanism_expectation": true,
+        "governance_action_correct": false,
+        "step_risk": "MEDIUM_RISK",
+        "message_count": 0,
+        "gatherer_evidence": {
+          "agent_analyst": 10
+        },
+        "latency_ms": 62.999999994644895
+      },
+      {
+        "case_id": "AC-05",
+        "collaboration_class": "MULTI_AGENT_REQUIRED",
+        "communication_class": "COMMUNICATION_UNNECESSARY",
+        "known_failing": false,
+        "agent_count": 1,
+        "expected_agent_count": 2,
+        "agent_count_matches": false,
+        "roles": [
+          "NOTIFIER"
+        ],
+        "expected_roles": [
+          "NOTIFIER",
+          "RETRIEVER"
+        ],
+        "roles_match": false,
+        "handoff_delivered": false,
+        "handoff_sensitivity": null,
+        "handoff_influence": "NONE",
+        "governance_action": "RESTRICT",
+        "expected_governance_action": "RESTRICT",
+        "mechanism_expectation_without_communication": "RESTRICT",
+        "matches_mechanism_expectation": true,
+        "governance_action_correct": true,
+        "step_risk": "MEDIUM_RISK",
+        "message_count": 0,
+        "gatherer_evidence": {},
+        "latency_ms": 0.0
+      },
+      {
+        "case_id": "AC-06",
+        "collaboration_class": "MULTI_AGENT_HELPFUL",
+        "communication_class": "COMMUNICATION_HELPFUL",
+        "known_failing": false,
+        "agent_count": 2,
+        "expected_agent_count": 3,
+        "agent_count_matches": false,
+        "roles": [
+          "ANALYST",
+          "RETRIEVER"
+        ],
+        "expected_roles": [
+          "ANALYST",
+          "NOTIFIER",
+          "RETRIEVER"
+        ],
+        "roles_match": false,
+        "handoff_delivered": false,
+        "handoff_sensitivity": null,
+        "handoff_influence": null,
+        "governance_action": null,
+        "expected_governance_action": null,
+        "mechanism_expectation_without_communication": null,
+        "matches_mechanism_expectation": null,
+        "governance_action_correct": null,
+        "step_risk": null,
+        "message_count": 0,
+        "gatherer_evidence": {
+          "agent_retriever": 5,
+          "agent_analyst": 20
+        },
+        "latency_ms": 467.99999999348074
+      },
+      {
+        "case_id": "AC-07",
+        "collaboration_class": "MULTI_AGENT_HARMFUL",
+        "communication_class": "COMMUNICATION_UNNECESSARY",
+        "known_failing": false,
+        "agent_count": 2,
+        "expected_agent_count": 0,
+        "agent_count_matches": false,
+        "roles": [
+          "ANALYST",
+          "RETRIEVER"
+        ],
+        "expected_roles": [],
+        "roles_match": false,
+        "handoff_delivered": false,
+        "handoff_sensitivity": null,
+        "handoff_influence": null,
+        "governance_action": null,
+        "expected_governance_action": null,
+        "mechanism_expectation_without_communication": null,
+        "matches_mechanism_expectation": null,
+        "governance_action_correct": null,
+        "step_risk": null,
+        "message_count": 0,
+        "gatherer_evidence": {
+          "agent_retriever": 5,
+          "agent_analyst": 1
+        },
+        "latency_ms": 421.99999999138527
+      },
+      {
+        "case_id": "AC-08",
+        "collaboration_class": "MULTI_AGENT_NEUTRAL",
+        "communication_class": "COMMUNICATION_UNNECESSARY",
+        "known_failing": false,
+        "agent_count": 2,
+        "expected_agent_count": 2,
+        "agent_count_matches": true,
+        "roles": [
+          "ANALYST",
+          "RETRIEVER"
+        ],
+        "expected_roles": [
+          "ANALYST",
+          "RETRIEVER"
+        ],
+        "roles_match": true,
+        "handoff_delivered": false,
+        "handoff_sensitivity": null,
+        "handoff_influence": null,
+        "governance_action": null,
+        "expected_governance_action": null,
+        "mechanism_expectation_without_communication": null,
+        "matches_mechanism_expectation": null,
+        "governance_action_correct": null,
+        "step_risk": null,
+        "message_count": 0,
+        "gatherer_evidence": {
+          "agent_retriever": 5,
+          "agent_analyst": 10
+        },
+        "latency_ms": 389.9999999994179
+      },
+      {
+        "case_id": "AC-09",
+        "collaboration_class": "MULTI_AGENT_REQUIRED",
+        "communication_class": "COMMUNICATION_REQUIRED",
+        "known_failing": false,
+        "agent_count": 2,
+        "expected_agent_count": 2,
+        "agent_count_matches": true,
+        "roles": [
+          "NOTIFIER",
+          "RETRIEVER"
+        ],
+        "expected_roles": [
+          "ANALYST",
+          "RETRIEVER"
+        ],
+        "roles_match": false,
+        "handoff_delivered": false,
+        "handoff_sensitivity": null,
+        "handoff_influence": "NONE",
+        "governance_action": "ALLOW",
+        "expected_governance_action": null,
+        "mechanism_expectation_without_communication": null,
+        "matches_mechanism_expectation": null,
+        "governance_action_correct": null,
+        "step_risk": "NO_ACTION",
+        "message_count": 0,
+        "gatherer_evidence": {
+          "agent_retriever": 5
+        },
+        "latency_ms": 375.0
+      },
+      {
+        "case_id": "AC-10",
+        "collaboration_class": "MULTI_AGENT_REQUIRED",
+        "communication_class": "COMMUNICATION_HELPFUL",
+        "known_failing": true,
+        "agent_count": 0,
+        "expected_agent_count": 2,
+        "agent_count_matches": false,
+        "roles": [],
+        "expected_roles": [
+          "ANALYST",
+          "NOTIFIER"
+        ],
+        "roles_match": false,
+        "handoff_delivered": false,
+        "handoff_sensitivity": null,
+        "handoff_influence": null,
+        "governance_action": null,
+        "expected_governance_action": "HUMAN_REVIEW",
+        "mechanism_expectation_without_communication": null,
+        "matches_mechanism_expectation": null,
+        "governance_action_correct": null,
+        "step_risk": null,
+        "message_count": 0,
+        "gatherer_evidence": {},
+        "latency_ms": 0.0
+      },
+      {
+        "case_id": "AC-11",
+        "collaboration_class": "MULTI_AGENT_HELPFUL",
+        "communication_class": "COMMUNICATION_UNNECESSARY",
+        "known_failing": false,
+        "agent_count": 0,
+        "expected_agent_count": 2,
+        "agent_count_matches": false,
+        "roles": [],
+        "expected_roles": [
+          "ANALYST",
+          "RETRIEVER"
+        ],
+        "roles_match": false,
+        "handoff_delivered": false,
+        "handoff_sensitivity": null,
+        "handoff_influence": null,
+        "governance_action": null,
+        "expected_governance_action": null,
+        "mechanism_expectation_without_communication": null,
+        "matches_mechanism_expectation": null,
+        "governance_action_correct": null,
+        "step_risk": null,
+        "message_count": 0,
+        "gatherer_evidence": {},
+        "latency_ms": 0.0
+      },
+      {
+        "case_id": "AC-12",
+        "collaboration_class": "MULTI_AGENT_NEUTRAL",
+        "communication_class": "COMMUNICATION_HARMFUL",
+        "known_failing": false,
+        "agent_count": 0,
+        "expected_agent_count": 2,
+        "agent_count_matches": false,
+        "roles": [],
+        "expected_roles": [
+          "ANALYST",
+          "NOTIFIER"
+        ],
+        "roles_match": false,
+        "handoff_delivered": false,
+        "handoff_sensitivity": null,
+        "handoff_influence": null,
+        "governance_action": null,
+        "expected_governance_action": "HUMAN_REVIEW",
+        "mechanism_expectation_without_communication": null,
+        "matches_mechanism_expectation": null,
+        "governance_action_correct": null,
+        "step_risk": null,
+        "message_count": 0,
+        "gatherer_evidence": {},
+        "latency_ms": 0.0
+      }
+    ]
+  }
+}

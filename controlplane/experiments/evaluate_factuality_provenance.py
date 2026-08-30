@@ -85,9 +85,16 @@ def _metrics(rows: list[dict]) -> dict:
             1 for r in rows if (r["predicted"] in _CONTROLLING) == (r["expected"] in _CONTROLLING)
         ) / n,
         "over_control_count": len(over),
-        "over_control_rate": len(over) / (len(should_pass) or 1),
+        # AUDIT (SS53): an empty denominator must not read as perfect.
+        # `x / (len(s) or 1)` returns 0.0 when s is empty, so a split
+        # containing no cases of a kind reports a 0.0 failure rate for it --
+        # indistinguishable from having tested it and passed. The rate is
+        # undefined there, and None says so; the count beside it stays 0.
+        "over_control_rate": (
+            len(over) / len(should_pass) if should_pass else None),
         "missed_fabrication_count": len(under),
-        "missed_fabrication_rate": len(under) / (len(should_flag) or 1),
+        "missed_fabrication_rate": (
+            len(under) / len(should_flag) if should_flag else None),
         "over_controlled_cases": [r["case_id"] for r in over],
         "missed_cases": [r["case_id"] for r in under],
     }

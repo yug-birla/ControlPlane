@@ -83,9 +83,16 @@ def _metrics(rows: list[dict]) -> dict:
         "alert_decision_accuracy": sum(
             1 for r in rows if (r["actual"] in _ALERTING) == (r["expected"] in _ALERTING)) / n,
         "false_alarm_count": len(false_alarms),
-        "false_alarm_rate": len(false_alarms) / (len(should_stay_quiet) or 1),
+        # AUDIT (SS53): an empty denominator must not read as perfect.
+        # `x / (len(s) or 1)` returns 0.0 when s is empty, so a split
+        # containing no cases of a kind reports a 0.0 failure rate for it --
+        # indistinguishable from having tested it and passed. The rate is
+        # undefined there, and None says so; the count beside it stays 0.
+        "false_alarm_rate": (
+            len(false_alarms) / len(should_stay_quiet) if should_stay_quiet else None),
         "missed_drift_count": len(missed),
-        "missed_drift_rate": len(missed) / (len(should_alert) or 1),
+        "missed_drift_rate": (
+            len(missed) / len(should_alert) if should_alert else None),
         "macro_f1": sum(v["f1"] for v in per_level.values()) / len(_LEVELS),
         "per_level": per_level,
         "false_alarm_cases": [r["case_id"] for r in false_alarms],
