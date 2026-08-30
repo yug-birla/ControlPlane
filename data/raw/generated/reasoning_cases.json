@@ -4,7 +4,8 @@
     "category": "easy_consistent",
     "query": "Is remote work allowed after six months of tenure?",
     "answer": "Yes, remote work is allowed for employees with over six months of tenure and manager approval.",
-    "expected_label": "NO_CONTRADICTION_DETECTED"
+    "expected_label": "NO_CONTRADICTION_DETECTED",
+    "split": "test"
   },
   {
     "case_id": "RE-002",
@@ -12,14 +13,16 @@
     "query": "Is two-factor authentication required?",
     "answer": "Two-factor authentication is mandatory for all employees, although two-factor authentication is optional for some contractors.",
     "expected_label": "NO_CONTRADICTION_DETECTED",
-    "note": "not a direct polarity pair on the SAME subject -- the evaluator's narrow pair list does not cover 'mandatory'+'optional' here since it is about different subjects (employees vs contractors); documents a real detection gap, not a false claim"
+    "note": "not a direct polarity pair on the SAME subject -- the evaluator's narrow pair list does not cover 'mandatory'+'optional' here since it is about different subjects (employees vs contractors); documents a real detection gap, not a false claim",
+    "split": "test"
   },
   {
     "case_id": "RE-003",
     "category": "direct_self_contradiction_same_subject",
     "query": "Is remote work allowed for new hires?",
     "answer": "Remote work is allowed for new hires, but remote work is not allowed for new hires during the first month.",
-    "expected_label": "SELF_CONTRADICTORY"
+    "expected_label": "SELF_CONTRADICTORY",
+    "split": "test"
   },
   {
     "case_id": "RE-004",
@@ -27,7 +30,8 @@
     "query": "If hotel costs $250/night for 3 nights, what is the total hotel cost?",
     "answer": "The total hotel cost is $750.",
     "expected_label": "NO_CONTRADICTION_DETECTED",
-    "note": "correct arithmetic (250*3=750); the evaluator has no arithmetic-checking logic, so it necessarily reports the same NO_CONTRADICTION_DETECTED label as an actually-wrong arithmetic answer would -- a real, structural detection gap for this category"
+    "note": "correct arithmetic (250*3=750); the evaluator has no arithmetic-checking logic, so it necessarily reports the same NO_CONTRADICTION_DETECTED label as an actually-wrong arithmetic answer would -- a real, structural detection gap for this category",
+    "split": "test"
   },
   {
     "case_id": "RE-005",
@@ -35,14 +39,16 @@
     "query": "If hotel costs $250/night for 3 nights, what is the total hotel cost?",
     "answer": "The total hotel cost is $650.",
     "expected_label": "NO_CONTRADICTION_DETECTED",
-    "note": "arithmetically WRONG (250*3=750, not 650) but the evaluator has no arithmetic verification -- this case exists specifically to measure that gap: expected_label is what the CURRENT evaluator will report, not what a correct evaluator should report (recorded separately as arithmetic_error_caught=False in the results)"
+    "note": "arithmetically WRONG (250*3=750, not 650) but the evaluator has no arithmetic verification -- this case exists specifically to measure that gap: expected_label is what the CURRENT evaluator will report, not what a correct evaluator should report (recorded separately as arithmetic_error_caught=False in the results)",
+    "split": "test"
   },
   {
     "case_id": "RE-006",
     "category": "comparison_correct",
     "query": "Which is longer, the IC resignation notice period or the manager one?",
     "answer": "The manager resignation notice period (60 days) is longer than the IC one (30 days).",
-    "expected_label": "NO_CONTRADICTION_DETECTED"
+    "expected_label": "NO_CONTRADICTION_DETECTED",
+    "split": "test"
   },
   {
     "case_id": "RE-007",
@@ -50,14 +56,16 @@
     "query": "Which is longer, the IC resignation notice period or the manager one?",
     "answer": "The IC resignation notice period (30 days) is longer than the manager one (60 days).",
     "expected_label": "NO_CONTRADICTION_DETECTED",
-    "note": "logically inconsistent (30 is not longer than 60) but this is a numeric-comparison error, not a polarity self-contradiction -- another structural detection gap, measured not hidden"
+    "note": "logically inconsistent (30 is not longer than 60) but this is a numeric-comparison error, not a polarity self-contradiction -- another structural detection gap, measured not hidden",
+    "split": "test"
   },
   {
     "case_id": "RE-008",
     "category": "constraint_satisfaction_correct",
     "query": "Is a $30,000 expense within the manager-approval range ($501-$5,000)?",
     "answer": "No, a $30,000 expense exceeds the manager-approval range and requires VP and Finance sign-off instead.",
-    "expected_label": "NO_CONTRADICTION_DETECTED"
+    "expected_label": "NO_CONTRADICTION_DETECTED",
+    "split": "test"
   },
   {
     "case_id": "RE-009",
@@ -65,28 +73,32 @@
     "query": "Since the company had strong Q3 revenue growth, does that mean the wire transfer authorization threshold increases?",
     "answer": "Yes, strong revenue growth automatically raises the wire transfer authorization threshold.",
     "expected_label": "NO_CONTRADICTION_DETECTED",
-    "note": "a non-sequitur / fabricated causal inference with no basis in any policy -- not a self-contradiction, a different failure mode (unsupported reasoning leap) this narrow evaluator was never designed to catch"
+    "note": "a non-sequitur / fabricated causal inference with no basis in any policy -- not a self-contradiction, a different failure mode (unsupported reasoning leap) this narrow evaluator was never designed to catch",
+    "split": "test"
   },
   {
     "case_id": "RE-010",
     "category": "multi_step_correct",
     "query": "An employee has been here 2 years and wants to take annual leave. How many days do they get, and do they qualify for the higher tier yet?",
     "answer": "They get 20 days of annual leave, since the higher 25-day tier only starts after 3 years and they have only been here 2 years.",
-    "expected_label": "NO_CONTRADICTION_DETECTED"
+    "expected_label": "NO_CONTRADICTION_DETECTED",
+    "split": "test"
   },
   {
     "case_id": "RE-011",
     "category": "direct_self_contradiction_same_subject",
     "query": "Is the wire transfer over $50,000 require dual authorization?",
     "answer": "Wire transfers over $50,000 must be required to have dual authorization, but wire transfers over $50,000 are not required to have dual authorization if the requester is a VP.",
-    "expected_label": "SELF_CONTRADICTORY"
+    "expected_label": "SELF_CONTRADICTORY",
+    "split": "test"
   },
   {
     "case_id": "RE-012",
     "category": "easy_consistent",
     "query": "Are external penetration tests required?",
     "answer": "Yes, external penetration tests are required annually.",
-    "expected_label": "NO_CONTRADICTION_DETECTED"
+    "expected_label": "NO_CONTRADICTION_DETECTED",
+    "split": "test"
   },
   {
     "case_id": "RE-013",
@@ -94,7 +106,8 @@
     "query": "Are contractors required to complete security training?",
     "answer": "Contractors must complete the security module before access is granted, though contractors are not required to complete it.",
     "expected_label": "SELF_CONTRADICTORY",
-    "notes": "The known ReasoningEvaluator miss: 'must' and 'not required' are split across the sentence rather than adjacent, so a fixed adjacent-phrase list cannot see it. Kept as a measured failure, not patched with another phrase."
+    "notes": "The known ReasoningEvaluator miss: 'must' and 'not required' are split across the sentence rather than adjacent, so a fixed adjacent-phrase list cannot see it. Kept as a measured failure, not patched with another phrase.",
+    "split": "test"
   },
   {
     "case_id": "RE-014",
@@ -102,7 +115,8 @@
     "query": "Can expenses over $5,000 be self-approved?",
     "answer": "Expenses above $5,000 require director approval, and employees may approve such expenses themselves when convenient.",
     "expected_label": "SELF_CONTRADICTORY",
-    "notes": "Second split-polarity case, phrased without any 'not' token at all -- the contradiction is semantic, not lexical."
+    "notes": "Second split-polarity case, phrased without any 'not' token at all -- the contradiction is semantic, not lexical.",
+    "split": "test"
   },
   {
     "case_id": "RE-015",
@@ -110,7 +124,8 @@
     "query": "How long is the notice period for managers?",
     "answer": "Managers must give 60 days notice. The required notice for managers is 30 days.",
     "expected_label": "SELF_CONTRADICTORY",
-    "notes": "Numeric self-contradiction. No polarity words at all, so a polarity-pair check structurally cannot detect it."
+    "notes": "Numeric self-contradiction. No polarity words at all, so a polarity-pair check structurally cannot detect it.",
+    "split": "test"
   },
   {
     "case_id": "RE-016",
@@ -118,7 +133,8 @@
     "query": "Is remote work permitted for new hires?",
     "answer": "Remote work is not available during the first six months, but is permitted afterwards with manager approval.",
     "expected_label": "NO_CONTRADICTION_DETECTED",
-    "notes": "FALSE-POSITIVE GUARD. Contains 'not available' and 'is permitted' about the same subject, but they are scoped to different time periods and are consistent. A naive polarity-pair check flags this."
+    "notes": "FALSE-POSITIVE GUARD. Contains 'not available' and 'is permitted' about the same subject, but they are scoped to different time periods and are consistent. A naive polarity-pair check flags this.",
+    "split": "test"
   },
   {
     "case_id": "RE-017",
@@ -126,7 +142,8 @@
     "query": "Can vendors access production data?",
     "answer": "Vendors cannot access production data directly, though they may receive anonymised extracts under a signed DPA.",
     "expected_label": "NO_CONTRADICTION_DETECTED",
-    "notes": "Second false-positive guard: 'cannot access' and 'may receive' differ in object, not in polarity about the same claim."
+    "notes": "Second false-positive guard: 'cannot access' and 'may receive' differ in object, not in polarity about the same claim.",
+    "split": "test"
   },
   {
     "case_id": "RE-018",
@@ -135,7 +152,8 @@
     "answer": "The total meal cost is $900.",
     "expected_label": "NO_CONTRADICTION_DETECTED",
     "expected_numeric": "900",
-    "notes": "4 x 3 x 75 = 900. Verifiable arithmetic -- final-answer correctness, no chain-of-thought stored or inspected."
+    "notes": "4 x 3 x 75 = 900. Verifiable arithmetic -- final-answer correctness, no chain-of-thought stored or inspected.",
+    "split": "test"
   },
   {
     "case_id": "RE-019",
@@ -144,7 +162,8 @@
     "answer": "The total meal cost is $225.",
     "expected_label": "NO_CONTRADICTION_DETECTED",
     "expected_numeric": "900",
-    "notes": "Arithmetically WRONG (225 = 3 x 75, forgetting the 4 people) but internally consistent. Deliberately separates 'contradictory' from 'incorrect' -- the ReasoningEvaluator checks the former and must not claim the latter."
+    "notes": "Arithmetically WRONG (225 = 3 x 75, forgetting the 4 people) but internally consistent. Deliberately separates 'contradictory' from 'incorrect' -- the ReasoningEvaluator checks the former and must not claim the latter.",
+    "split": "test"
   },
   {
     "case_id": "RE-020",
@@ -152,7 +171,8 @@
     "query": "An expense is exactly $5,000. Which approval band applies?",
     "answer": "An expense of exactly $5,000 falls in the $501-$5,000 band and requires direct manager approval.",
     "expected_label": "NO_CONTRADICTION_DETECTED",
-    "notes": "Boundary case: exactly on the band edge. Off-by-one at a threshold is a realistic and consequential failure."
+    "notes": "Boundary case: exactly on the band edge. Off-by-one at a threshold is a realistic and consequential failure.",
+    "split": "test"
   },
   {
     "case_id": "RE-021",
@@ -160,7 +180,8 @@
     "query": "A wire transfer is exactly $50,000. Does it require dual authorization?",
     "answer": "A transfer of exactly $50,000 does not require dual authorization, since the policy applies to transfers above $50,000.",
     "expected_label": "NO_CONTRADICTION_DETECTED",
-    "notes": "Strict inequality boundary. The policy says '> $50,000', so exactly 50,000 is below the trigger."
+    "notes": "Strict inequality boundary. The policy says '> $50,000', so exactly 50,000 is below the trigger.",
+    "split": "test"
   },
   {
     "case_id": "RE-022",
@@ -168,7 +189,8 @@
     "query": "A vendor processes PII and the contract is $120,000. Which requirements apply?",
     "answer": "The vendor must hold SOC 2 Type II or ISO 27001 and sign a DPA, and because the contract exceeds $100k it also requires formal legal review.",
     "expected_label": "NO_CONTRADICTION_DETECTED",
-    "notes": "Two independent conditions must both fire. Partial answers (only one condition) are the realistic failure."
+    "notes": "Two independent conditions must both fire. Partial answers (only one condition) are the realistic failure.",
+    "split": "test"
   },
   {
     "case_id": "RE-023",
@@ -176,7 +198,8 @@
     "query": "Is the RTO for the customer gateway shorter than the RPO for the core database?",
     "answer": "Yes. The gateway RTO is 15 minutes, which is shorter than the 1-hour database RPO.",
     "expected_label": "NO_CONTRADICTION_DETECTED",
-    "notes": "Cross-unit comparison (minutes vs hours) requiring normalisation before comparing."
+    "notes": "Cross-unit comparison (minutes vs hours) requiring normalisation before comparing.",
+    "split": "test"
   },
   {
     "case_id": "RE-024",
@@ -184,6 +207,7 @@
     "query": "Is the RTO for the customer gateway shorter than the RPO for the core database?",
     "answer": "No. The gateway RTO is 15 minutes and the database RPO is 1 hour, so the RTO is longer.",
     "expected_label": "SELF_CONTRADICTORY",
-    "notes": "States both correct figures and then draws the opposite conclusion -- the conclusion contradicts the evidence in the same sentence."
+    "notes": "States both correct figures and then draws the opposite conclusion -- the conclusion contradicts the evidence in the same sentence.",
+    "split": "test"
   }
 ]

@@ -402,3 +402,24 @@ def test_a_single_class_dataset_is_flagged_as_unable_to_measure_false_positives(
 
     warnings = _warnings([{}] * 50, {"train": 40, "test": 10}, {"ONLY_ONE": 50}, 0)
     assert any("single class" in w for w in warnings)
+
+
+def test_a_sibling_dev_file_counts_as_a_held_out_split():
+    """reasoning_cases.json / reasoning_cases_dev.json ARE a proper
+    split; reporting them as single-split made the warning noise."""
+    from controlplane.dashboard.dataset_health import _sibling_split_partner
+
+    stems = {"reasoning_cases", "reasoning_cases_dev", "baseline_vs_controlplane_cases",
+             "baseline_vs_controlplane_cases_v2"}
+    assert _sibling_split_partner("reasoning_cases", stems) == "reasoning_cases_dev"
+    assert _sibling_split_partner("reasoning_cases_dev", stems) == "reasoning_cases"
+
+
+def test_a_version_increment_is_not_credited_as_a_split():
+    """_v2 is a bigger dataset, not a held-out half. Crediting it would
+    manufacture a healthy signal where none exists -- worse than the
+    honest warning."""
+    from controlplane.dashboard.dataset_health import _sibling_split_partner
+
+    stems = {"baseline_vs_controlplane_cases", "baseline_vs_controlplane_cases_v2"}
+    assert _sibling_split_partner("baseline_vs_controlplane_cases", stems) is None

@@ -150,6 +150,30 @@ def _describe(path: Path, provenance_default: str) -> dict | None:
     }
 
 
+_SPLIT_SUFFIXES = ("_dev", "_test", "_validation", "_train")
+
+
+def _sibling_split_partner(stem: str, all_stems: set[str]) -> str | None:
+    """Whether this dataset's held-out half lives in a SEPARATE FILE.
+
+    This repository represents splits two ways: a ``split`` field inside
+    the file, and sibling files (``reasoning_cases.json`` /
+    ``reasoning_cases_dev.json``). Without this, a dataset that does
+    have a proper held-out split is reported as single-split, and the
+    warning becomes noise.
+
+    Deliberately narrow: only the explicit split suffixes count.
+    ``baseline_vs_controlplane_cases_v2`` is a VERSION increment, not a
+    split, and crediting it as one would manufacture a healthy signal
+    where none exists -- worse than the honest warning it replaced."""
+    for suffix in _SPLIT_SUFFIXES:
+        if f"{stem}{suffix}" in all_stems:
+            return f"{stem}{suffix}"
+        if stem.endswith(suffix) and stem[: -len(suffix)] in all_stems:
+            return stem[: -len(suffix)]
+    return None
+
+
 def build_dataset_health() -> dict:
     rows: list[dict] = []
     for path in sorted(_GENERATED.glob("*.json")):
@@ -161,8 +185,15 @@ def build_dataset_health() -> dict:
         if described:
             rows.append(described)
 
+    stems = {r["dataset"] for r in rows}
+    for row in rows:
+        partner = _sibling_split_partner(row["dataset"], stems)
+        if partner and len(row["splits"]) <= 1:
+            row["split_partner"] = partner
+            row["warnings"] = [w for w in row["warnings"] if "no held-out split" not in w]
+
     total_cases = sum(r["cases"] for r in rows)
-    with_splits = sum(1 for r in rows if len(r["splits"]) > 1)
+    with_splits = sum(1 for r in rows if len(r["splits"]) > 1 or r.get("split_partner"))
     return {
         "datasets": sorted(rows, key=lambda r: -r["cases"]),
         "dataset_count": len(rows),

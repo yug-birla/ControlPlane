@@ -23,10 +23,12 @@
     tuning split and lost on the held-out set -- <code>k=31</code> in the injection experiment, and semantic
     entailment in the reasoning experiment. Both were caught only because the splits were separate.
     <br><br>
-    Splits are currently represented two different ways -- a <code>split</code> field inside the file, and
-    separate files (<code>reasoning_cases.json</code> / <code>reasoning_cases_dev.json</code>). This page
-    reports what each file contains, so a dataset whose counterpart lives in another file is shown as
-    single-split. That inconsistency is itself worth fixing, and is recorded rather than papered over.
+    Splits are represented two ways in this repository -- a <code>split</code> field inside the file, and
+    sibling files (<code>reasoning_cases.json</code> / <code>reasoning_cases_dev.json</code>). Both are
+    recognised, and a dataset whose held-out half lives elsewhere says so in its Splits column.
+    Only the explicit <code>_dev</code>/<code>_test</code>/<code>_validation</code>/<code>_train</code>
+    suffixes count: <code>baseline_vs_controlplane_cases_v2</code> is a version increment, not a split, and
+    crediting it as one would manufacture a healthy signal where none exists.
   </div>
 </div>
 
@@ -39,7 +41,8 @@
     <tr>
       <td>{{ d.dataset }}<br><span class="note mono">{{ d.path }}</span></td>
       <td class="mono">{{ d.cases }}</td>
-      <td class="mono">{% for name, n in d.splits.items() %}{{ name }}={{ n }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+      <td class="mono">{% for name, n in d.splits.items() %}{{ name }}={{ n }}{% if not loop.last %}, {% endif %}{% endfor %}
+          {% if d.split_partner %}<br><span class="note">held-out half in {{ d.split_partner }}</span>{% endif %}</td>
       <td class="mono">{{ d.label_field or '--' }}</td>
       <td class="mono">{% for name, n in d.provenance.items() %}{{ name }}={{ n }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
       <td class="mono">
