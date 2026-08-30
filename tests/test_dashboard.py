@@ -572,3 +572,56 @@ def test_the_console_renders_for_a_real_recorded_request():
     assert page.status_code == 200
     assert "Governance trajectory" in page.text
     assert client.get(f"/dashboard/api/console/{request_id}").status_code == 200
+
+
+# ---------------------------------------------------------------------------
+# Live Execution. POST /v1/requests is synchronous and returns only when the
+# whole control loop has finished -- correct for an API client, useless for
+# watching an execution unfold. This runs the SAME Runtime.handle on a worker
+# thread so the page can follow progress from events the runtime commits as
+# it goes. There is one control loop; this is not a second copy of it.
+# ---------------------------------------------------------------------------
+
+
+def test_the_live_page_renders_with_example_queries():
+    from fastapi.testclient import TestClient
+
+    from controlplane.main import app
+
+    page = TestClient(app).get("/dashboard/live")
+    assert page.status_code == 200
+    assert "Execution graph" in page.text
+    assert "Governance trajectory" in page.text
+    # The examples must come from the module, not be hard-coded in the template.
+    from controlplane.dashboard.live import EXAMPLE_QUERIES
+
+    for label, _query, _why in EXAMPLE_QUERIES:
+        assert label in page.text, label
+
+
+def test_an_empty_query_is_refused():
+    from fastapi.testclient import TestClient
+
+    from controlplane.main import app
+
+    response = TestClient(app).post("/dashboard/api/run", json={"query": "   "})
+    assert response.status_code == 400
+
+
+def test_polling_an_unknown_run_is_a_404_not_a_crash():
+    from fastapi.testclient import TestClient
+
+    from controlplane.main import app
+
+    assert TestClient(app).get("/dashboard/api/live/run_does_not_exist").status_code == 404
+
+
+def test_the_console_builder_survives_a_partial_trajectory():
+    """Polled mid-run, the request exists but almost nothing else does.
+    The builder must return partial state rather than raising -- the page
+    reads it every 1.2 s while execution is still going."""
+    from controlplane.dashboard.console import build_console
+
+    console = build_console({"request": {"id": "req_x", "query_text": "q", "status": "RECEIVED"}})
+    assert console["available"] is True
+    assert console["stages"], "a partially-executed request must still render its spine"

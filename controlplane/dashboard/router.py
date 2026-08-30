@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Body, HTTPException
 from fastapi.requests import Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -20,6 +20,7 @@ from controlplane.dashboard.agents import (
     build_agent_view,
 )
 from controlplane.dashboard.console import build_console
+from controlplane.dashboard.live import EXAMPLE_QUERIES, get_run, recent_runs, start_run
 from controlplane.dashboard.dataset_health import build_dataset_health
 from controlplane.dashboard.evidence import build_evidence
 from controlplane.dashboard.queries import (
@@ -153,3 +154,49 @@ def api_console(request_id: str) -> dict:
     if detail is None:
         raise HTTPException(status_code=404, detail="request not found")
     return build_console(detail)
+
+
+@router.get("/live", response_class=HTMLResponse)
+def dashboard_live(request: Request) -> HTMLResponse:
+    """Submit a query and watch the real runtime execute it."""
+    return _templates.TemplateResponse(
+        request, "live.html",
+        {"examples": EXAMPLE_QUERIES, "prefill": "", "recent": recent_runs()},
+    )
+
+
+@router.post("/api/run")
+def api_run(payload: dict = Body(...)) -> dict:
+    """Start a real run on a worker thread and return immediately.
+
+    Calls the SAME ``Runtime.handle`` the API uses -- there is one
+    control loop and this is not a second copy of it.
+    """
+    query = (payload or {}).get("query", "").strip()
+    if not query:
+        raise HTTPException(status_code=400, detail="query must not be empty")
+
+    from controlplane.api.routes import _runtime
+
+    try:
+        handle = start_run(query, _runtime)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=429, detail=str(exc)) from exc
+    return handle.to_dict()
+
+
+@router.get("/api/live/{run_id}")
+def api_live(run_id: str) -> dict:
+    """Current state of a run, read back from what the runtime has
+    already committed. Returns partial state while it is still going."""
+    handle = get_run(run_id)
+    if handle is None:
+        raise HTTPException(status_code=404, detail="run not found")
+
+    console: dict = {"available": False}
+    if handle.request_id:
+        detail = get_request_detail(handle.request_id)
+        if detail:
+            console = build_console(detail)
+            console["graph"] = build_execution_map(detail)
+    return {"run": handle.to_dict(), "console": console}
