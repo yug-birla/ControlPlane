@@ -104,6 +104,34 @@ Latency falls monotonically and consistently — faster in **every** case, with 
 
 ---
 
+## 3b. Abstention, re-measured on a dataset that can actually discriminate
+
+The 62-case benchmark's 5 UNANSWERABLE cases prove nothing about ControlPlane: **both arms refuse all five**, because every one is a topic entirely absent from the corpus. 20 new cases put *adjacent* evidence in reach instead — a Tier 3 hotel allowance where Tier 1 and "elsewhere" are both defined, a Q4 figure where the annual total is available to relabel, a departmental average salary one easy division away from budget ÷ headcount.
+
+| metric | baseline | ControlPlane |
+|---|---:|---:|
+| correct abstention | **0.714** | 0.357 |
+| confabulation | **0.286** | 0.643 |
+| control answered (6 answerable) | 0.333 | **1.000** |
+| over-abstention on controls | 0.667 | **0.000** |
+| control value factually correct | 0.000 | **0.500** |
+| **discrimination** | +0.048 | **+0.357** |
+
+**The first row is a trap and the metric is designed around it.** The baseline abstains *more* — while refusing two thirds of the **answerable** questions and getting **none** of the control values right. That is not good abstention; it is a model with no information refusing indiscriminately. `discrimination` (control-answered − confabulation) scores both degenerate strategies at 0, verified by construction. ControlPlane is **7.4× higher**, and the gap holds on the held-out split (+0.286 vs +0.048).
+
+**ControlPlane's real weakness, now visible:** it confabulates on **64%** of the hard unanswerable cases.
+
+**Root cause, confirmed in code rather than inferred.** Per hardness type, `period_absent_from_table` is 2/2 correct while `adjacent_tier_interpolation`, `absent_subgroup` and `unstated_threshold` are each 0/2. **Structural absence is handled; semantic absence is not** — an empty table returns nothing, but a document returns adjacent text. Directly verified:
+
+```
+hotel allowance for Tier 3 cities  ->  SUFFICIENT, coverage 1.00
+hotel allowance for Tier 1 cities  ->  SUFFICIENT, coverage 1.00   (identical top chunk)
+```
+
+`RAGAdequacyEvaluator` computes unigram term coverage, so "Tier 3" tokenises to `{tier, 3}` and both tokens appear in text about Tier 1. It structurally cannot express **entity mismatch**. Candidate fix (n-gram coverage) is recorded in `FUTURE_WORK.md`; the dataset already carries a dev/test split so it cannot be tuned on its own evaluation.
+
+---
+
 ## 4. Component improvements, each with its rejected alternative
 
 | Component | Adopted | Measured on held-out data | Rejected, and why |
