@@ -64,6 +64,16 @@ class Settings:
 
     @staticmethod
     def from_env() -> "Settings":
+        # Load a local .env if one exists, WITHOUT overriding anything the
+        # process was already started with -- an explicitly exported
+        # variable must always win over a file on disk, or a deliberately
+        # pinned experiment configuration would be silently overwritten.
+        #
+        # Secrets are read from the environment only and are never given a
+        # default here; .env is gitignored and is not part of the
+        # repository.
+        _load_dotenv_once()
+
         raw_flags = os.environ.get("FEATURE_FLAGS", "")
         flags = frozenset(f.strip() for f in raw_flags.split(",") if f.strip())
         return Settings(
@@ -84,6 +94,28 @@ class Settings:
             use_local_generation=os.environ.get("CONTROLPLANE_LOCAL_GENERATION", "") == "1",
             feature_flags=flags,
         )
+
+
+_DOTENV_LOADED = False
+
+
+def _load_dotenv_once() -> None:
+    global _DOTENV_LOADED
+    if _DOTENV_LOADED:
+        return
+    _DOTENV_LOADED = True
+    try:
+        from pathlib import Path
+
+        from dotenv import load_dotenv
+
+        env_path = Path(__file__).resolve().parents[1] / ".env"
+        if env_path.exists():
+            load_dotenv(env_path, override=False)
+    except Exception:
+        # A missing or unreadable .env must never stop the application:
+        # every value it can supply has an environment fallback already.
+        pass
 
 
 @lru_cache(maxsize=1)

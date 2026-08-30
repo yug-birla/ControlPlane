@@ -50,19 +50,33 @@ def get_configured_provider(settings: Settings, role: str = "STRONG") -> ModelPr
     ``controlplane.models.local_generation_provider`` for the full
     finding.
     """
-    if settings.use_local_generation or not settings.groq_api_key:
-        from controlplane.models.local_generation_provider import (
-            get_local_generation_provider,
-        )
-        from controlplane.models.provider import ModelProviderError
+    # An experiment that pins the reproducible local model must keep
+    # getting it, whatever keys are present.
+    if settings.use_local_generation:
+        return _local_or_raise(role)
 
-        try:
-            return get_local_generation_provider(role)
-        except ModelProviderError as exc:
-            raise ConfigurationError(
-                "no remote model provider is configured (GROQ_API_KEY unset) and the "
-                f"local fallback model is unavailable: {exc}"
-            ) from exc
+    # STRONG GETS A REMOTE CHAIN; FAST DOES NOT.
+    #
+    # Resolving exactly one provider meant that with no GROQ_API_KEY set
+    # -- the state of this deployment -- every request ran on the local
+    # model, and Gemini was reachable only from comparison scripts and
+    # never from the routing path at all.
+    #
+    # Only STRONG is sent remote. FAST answers locally in ~5 s at no cost
+    # and with no quota; paying an API to make the cheap path slower is
+    # not a trade worth making. STRONG is where local hurts: Qwen3-4B on
+    # CPU took 505 s on the flagship request.
+    #
+    # The chain degrades to the local model, so a key-less environment
+    # behaves exactly as it does today and the system stays runnable
+    # offline. See controlplane/models/failover.py.
+    if role == "STRONG":
+        from controlplane.models.failover import FailoverProvider, build_strong_chain
+
+        return FailoverProvider(candidates=build_strong_chain(settings), role="STRONG")
+
+    if not settings.groq_api_key:
+        return _local_or_raise(role)
 
     model = resolve_model_name(settings, role)
     if not model:
@@ -71,6 +85,19 @@ def get_configured_provider(settings: Settings, role: str = "STRONG") -> ModelPr
             "-- the model name is never hard-coded, see docs/PROJECT_STATE/DECISIONS.md"
         )
     return GroqProvider(api_key=settings.groq_api_key, model=model)
+
+
+def _local_or_raise(role: str):
+    from controlplane.models.local_generation_provider import get_local_generation_provider
+    from controlplane.models.provider import ModelProviderError
+
+    try:
+        return get_local_generation_provider(role)
+    except ModelProviderError as exc:
+        raise ConfigurationError(
+            "no remote model provider is configured (GROQ_API_KEY unset) and the "
+            f"local fallback model is unavailable: {exc}"
+        ) from exc
 
 
 def get_gemini_provider(settings: Settings) -> ModelProvider:
