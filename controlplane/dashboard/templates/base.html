@@ -2,45 +2,84 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}ControlPlane Dashboard{% endblock %}</title>
 <style>
-  body { font-family: -apple-system, Segoe UI, Arial, sans-serif; background: #0f1117; color: #e6e6e6; margin: 0; padding: 0; }
-  header { background: #161925; padding: 12px 24px; border-bottom: 1px solid #2a2f3f; }
-  header a { color: #7ea8ff; text-decoration: none; font-weight: 600; }
-  main { padding: 24px; max-width: 1100px; margin: 0 auto; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
-  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #262b3a; font-size: 13px; }
-  th { color: #9aa4bf; font-weight: 600; text-transform: uppercase; font-size: 11px; }
-  tr:hover { background: #171b28; }
-  a.reqlink { color: #7ea8ff; text-decoration: none; }
-  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
-  .status-COMPLETED { background: #17351f; color: #6fd68f; }
-  .status-FAILED { background: #3a1a1a; color: #ff8a8a; }
-  .severity-NO_ACTION, .severity-LOW_RISK { background: #17351f; color: #6fd68f; }
-  .severity-MEDIUM_RISK { background: #3a3319; color: #e8c96a; }
-  .severity-HIGH_RISK, .severity-CRITICAL { background: #3a1a1a; color: #ff8a8a; }
-  .trust-HIGH { background: #17351f; color: #6fd68f; }
-  .trust-MEDIUM { background: #3a3319; color: #e8c96a; }
-  .trust-LOW { background: #3a1a1a; color: #ff8a8a; }
-  .panel { background: #161925; border: 1px solid #262b3a; border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; }
-  .panel h2 { margin-top: 0; font-size: 15px; color: #9aa4bf; text-transform: uppercase; letter-spacing: 0.05em; }
-  .why { background: #14202e; border-left: 3px solid #7ea8ff; padding: 10px 14px; margin: 8px 0; font-size: 13px; }
-  .mono { font-family: SFMono-Regular, Consolas, monospace; font-size: 12px; white-space: pre-wrap; word-break: break-word; }
-  code { background: #1b2130; padding: 1px 5px; border-radius: 4px; }
-  .note { color: #7d879e; font-size: 12px; }
+  :root {
+    --bg:#0b0e14; --panel:#11151d; --panel-2:#0d1117; --line:#1f2530; --line-2:#2a3140;
+    --fg:#e6edf3; --fg-2:#9aa7bd; --fg-3:#6b7688;
+    --accent:#4d9fff; --ok:#3fb950; --warn:#d29922; --bad:#f85149; --plan:#a371f7;
+    --mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+  }
+  * { box-sizing:border-box; }
+  body { font-family:-apple-system, "Segoe UI", Inter, Arial, sans-serif; background:var(--bg);
+         color:var(--fg); margin:0; font-size:13px; -webkit-font-smoothing:antialiased; }
+
+  /* ---- top bar: the active page must be unmistakable ---- */
+  header { background:var(--panel); border-bottom:1px solid var(--line);
+           display:flex; align-items:stretch; height:46px; position:sticky; top:0; z-index:50; }
+  .brand { display:flex; align-items:center; gap:9px; padding:0 18px; border-right:1px solid var(--line); }
+  .brand .mark { width:16px; height:16px; border:2px solid var(--accent); border-radius:3px;
+                 transform:rotate(45deg); }
+  .brand b { font-size:13px; letter-spacing:.01em; }
+  .brand span { font-size:8.5px; color:var(--fg-3); letter-spacing:.16em; text-transform:uppercase;
+                display:block; margin-top:-2px; }
+  nav { display:flex; align-items:stretch; }
+  nav a { display:flex; align-items:center; padding:0 15px; color:var(--fg-2); text-decoration:none;
+          font-size:12.5px; border-bottom:2px solid transparent; transition:color .12s, background .12s; }
+  nav a:hover { color:var(--fg); background:#151a23; }
+  nav a:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; }
+  nav a.active { color:var(--fg); background:#151a23; border-bottom-color:var(--accent); font-weight:600; }
+  .hdr-right { margin-left:auto; display:flex; align-items:center; gap:14px; padding:0 18px;
+               font-size:11px; color:var(--fg-3); }
+
+  main { padding:20px 24px; max-width:1180px; margin:0 auto; }
+  main.wide { max-width:none; padding:14px 18px; }
+
+  h1 { font-size:19px; margin:0 0 3px; letter-spacing:-.01em; }
+  table { width:100%; border-collapse:collapse; margin-bottom:18px; }
+  th, td { text-align:left; padding:7px 10px; border-bottom:1px solid var(--line); font-size:12.5px; }
+  th { color:var(--fg-3); font-weight:600; text-transform:uppercase; font-size:10px; letter-spacing:.07em; }
+  tr:hover { background:#131822; }
+  a { color:var(--accent); }
+  a.reqlink { color:var(--accent); text-decoration:none; }
+
+  .badge { display:inline-block; padding:2px 7px; border-radius:3px; font-size:10.5px; font-weight:600;
+           letter-spacing:.02em; }
+  .status-COMPLETED, .severity-NO_ACTION, .severity-LOW_RISK, .trust-HIGH { background:#0f2a17; color:#5ecf7f; }
+  .status-FAILED, .severity-HIGH_RISK, .severity-CRITICAL, .trust-LOW { background:#2d1315; color:#ff8a8a; }
+  .severity-MEDIUM_RISK, .trust-MEDIUM { background:#2c2510; color:#e3bb51; }
+
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:6px;
+           padding:14px 16px; margin-bottom:14px; }
+  .panel h2 { margin:0 0 10px; font-size:10.5px; color:var(--fg-3); text-transform:uppercase;
+              letter-spacing:.1em; font-weight:600; }
+  .why { background:#0f1a26; border-left:2px solid var(--accent); padding:8px 12px; margin:6px 0;
+         font-size:12.5px; }
+  .mono { font-family:var(--mono); font-size:11.5px; white-space:pre-wrap; word-break:break-word; }
+  code { background:#161b24; padding:1px 5px; border-radius:3px; font-family:var(--mono); font-size:11.5px; }
+  .note { color:var(--fg-3); font-size:11.5px; }
 </style>
+{% block head %}{% endblock %}
 </head>
 <body>
+{% set path = request.url.path if request else "" %}
 <header>
-  <a href="/dashboard">ControlPlane Dashboard</a>
-  <span class="note">&nbsp;|&nbsp;</span><a href="/dashboard/live"><strong>Live Execution</strong></a>
-  <span class="note">&nbsp;|&nbsp;</span><a href="/dashboard/health-map">Component health</a>
-  <span class="note">&nbsp;|&nbsp;</span><a href="/dashboard/agents">Multi-agent</a>
-  <span class="note">&nbsp;|&nbsp;</span><a href="/dashboard/evidence">Evidence</a>
-  <span class="note">&nbsp;|&nbsp;</span><a href="/dashboard/datasets">Datasets</a>
-  <span class="note">&nbsp;-- read-only, reflects state at page load, not a live stream</span>
+  <a class="brand" href="/dashboard" style="text-decoration:none;color:inherit;">
+    <span class="mark"></span>
+    <span><b>ControlPlane.ai</b><span>Execution Intelligence</span></span>
+  </a>
+  <nav>
+    <a href="/dashboard/live"       class="{{ 'active' if path.startswith('/dashboard/live') else '' }}">Live Execution</a>
+    <a href="/dashboard"            class="{{ 'active' if path in ('/dashboard','/dashboard/') or path.startswith('/dashboard/requests') or path.startswith('/dashboard/console') else '' }}">Trajectories</a>
+    <a href="/dashboard/agents"     class="{{ 'active' if path.startswith('/dashboard/agents') else '' }}">Multi-Agent</a>
+    <a href="/dashboard/health-map" class="{{ 'active' if path.startswith('/dashboard/health-map') else '' }}">Component Health</a>
+    <a href="/dashboard/evidence"   class="{{ 'active' if path.startswith('/dashboard/evidence') else '' }}">Evidence</a>
+    <a href="/dashboard/datasets"   class="{{ 'active' if path.startswith('/dashboard/datasets') else '' }}">Datasets</a>
+  </nav>
+  <div class="hdr-right">{% block hdrright %}{% endblock %}</div>
 </header>
-<main>
+<main class="{% block mainclass %}{% endblock %}">
 {% block content %}{% endblock %}
 </main>
 </body>

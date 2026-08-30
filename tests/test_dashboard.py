@@ -590,8 +590,16 @@ def test_the_live_page_renders_with_example_queries():
 
     page = TestClient(app).get("/dashboard/live")
     assert page.status_code == 200
-    assert "Execution graph" in page.text
-    assert "Governance trajectory" in page.text
+    # Structural, not copy: the graph canvas, the edge layer, and the
+    # ControlPlane-vs-capability legend are what the page IS. An earlier
+    # version asserted on a heading, which broke when the graph became an
+    # unlabelled hero canvas -- a passing test would have meant nothing.
+    assert 'id="gcanvas"' in page.text
+    assert 'id="gedges"' in page.text
+    assert "ControlPlane &mdash; decides" in page.text
+    assert "Capability &mdash; executes" in page.text
+    # The active nav state must be unmistakable on the page you are on.
+    assert 'href="/dashboard/live"' in page.text and 'class="active"' in page.text
     # The examples must come from the module, not be hard-coded in the template.
     from controlplane.dashboard.live import EXAMPLE_QUERIES
 
