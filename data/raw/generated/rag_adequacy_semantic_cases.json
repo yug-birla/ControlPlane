@@ -1,0 +1,593 @@
+[
+  {
+    "case_id": "AD-D01",
+    "split": "dev",
+    "mismatch_type": "tier_qualifier",
+    "query": "What is the hotel allowance for Tier 3 cities?",
+    "evidence": ["Travel Policy 4.2: Hotel accommodation is reimbursed up to $250 per night in Tier 1 cities and up to $180 per night elsewhere."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "THE ORIGINATING CASE. Every informative unigram of the query -- hotel, allowance, tier, cities -- appears in evidence that defines Tier 1 and nothing else. Unigram coverage is 1.00 and the label is SUFFICIENT. The bigram 'tier 3' is absent."
+  },
+  {
+    "case_id": "AD-D02",
+    "split": "dev",
+    "mismatch_type": "tier_qualifier_control",
+    "query": "What is the hotel allowance for Tier 1 cities?",
+    "evidence": ["Travel Policy 4.2: Hotel accommodation is reimbursed up to $250 per night in Tier 1 cities and up to $180 per night elsewhere."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-D01, identical but for one digit. Any fix that rejects AD-D01 by rejecting anything containing 'tier' fails here."
+  },
+  {
+    "case_id": "AD-D03",
+    "split": "dev",
+    "mismatch_type": "quarter",
+    "query": "What was Q4 revenue for the Americas region?",
+    "evidence": ["Regional Results: Americas Q3 revenue was $410,000, up from $380,000 in Q2. Full-year guidance is unchanged."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "Q3 and Q2 are present; Q4 is not. 'q4' does tokenize distinctly, so a unigram scorer can in principle catch this one -- included precisely to check that it does, and to keep the quarter family from being represented only by cases that need n-grams."
+  },
+  {
+    "case_id": "AD-D04",
+    "split": "dev",
+    "mismatch_type": "quarter_control",
+    "query": "What was Q3 revenue for the Americas region?",
+    "evidence": ["Regional Results: Americas Q3 revenue was $410,000, up from $380,000 in Q2. Full-year guidance is unchanged."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-D03."
+  },
+  {
+    "case_id": "AD-D05",
+    "split": "dev",
+    "mismatch_type": "fiscal_year",
+    "query": "What was total headcount at the end of 2023?",
+    "evidence": ["Workforce Report 2024: Total headcount at year end 2024 was 412, an increase of 38 over the prior year."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "The 2023 figure is derivable by subtraction but is not stated. Adequacy asks whether the evidence answers the question, not whether a model could compute an answer from it."
+  },
+  {
+    "case_id": "AD-D06",
+    "split": "dev",
+    "mismatch_type": "fiscal_year_control",
+    "query": "What was total headcount at the end of 2024?",
+    "evidence": ["Workforce Report 2024: Total headcount at year end 2024 was 412, an increase of 38 over the prior year."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-D05."
+  },
+  {
+    "case_id": "AD-D07",
+    "split": "dev",
+    "mismatch_type": "travel_scope",
+    "query": "What is the meal reimbursement limit for international travel?",
+    "evidence": ["Travel Policy 5.1: Meals are reimbursed up to $75 per day for domestic travel. Receipts are required above $25."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "Domestic is stated, international is not. The two are adjacent in every policy document, which is exactly what makes the substitution tempting."
+  },
+  {
+    "case_id": "AD-D08",
+    "split": "dev",
+    "mismatch_type": "travel_scope_control",
+    "query": "What is the meal reimbursement limit for domestic travel?",
+    "evidence": ["Travel Policy 5.1: Meals are reimbursed up to $75 per day for domestic travel. Receipts are required above $25."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-D07."
+  },
+  {
+    "case_id": "AD-D09",
+    "split": "dev",
+    "mismatch_type": "employment_class",
+    "query": "What is the notice period for contractors ending an engagement?",
+    "evidence": ["HR Policy 9.3: Employees must provide 30 days written notice of resignation. Notice may be waived at the manager's discretion."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "The policy is scoped to employees. Contractors are a different population governed by a different agreement."
+  },
+  {
+    "case_id": "AD-D10",
+    "split": "dev",
+    "mismatch_type": "employment_class_control",
+    "query": "What notice period must employees give when resigning?",
+    "evidence": ["HR Policy 9.3: Employees must provide 30 days written notice of resignation. Notice may be waived at the manager's discretion."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-D09."
+  },
+  {
+    "case_id": "AD-D11",
+    "split": "dev",
+    "mismatch_type": "department",
+    "query": "What is the annual training budget for the Engineering department?",
+    "evidence": ["Budget Allocation FY2024: The Finance & Ops department is allocated $950,000, of which $40,000 is designated for training."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "A department budget exists, but for a different department. Substituting one department's number for another is a confident wrong answer, not an approximation."
+  },
+  {
+    "case_id": "AD-D12",
+    "split": "dev",
+    "mismatch_type": "department_control",
+    "query": "What is the training budget for the Finance & Ops department?",
+    "evidence": ["Budget Allocation FY2024: The Finance & Ops department is allocated $950,000, of which $40,000 is designated for training."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-D11."
+  },
+  {
+    "case_id": "AD-D13",
+    "split": "dev",
+    "mismatch_type": "region",
+    "query": "What was APAC revenue in the last reporting period?",
+    "evidence": ["Regional Results: EMEA revenue was $310,000 and Americas revenue was $410,000 for the period."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "Two regions are reported and the requested third is not. 'Revenue for the period' is fully covered lexically."
+  },
+  {
+    "case_id": "AD-D14",
+    "split": "dev",
+    "mismatch_type": "region_control",
+    "query": "What was EMEA revenue in the last reporting period?",
+    "evidence": ["Regional Results: EMEA revenue was $310,000 and Americas revenue was $410,000 for the period."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-D13."
+  },
+  {
+    "case_id": "AD-D15",
+    "split": "dev",
+    "mismatch_type": "product_version",
+    "query": "What authentication method does API v3 require?",
+    "evidence": ["Integration Guide: API v2 requires an OAuth 2.0 bearer token on every request. Tokens expire after 60 minutes."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "Version-scoped documentation answered with the previous version's requirements. Authentication requirements are exactly the kind of thing that changes between versions."
+  },
+  {
+    "case_id": "AD-D16",
+    "split": "dev",
+    "mismatch_type": "product_version_control",
+    "query": "What authentication method does API v2 require?",
+    "evidence": ["Integration Guide: API v2 requires an OAuth 2.0 bearer token on every request. Tokens expire after 60 minutes."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-D15."
+  },
+  {
+    "case_id": "AD-D17",
+    "split": "dev",
+    "mismatch_type": "paraphrase",
+    "query": "How long do staff have to hand in their resignation before leaving?",
+    "evidence": ["HR Policy 9.3: Employees must provide 30 days written notice of resignation."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "TRUE PARAPHRASE. Shares almost no content words with the evidence -- 'staff' vs 'employees', 'hand in' vs 'provide', 'before leaving' vs 'notice'. Unigram coverage is low and the correct label is SUFFICIENT. A stricter phrase-matching rule risks rejecting this."
+  },
+  {
+    "case_id": "AD-D18",
+    "split": "dev",
+    "mismatch_type": "synonym",
+    "query": "What is the minimum passphrase length for corporate accounts?",
+    "evidence": ["Information Security Policy 2.1: Passwords must be at least 14 characters and include a mixed character set."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "'passphrase' and 'password' denote the same requirement here. A vocabulary-strict matcher would reject a question the evidence genuinely answers."
+  },
+  {
+    "case_id": "AD-D19",
+    "split": "dev",
+    "mismatch_type": "same_entity_different_wording",
+    "query": "How quickly must the core database be recoverable after an outage?",
+    "evidence": ["Disaster Recovery Plan: The recovery point objective for the primary transactional database is 1 hour; the recovery time objective for the gateway is 15 minutes."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "'core database' and 'primary transactional database' are the same system, and the RPO answers the question. Entity-aware matching must not treat a different surface form as a different entity."
+  },
+  {
+    "case_id": "AD-D20",
+    "split": "dev",
+    "mismatch_type": "threshold_boundary",
+    "query": "What approval is needed for an expense of exactly $500?",
+    "evidence": ["Expense Guide 3.1: Expenses under $500 are self-approved. Expenses from $501 to $5,000 require manager approval."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "Both neighbouring bands are stated and the boundary value falls in neither. A genuine gap in the policy rather than in retrieval."
+  },
+  {
+    "case_id": "AD-D21",
+    "split": "dev",
+    "mismatch_type": "threshold_control",
+    "query": "What approval is needed for an expense of $2,000?",
+    "evidence": ["Expense Guide 3.1: Expenses under $500 are self-approved. Expenses from $501 to $5,000 require manager approval."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-D20. Falls squarely inside a stated band."
+  },
+  {
+    "case_id": "AD-D22",
+    "split": "dev",
+    "mismatch_type": "subgroup_scope",
+    "query": "Does the data retention policy apply to backup archives?",
+    "evidence": ["Data Governance 6.2: Financial transaction records in production systems are retained for 7 years and then purged."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "The policy is scoped to production systems. Whether backups are covered is genuinely unstated, and the retention number is right there to be misapplied."
+  },
+  {
+    "case_id": "AD-D23",
+    "split": "dev",
+    "mismatch_type": "subgroup_control",
+    "query": "How long are financial transaction records retained in production?",
+    "evidence": ["Data Governance 6.2: Financial transaction records in production systems are retained for 7 years and then purged."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-D22."
+  },
+  {
+    "case_id": "AD-D24",
+    "split": "dev",
+    "mismatch_type": "target_vs_actual",
+    "query": "What uptime did we actually achieve last month?",
+    "evidence": ["Master Service Agreement 7.4: The Provider commits to 99.9% monthly uptime, measured excluding scheduled maintenance windows."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "A commitment is not a measurement. Reporting the target as the outcome is the specific failure, and the number is present and plausible."
+  },
+  {
+    "case_id": "AD-D25",
+    "split": "dev",
+    "mismatch_type": "target_control",
+    "query": "What monthly uptime does the agreement commit to?",
+    "evidence": ["Master Service Agreement 7.4: The Provider commits to 99.9% monthly uptime, measured excluding scheduled maintenance windows."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-D24."
+  },
+  {
+    "case_id": "AD-D26",
+    "split": "dev",
+    "mismatch_type": "multi_chunk_absence",
+    "query": "What is the hotel allowance for Tier 2 cities?",
+    "evidence": [
+      "Travel Policy 4.2: Hotel accommodation is reimbursed up to $250 per night in Tier 1 cities and up to $180 per night elsewhere.",
+      "Travel Policy 4.3: Cities are classified into tiers annually by the Finance team. The current classification lists 12 Tier 1 cities.",
+      "Travel Policy 4.4: Employees travelling to Tier 1 cities may book directly through the corporate portal."
+    ],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "Three chunks, all about tiers, none defining Tier 2. More evidence raises unigram coverage while the answer stays absent -- retrieval depth makes this failure worse, not better."
+  },
+  {
+    "case_id": "AD-D27",
+    "split": "dev",
+    "mismatch_type": "multi_chunk_control",
+    "query": "How are city tiers determined and who maintains the classification?",
+    "evidence": [
+      "Travel Policy 4.2: Hotel accommodation is reimbursed up to $250 per night in Tier 1 cities and up to $180 per night elsewhere.",
+      "Travel Policy 4.3: Cities are classified into tiers annually by the Finance team. The current classification lists 12 Tier 1 cities."
+    ],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-D26 over the same corpus: the question the chunks do answer."
+  },
+  {
+    "case_id": "AD-D28",
+    "split": "dev",
+    "mismatch_type": "date_range",
+    "query": "How many incidents were reported in January 2025?",
+    "evidence": ["Incident Summary: 14 incidents were reported between March and December 2024, of which 3 were severity 1."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "The requested month lies outside the reported range. Ranges are the easiest thing for a coverage metric to mistake for containment."
+  },
+  {
+    "case_id": "AD-D29",
+    "split": "dev",
+    "mismatch_type": "date_range_control",
+    "query": "How many severity 1 incidents were reported in 2024?",
+    "evidence": ["Incident Summary: 14 incidents were reported between March and December 2024, of which 3 were severity 1."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-D28."
+  },
+  {
+    "case_id": "AD-D30",
+    "split": "dev",
+    "mismatch_type": "policy_scope",
+    "query": "What is the refund window for enterprise customers?",
+    "evidence": ["Customer Terms 3.2: Consumer purchases may be refunded within 30 days of delivery. Enterprise agreements are governed separately."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "The evidence explicitly says enterprise terms are elsewhere -- and still contains the word 'enterprise', so lexical coverage is complete. The document states its own inapplicability and the metric cannot read that."
+  },
+  {
+    "case_id": "AD-D31",
+    "split": "dev",
+    "mismatch_type": "policy_scope_control",
+    "query": "What is the refund window for consumer purchases?",
+    "evidence": ["Customer Terms 3.2: Consumer purchases may be refunded within 30 days of delivery. Enterprise agreements are governed separately."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-D30."
+  },
+  {
+    "case_id": "AD-D32",
+    "split": "dev",
+    "mismatch_type": "compatible_extra_detail",
+    "query": "How many days of notice are required to cancel enterprise support?",
+    "evidence": ["Support Agreement 5.5: Either party may terminate enterprise support with 60 days written notice. Fees already paid are non-refundable and no partial-period credits are issued."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "The evidence carries extra unrelated detail beyond the answer. A scorer that penalises evidence for containing more than the question asked would wrongly reject this."
+  },
+
+  {
+    "case_id": "AD-T01",
+    "split": "test",
+    "mismatch_type": "tier_qualifier",
+    "query": "What is the per-diem cap for Band C employees?",
+    "evidence": ["Compensation Policy 8.1: Band A employees receive a per-diem cap of $120. Band B employees receive $90."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "Same structure as the Tier family in a different vocabulary, so a fix tuned on the word 'tier' does not transfer for free."
+  },
+  {
+    "case_id": "AD-T02",
+    "split": "test",
+    "mismatch_type": "tier_qualifier_control",
+    "query": "What is the per-diem cap for Band B employees?",
+    "evidence": ["Compensation Policy 8.1: Band A employees receive a per-diem cap of $120. Band B employees receive $90."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-T01."
+  },
+  {
+    "case_id": "AD-T03",
+    "split": "test",
+    "mismatch_type": "quarter",
+    "query": "What were support ticket volumes in Q1?",
+    "evidence": ["Support Metrics: Q2 saw 1,840 tickets and Q3 saw 1,610 tickets, a 12.5% quarter-on-quarter reduction."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "Adjacent quarters reported, requested quarter absent."
+  },
+  {
+    "case_id": "AD-T04",
+    "split": "test",
+    "mismatch_type": "quarter_control",
+    "query": "What were support ticket volumes in Q2?",
+    "evidence": ["Support Metrics: Q2 saw 1,840 tickets and Q3 saw 1,610 tickets, a 12.5% quarter-on-quarter reduction."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-T03."
+  },
+  {
+    "case_id": "AD-T05",
+    "split": "test",
+    "mismatch_type": "fiscal_year",
+    "query": "What was the marketing spend in fiscal 2022?",
+    "evidence": ["Finance Summary: Marketing spend was $1.2M in fiscal 2023 and $1.45M in fiscal 2024."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "Two adjacent years present, requested year absent; a trend invites extrapolation."
+  },
+  {
+    "case_id": "AD-T06",
+    "split": "test",
+    "mismatch_type": "fiscal_year_control",
+    "query": "What was the marketing spend in fiscal 2023?",
+    "evidence": ["Finance Summary: Marketing spend was $1.2M in fiscal 2023 and $1.45M in fiscal 2024."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-T05."
+  },
+  {
+    "case_id": "AD-T07",
+    "split": "test",
+    "mismatch_type": "travel_scope",
+    "query": "What is the mileage rate for personal vehicle use on international assignments?",
+    "evidence": ["Travel Policy 6.2: Domestic personal vehicle use is reimbursed at $0.58 per mile, subject to a mileage log."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "Scope mismatch with a rate present and ready to be misapplied."
+  },
+  {
+    "case_id": "AD-T08",
+    "split": "test",
+    "mismatch_type": "travel_scope_control",
+    "query": "What is the mileage rate for domestic personal vehicle use?",
+    "evidence": ["Travel Policy 6.2: Domestic personal vehicle use is reimbursed at $0.58 per mile, subject to a mileage log."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-T07."
+  },
+  {
+    "case_id": "AD-T09",
+    "split": "test",
+    "mismatch_type": "employment_class",
+    "query": "Are interns eligible for the annual performance bonus?",
+    "evidence": ["Compensation Policy 4.4: Full-time employees are eligible for an annual performance bonus of up to 15% of base salary. Part-time employees receive a pro-rated bonus."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "Two employment classes addressed, the third not. The pattern invites inferring a third rule from two."
+  },
+  {
+    "case_id": "AD-T10",
+    "split": "test",
+    "mismatch_type": "employment_class_control",
+    "query": "Are part-time employees eligible for the annual performance bonus?",
+    "evidence": ["Compensation Policy 4.4: Full-time employees are eligible for an annual performance bonus of up to 15% of base salary. Part-time employees receive a pro-rated bonus."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-T09."
+  },
+  {
+    "case_id": "AD-T11",
+    "split": "test",
+    "mismatch_type": "department",
+    "query": "How many open roles does the Sales department have?",
+    "evidence": ["Recruiting Update: Engineering has 14 open roles and Customer Success has 6. Time-to-hire averages 47 days across the company."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "Departmental counts present for other departments; the company-wide figure is about a different quantity entirely."
+  },
+  {
+    "case_id": "AD-T12",
+    "split": "test",
+    "mismatch_type": "department_control",
+    "query": "How many open roles does Customer Success have?",
+    "evidence": ["Recruiting Update: Engineering has 14 open roles and Customer Success has 6. Time-to-hire averages 47 days across the company."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-T11."
+  },
+  {
+    "case_id": "AD-T13",
+    "split": "test",
+    "mismatch_type": "region",
+    "query": "What is the standard support coverage window in the LATAM region?",
+    "evidence": ["Support Handbook 2.1: Coverage is 24x5 in EMEA and 24x7 in the Americas, with follow-the-sun handoff between them."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "Regional policy answered with other regions' policies."
+  },
+  {
+    "case_id": "AD-T14",
+    "split": "test",
+    "mismatch_type": "region_control",
+    "query": "What is the standard support coverage window in EMEA?",
+    "evidence": ["Support Handbook 2.1: Coverage is 24x5 in EMEA and 24x7 in the Americas, with follow-the-sun handoff between them."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-T13."
+  },
+  {
+    "case_id": "AD-T15",
+    "split": "test",
+    "mismatch_type": "product_version",
+    "query": "What is the maximum payload size in the v4 ingestion API?",
+    "evidence": ["Platform Notes: The v3 ingestion API accepts payloads up to 10 MB. Requests above this limit return HTTP 413."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "Version-scoped limit answered from the prior version."
+  },
+  {
+    "case_id": "AD-T16",
+    "split": "test",
+    "mismatch_type": "product_version_control",
+    "query": "What is the maximum payload size in the v3 ingestion API?",
+    "evidence": ["Platform Notes: The v3 ingestion API accepts payloads up to 10 MB. Requests above this limit return HTTP 413."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-T15."
+  },
+  {
+    "case_id": "AD-T17",
+    "split": "test",
+    "mismatch_type": "paraphrase",
+    "query": "If someone quits, how much warning must they give the company?",
+    "evidence": ["HR Policy 9.3: Employees must provide 30 days written notice of resignation."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "TRUE PARAPHRASE with almost no lexical overlap -- 'quits' vs 'resignation', 'warning' vs 'notice'. Guards against a fix that buys precision by demanding surface matches."
+  },
+  {
+    "case_id": "AD-T18",
+    "split": "test",
+    "mismatch_type": "synonym",
+    "query": "How much annual leave do staff accrue?",
+    "evidence": ["HR Policy 11.1: Employees accrue 20 days of paid vacation per year, rising to 25 days after five years of service."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "'annual leave' and 'paid vacation' are the same entitlement."
+  },
+  {
+    "case_id": "AD-T19",
+    "split": "test",
+    "mismatch_type": "same_entity_different_wording",
+    "query": "How often is the customer-facing web tier patched?",
+    "evidence": ["Operations Runbook 3.4: The public web front end receives security patches on a 14-day cycle, with emergency patches applied within 48 hours."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "'customer-facing web tier' and 'public web front end' are the same component. Note it also contains the word 'tier' in a sense unrelated to the Tier-N family -- a deliberate trap for any fix that keys on that token."
+  },
+  {
+    "case_id": "AD-T20",
+    "split": "test",
+    "mismatch_type": "threshold_boundary",
+    "query": "Does a contract worth exactly $100,000 require legal review?",
+    "evidence": ["Procurement Policy 2.3: Contracts exceeding $100,000 require formal legal review. Contracts below that threshold require director sign-off only."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "The boundary value is stated but its treatment is ambiguous between 'exceeding' and 'below'. Every token of the query is present."
+  },
+  {
+    "case_id": "AD-T21",
+    "split": "test",
+    "mismatch_type": "threshold_control",
+    "query": "Does a contract worth $250,000 require legal review?",
+    "evidence": ["Procurement Policy 2.3: Contracts exceeding $100,000 require formal legal review. Contracts below that threshold require director sign-off only."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-T20. Unambiguously above the stated threshold."
+  },
+  {
+    "case_id": "AD-T22",
+    "split": "test",
+    "mismatch_type": "subgroup_scope",
+    "query": "Does the encryption requirement cover data at rest on employee laptops?",
+    "evidence": ["Information Security Policy 5.2: All data in transit between services must be encrypted using TLS 1.2 or higher."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "In transit is covered; at rest is not. Both are 'encryption requirements' and the distinction is the whole question."
+  },
+  {
+    "case_id": "AD-T23",
+    "split": "test",
+    "mismatch_type": "subgroup_control",
+    "query": "What encryption is required for data in transit between services?",
+    "evidence": ["Information Security Policy 5.2: All data in transit between services must be encrypted using TLS 1.2 or higher."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-T22."
+  },
+  {
+    "case_id": "AD-T24",
+    "split": "test",
+    "mismatch_type": "target_vs_actual",
+    "query": "What was our actual average time to resolve severity 1 incidents?",
+    "evidence": ["Service Standards 4.1: Severity 1 incidents carry a target resolution time of 4 hours and require executive notification within 30 minutes."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "A target, asked about as an outcome."
+  },
+  {
+    "case_id": "AD-T25",
+    "split": "test",
+    "mismatch_type": "target_control",
+    "query": "What is the target resolution time for severity 1 incidents?",
+    "evidence": ["Service Standards 4.1: Severity 1 incidents carry a target resolution time of 4 hours and require executive notification within 30 minutes."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-T24."
+  },
+  {
+    "case_id": "AD-T26",
+    "split": "test",
+    "mismatch_type": "multi_chunk_absence",
+    "query": "What is the approval threshold for capital expenditure in the Engineering department?",
+    "evidence": [
+      "Expense Guide 3.1: Expenses under $500 are self-approved. Expenses from $501 to $5,000 require manager approval.",
+      "Expense Guide 3.2: Operating expenditure above $5,000 requires department director approval.",
+      "Budget Allocation FY2024: The Engineering department is allocated $2,300,000 for the fiscal year."
+    ],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "Three chunks covering approvals, expenditure and Engineering, none covering capital expenditure approval. Maximum lexical coverage, zero answer."
+  },
+  {
+    "case_id": "AD-T27",
+    "split": "test",
+    "mismatch_type": "multi_chunk_control",
+    "query": "What approval is required for operating expenditure above $5,000?",
+    "evidence": [
+      "Expense Guide 3.1: Expenses under $500 are self-approved. Expenses from $501 to $5,000 require manager approval.",
+      "Expense Guide 3.2: Operating expenditure above $5,000 requires department director approval."
+    ],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-T26 over overlapping evidence."
+  },
+  {
+    "case_id": "AD-T28",
+    "split": "test",
+    "mismatch_type": "date_range",
+    "query": "What was the churn rate in the second half of 2023?",
+    "evidence": ["Customer Analytics: Churn averaged 2.1% per month across the first half of 2023 and improved through 2024."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "One half-year reported, the other requested; both are '2023'."
+  },
+  {
+    "case_id": "AD-T29",
+    "split": "test",
+    "mismatch_type": "date_range_control",
+    "query": "What was the monthly churn rate in the first half of 2023?",
+    "evidence": ["Customer Analytics: Churn averaged 2.1% per month across the first half of 2023 and improved through 2024."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-T28."
+  },
+  {
+    "case_id": "AD-T30",
+    "split": "test",
+    "mismatch_type": "policy_scope",
+    "query": "What is the escalation path for incidents affecting government customers?",
+    "evidence": ["Incident Response 4.1: Commercial customer incidents escalate to the on-call manager, then to the VP of Engineering. Government and regulated accounts follow a separate protocol maintained by the Compliance team."],
+    "gold_adequacy": "INSUFFICIENT",
+    "why": "The evidence names the requested population only to say its rules live elsewhere -- so the word 'government' is present and the answer is not."
+  },
+  {
+    "case_id": "AD-T31",
+    "split": "test",
+    "mismatch_type": "policy_scope_control",
+    "query": "What is the escalation path for commercial customer incidents?",
+    "evidence": ["Incident Response 4.1: Commercial customer incidents escalate to the on-call manager, then to the VP of Engineering. Government and regulated accounts follow a separate protocol maintained by the Compliance team."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "CONTROL for AD-T30."
+  },
+  {
+    "case_id": "AD-T32",
+    "split": "test",
+    "mismatch_type": "compatible_extra_detail",
+    "query": "What is the token expiry time?",
+    "evidence": ["Integration Guide: API v2 requires an OAuth 2.0 bearer token on every request. Tokens expire after 60 minutes. Refresh tokens are valid for 30 days and may be rotated at any time."],
+    "gold_adequacy": "SUFFICIENT",
+    "why": "A short query against long evidence containing the answer plus a second, similar-looking number. Coverage is trivially high here for the right reason, and the label is SUFFICIENT."
+  }
+]

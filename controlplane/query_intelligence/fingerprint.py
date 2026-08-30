@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class Intent(str, Enum):
@@ -145,3 +145,50 @@ class QueryFingerprint(BaseModel):
     source: str = "rules"
     """"rules" | "embedding_knn" | "hybrid" -- which method actually
     produced this fingerprint's values, for the evaluation harness."""
+
+    @model_validator(mode="after")
+    def _actions_must_ask_for_the_agent_capability(self) -> "QueryFingerprint":
+        """An AGENTIC query without ``CapabilityHint.AGENT`` is not a
+        judgement call -- it is a self-contradictory fingerprint, and it
+        was reachable.
+
+        ``CapabilityRouter`` derives ``agent_selected`` from
+        ``capability_hints``, never from ``actionability``. The rules
+        baseline sets both together when an action keyword fires, so the
+        coupling looked total. The k-NN baseline sets them
+        INDEPENDENTLY: actionability comes from a majority vote over the
+        neighbours' actionability labels, while hints come from a
+        majority vote over their taxonomy labels. Nothing required the
+        two votes to agree.
+
+        Measured on the 135 held-out query profiles, five queries came
+        out of the shipped profiler asserting an action and requesting
+        no agent capability, among them:
+
+            "Initiate an automated batch payout of $150,000 to all
+             approved affiliate partners"   -> hints ['GENERAL']
+            "Scan all public GitHub repositories in our organization
+             for leaked API keys, revoke any"  -> hints ['GENERAL']
+
+        Each was routed as plain generation: no actor node, so no
+        ``AgentGate`` evaluation and no chain for ``CompositionGovernor``
+        to inspect. The profiler had already reached the right
+        conclusion; the conclusion simply never reached the component
+        that acts on it.
+
+        Enforced here rather than in ``HybridQueryProfiler`` so that the
+        invalid state is unrepresentable for every profiler, including
+        ones not yet written. This adds a hint; it never removes one,
+        and it never changes ``actionability`` itself.
+        """
+        if (self.actionability is Actionability.AGENTIC
+                and CapabilityHint.AGENT not in self.capability_hints):
+            self.capability_hints = [
+                *[h for h in self.capability_hints if h is not CapabilityHint.GENERAL],
+                CapabilityHint.AGENT,
+            ]
+            self.explanation.setdefault(
+                "capability_hints_coherence",
+                "AGENT added: actionability is AGENTIC, which requires the agent path",
+            )
+        return self

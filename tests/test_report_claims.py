@@ -99,12 +99,39 @@ def test_drift_v2_made_high_reachable():
         results["v1_signal_count"]["overall"]["false_alarm_count"]
 
 
-def test_multi_agent_quality_is_still_a_null_result():
-    """If multi-agent ever DOES improve quality, the report's central
-    negative finding is wrong and must change."""
+def test_the_multi_agent_null_result_is_explained_by_its_ceiling():
+    """The flat 0.583 was reported as "multi-agent does not improve
+    quality". It was 7/12: four of the twelve cases carry no
+    expected_values and were hard-False in every arm, so the metric's
+    ceiling was 8/12 and the measured value was that ceiling minus one
+    real failure.
+
+    This pins the arithmetic rather than the conclusion. The conclusion is
+    retracted; the reason it was unreachable must stay checkable.
+    """
+    import json
+    from pathlib import Path
+
     results = _load("multi_agent")["results"]
-    accuracies = {c: m["key_fact_accuracy"] for c, m in results.items()}
-    assert len(set(accuracies.values())) == 1, accuracies
+    accuracies = {c: m["key_fact_accuracy_all_rows_legacy"]
+                  if "key_fact_accuracy_all_rows_legacy" in m else m["key_fact_accuracy"]
+                  for c, m in results.items()}
+    for condition, value in accuracies.items():
+        assert value == pytest.approx(7 / 12, abs=0.001), (condition, value)
+
+    with open(Path("data/raw/generated/multi_agent_cases.json"), encoding="utf-8-sig") as f:
+        cases = json.load(f)
+    unscoreable = [c["case_id"] for c in cases if not (c.get("expected_values") or [])]
+    assert len(unscoreable) == 4, unscoreable
+    assert (len(cases) - len(unscoreable)) / len(cases) == pytest.approx(8 / 12, abs=0.001)
+
+
+def test_the_report_retracts_the_multi_agent_quality_finding():
+    """A retraction that is not in the report is not a retraction."""
+    text = _REPORT.read_text(encoding="utf-8")
+    section = text.split("## 6.")[1].split("## 7.")[0]
+    assert "RETRACTED" in section
+    assert "NOT_MEASURED" in section
 
 
 def test_the_report_still_names_its_unmeasured_items():

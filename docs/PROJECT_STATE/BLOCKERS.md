@@ -169,3 +169,23 @@ The judge comparison crashed with **SIGSEGV (exit 139)** after completing 1 of 7
 **What is genuinely established:** Prometheus 7B *does* load and produce a correctly-formatted, correct judgement under disk offload on this hardware. One case is not a calibration.
 
 **What is needed:** a re-run with **exclusive** access — no test suite, no second experiment, no dashboard traffic — and an unmasked exit status. ~4.5 h.
+
+
+## B17 — `ambiguity` is measured by every profiler and read by nothing (found 2026-08-30, Milestone 15) — **OPEN**
+
+`QueryFingerprint.ambiguity` is produced by the rules baseline, the k-NN baseline and the hybrid, is persisted, and is surfaced in evaluation. A grep for consumers outside `query_intelligence/` and `experiments/` returns **zero**: not the risk profiler, not the capability router, not the model router, not the policy engine, not the decision engine, not adaptive compute.
+
+**Why it matters.** Ambiguity is the natural trigger for `ASK_CLARIFICATION`, and the decision engine does emit that action — but only after the retry budget is spent, never because the query was ambiguous to begin with. §16 of the agent directive lists AMBIGUITY among the uncertainty signals that should feed routing, replanning, verification and model selection. It currently feeds none of them.
+
+**Status.** Recorded, not fixed. Wiring it is not the hard part; showing that wiring it *helps* needs an ambiguity-labelled evaluation with a clarification outcome, and inventing one late in the phase risks measuring the dataset rather than the system. The honest statement is that a produced signal is unused.
+
+**Related.** `domain` is likewise consumed only by the dashboard and by `runtime.py` for recording. That one is defensible — it is an audit field, not a control signal — and is noted only so the audit is complete.
+
+
+## B18 — A benchmark baseline that tracks the shipped default is not a baseline (found 2026-08-30, Milestone 15) — **CLOSED**
+
+`evaluate_rag_semantic_adequacy` defined its control arm as a bare `RAGAdequacyEvaluator()`. When condition C was adopted and the class defaults changed, the control arm silently became the treatment: A, B and C reported byte-identical numbers, and the comparison was one configuration against itself.
+
+It was visible only because three conditions matching exactly is implausible. Had the numbers merely been *close*, the run would have read as "the change makes little difference".
+
+**Fix.** Every condition now pins its own flags explicitly, so the harness measures what it names regardless of what the runtime currently ships. Applied to this experiment; the same pattern should be checked wherever an experiment constructs a component with no arguments and calls it the baseline.

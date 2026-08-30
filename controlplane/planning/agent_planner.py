@@ -82,11 +82,26 @@ class AgentPlanner:
         data_requirements: set[str],
         is_agentic: bool,
         restricted_capabilities: set[str] | None = None,
+        selected_capabilities: set[str] | None = None,
     ) -> AgentPlan:
         """Decide the agent shape for this task.
 
         ``is_agentic`` comes from the Query Profiler's measured
         actionability, not from a keyword scan performed here.
+
+        ``selected_capabilities`` is the route's chosen capability set.
+        A gatherer exists to RUN a capability, so planning one for a
+        capability the route did not select would have the agent fetch
+        evidence the plan never asked for.
+
+        This matters because ``data_requirement`` and ``capability_hints``
+        are produced by two independent votes and can disagree. The query
+        "trigger a failure" profiles to hints ``['GENERAL']`` and data
+        requirements ``[MEMORY_STORE, RAG_CORPUS, SQL_DB, WEB_SEARCH]`` --
+        four sources for a string that means nothing. Reading
+        ``data_requirement`` alone turned that noise into two live
+        retrieval agents. Requiring the two fields to agree costs nothing
+        when they do and discards the disagreement when they do not.
         """
         restricted = restricted_capabilities or set()
 
@@ -99,6 +114,10 @@ class AgentPlanner:
                 continue
             role, capability_id, permissions = mapping
             if capability_id in restricted:
+                continue
+            if selected_capabilities is not None and capability_id not in selected_capabilities:
+                # The route did not choose this capability; an agent
+                # serving it would add unplanned retrieval.
                 continue
             descriptor = self._registry.get(capability_id)
             if descriptor is None or descriptor.status.value != "AVAILABLE":

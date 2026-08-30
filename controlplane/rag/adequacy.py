@@ -42,6 +42,70 @@ def _tokenize(text: str) -> set[str]:
     return {t for t in _TOKEN_RE.findall(text.lower()) if t not in _STOPWORDS and len(t) > 2}
 
 
+_ANY_TOKEN_RE = re.compile("[a-z0-9]+")
+
+
+def _identifiers(text: str) -> set[str]:
+    """Short alphanumeric tokens that NAME a specific entity: 3, q4, v3,
+    2024, 501.
+
+    ``_tokenize`` drops every token of two characters or fewer, which was
+    meant to remove noise and instead removes the only part of the query
+    that distinguishes one entity from another:
+
+        "hotel allowance for Tier 3 cities" -> {allowance, cities, hotel, tier}
+        "Q4 revenue for the Americas"       -> {americas, region, revenue}
+        "maximum payload size in API v3"    -> {api, maximum, payload, size}
+
+    The quarter, the tier and the version are deleted before scoring, so
+    evidence about Tier 1 covers a question about Tier 3 completely. This
+    is not a weak signal being outvoted -- the discriminating token is
+    gone. Recovering it is a representation fix, not an exception list:
+    nothing here mentions any particular tier, quarter or version.
+    """
+    return {t for t in _ANY_TOKEN_RE.findall(text.lower()) if any(c.isdigit() for c in t)}
+
+
+def _numeric_aware_tokenize(text: str) -> set[str]:
+    """``_tokenize`` plus the identifiers it discards."""
+    return _tokenize(text) | _identifiers(text)
+
+
+def _identifier_keys(text: str) -> set[str]:
+    """Identifiers bound to the word they qualify.
+
+    A bare identifier set is a bag, and a bag matches by accident. Asking
+    for the Tier 2 allowance against a chunk headed "Travel Policy 4.2"
+    finds "2" in the evidence -- in a section number -- and concludes the
+    evidence is about Tier 2. Retrieving MORE chunks makes that worse,
+    because every extra section heading contributes more stray digits.
+
+    So a short bare number is keyed to the informative word before it:
+    "tier 3", not "3". An identifier that already carries letters (q4,
+    v3) or is long enough to be specific on its own (250, 2024, 501)
+    names its entity without help and is kept as-is.
+
+    This is a refinement of the representation, not an exception list: it
+    mentions no particular tier, quarter or version, and it is what makes
+    "tier 3" absent from a corpus in which "tier 1" is present.
+    """
+    tokens = _TOKEN_RE.findall(text.lower())
+    keys: set[str] = set()
+    for i, token in enumerate(tokens):
+        if not any(c.isdigit() for c in token):
+            continue
+        if len(token) > 2 or not token.isdigit():
+            keys.add(token)
+            continue
+        context = next(
+            (t for t in reversed(tokens[:i])
+             if t not in _STOPWORDS and len(t) > 2 and not any(c.isdigit() for c in t)),
+            None,
+        )
+        keys.add(f"{context} {token}" if context else token)
+    return keys
+
+
 class AdequacyLabel(str, Enum):
     SUFFICIENT = "SUFFICIENT"
     PARTIALLY_SUFFICIENT = "PARTIALLY_SUFFICIENT"
@@ -67,7 +131,13 @@ class AdequacyResult:
 class RAGAdequacyEvaluator:
     name = "coverage_overlap_v0"
 
-    def __init__(self, sufficient_threshold: float = 0.32, partial_threshold: float = 0.05) -> None:
+    def __init__(
+        self,
+        sufficient_threshold: float = 0.32,
+        partial_threshold: float = 0.05,
+        numeric_aware_tokens: bool = True,
+        require_identifier_match: bool = True,
+    ) -> None:
         """Defaults calibrated via grid search against
         ``data/raw/generated/rag_cases.json`` (150 examples) --
         accuracy 0.80, macro-F1 0.774, up from 0.493/0.521 at the
@@ -77,22 +147,56 @@ class RAGAdequacyEvaluator:
         limitation, stated per docs/specs/CONTROLPLANE_ROUTING_SYSTEM_SPEC.md
         SS32's "select threshold using a validation dataset" guidance,
         which this only partially satisfies. See
-        docs/EVALUATION/RAG_RESULTS.md."""
+        docs/EVALUATION/RAG_RESULTS.md.
+
+        DEFAULTS CHANGED 2026-08-30 on held-out evidence. The two token
+        flags default ON. Measured on
+        ``rag_adequacy_semantic_cases.json`` (32 dev / 32 test, tuned on
+        dev and scored once on test):
+
+            condition       test macro-F1   false confidence   guard
+            A (old default)     0.382             0.929        0.866
+            C (new default)     0.515             0.714        0.871
+
+        "False confidence" is the rate at which evidence about a
+        DIFFERENT entity was called SUFFICIENT. The old default did that
+        on 13 of 14 held-out absence cases, which is the mechanism behind
+        the 64% confabulation rate measured on adjacent-evidence
+        unanswerable queries.
+
+        "Guard" is macro-F1 on ``rag_cases.json`` (150), the distribution
+        these thresholds were originally calibrated on: the change costs
+        nothing there and is fractionally better.
+
+        A semantic variant scored higher still on the new set (macro-F1
+        0.648, false confidence 0.429) and was REJECTED: it fell to 0.690
+        on the guard, a 17-point regression on the main RAG path. See
+        docs/PROJECT_STATE/DECISIONS.md."""
         self._sufficient = sufficient_threshold
         self._partial = partial_threshold
+        self._numeric_aware = numeric_aware_tokens
+        self._require_identifier_match = require_identifier_match
+        """When set, an identifier named in the QUERY but absent from ALL
+        evidence forces INSUFFICIENT regardless of coverage.
+
+        The claim being encoded is narrow and checkable: evidence that
+        never mentions the entity the question names is evidence about a
+        different entity. It says nothing about which tiers, quarters or
+        versions exist."""
 
     def assess(self, query: str, evidence_texts: list[str]) -> AdequacyResult:
         if not evidence_texts or all(not t.strip() for t in evidence_texts):
             return AdequacyResult(AdequacyLabel.INSUFFICIENT, 0.0, "no evidence retrieved")
 
-        query_terms = _tokenize(query)
+        tokenize = _numeric_aware_tokenize if self._numeric_aware else _tokenize
+        query_terms = tokenize(query)
         if not query_terms:
             return AdequacyResult(AdequacyLabel.INSUFFICIENT, 0.0, "query had no scorable terms")
 
         evidence_terms: set[str] = set()
         per_doc_overlap = []
         for text in evidence_texts:
-            terms = _tokenize(text)
+            terms = tokenize(text)
             overlap = query_terms & terms
             per_doc_overlap.append(len(overlap) / len(query_terms))
             evidence_terms |= terms
@@ -130,6 +234,21 @@ class RAGAdequacyEvaluator:
                 if has_pos and has_neg:
                     conflicting = True
                     break
+
+        missing_identifiers: set[str] = set()
+        if self._require_identifier_match:
+            evidence_identifiers: set[str] = set()
+            for text in evidence_texts:
+                evidence_identifiers |= _identifier_keys(text)
+            missing_identifiers = _identifier_keys(query) - evidence_identifiers
+
+        if missing_identifiers and not conflicting:
+            return AdequacyResult(
+                AdequacyLabel.INSUFFICIENT,
+                coverage,
+                f"evidence never mentions {sorted(missing_identifiers)} named by the query "
+                f"(term coverage={coverage:.2f} -- the evidence is about a different entity)",
+            )
 
         if conflicting:
             label = AdequacyLabel.CONFLICTING

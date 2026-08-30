@@ -106,8 +106,32 @@ def _actionability_to_intent(actionability: Actionability, taxonomy: set[str]) -
 class EmbeddingKNNQueryProfiler:
     name = "embedding_knn"
 
-    def __init__(self, k: int = 5) -> None:
+    def __init__(
+        self,
+        k: int = 5,
+        agentic_escalation_threshold: float | None = None,
+    ) -> None:
         self._k = k
+        self._agentic_tau = agentic_escalation_threshold
+        """Similarity-weighted share of neighbours labelled ``agentic``
+        above which actionability is escalated to AGENTIC regardless of
+        the majority vote. ``None`` keeps plain majority behaviour.
+
+        WHY A SEPARATE RULE FOR THIS ONE FIELD. Majority voting treats
+        every misclassification as equally costly. For actionability that
+        is false: actionability decides whether CapabilityHint.AGENT is
+        selected, which decides whether an actor agent exists, which
+        decides whether AgentGate runs and whether CompositionGovernor
+        has a chain to inspect. Scoring an action as informational does
+        not merely mislabel it -- it removes the agent governance layer
+        from that request. Scoring an informational query as an action
+        costs one gate evaluation.
+
+        The losses are asymmetric, so the aggregator should be too. This
+        is the same shape of fix as the domain-aware injection
+        thresholds (DECISIONS.md, C6): keep the representation, change
+        the decision rule to reflect what a miss actually costs.
+        """
 
     def profile(self, query: str) -> QueryFingerprint:
         import numpy as np
@@ -125,6 +149,19 @@ class EmbeddingKNNQueryProfiler:
         sensitivity = Sensitivity(_majority([n.sensitivity for n in neighbors]))
         ambiguity = Ambiguity(_majority([n.ambiguity for n in neighbors]))
         actionability = Actionability(_majority([n.actionability for n in neighbors]))
+        if self._agentic_tau is not None and results:
+            total = sum(max(sim, 0.0) for _, sim in results) or 1e-9
+            agentic_weight = sum(
+                max(sim, 0.0) for ex, sim in results if ex.actionability == "agentic"
+            )
+            # A sensitivity-conditioned variant was considered and
+            # rejected without spending a run on it: all 10 agentic
+            # exemplars in the train split carry sensitivity NONE, so
+            # gating escalation on a sensitivity signal would suppress
+            # it on every action. Sensitivity labels DATA EXPOSURE in
+            # this dataset; it is orthogonal to action risk.
+            if agentic_weight / total >= self._agentic_tau:
+                actionability = Actionability.AGENTIC
         domain = neighbors[0].domain  # highest-cardinality field: nearest single neighbor, not a vote
 
         label_counts = Counter(label for n in neighbors for label in n.taxonomy_labels)
@@ -177,10 +214,18 @@ class HybridQueryProfiler:
 
     name = "hybrid"
 
-    def __init__(self, k: int = 5, use_corpus_affinity: bool = True) -> None:
+    def __init__(
+        self,
+        k: int = 5,
+        use_corpus_affinity: bool = True,
+        agentic_escalation_threshold: float | None = None,
+    ) -> None:
         self._rules = RuleBasedQueryProfiler()
-        self._knn = EmbeddingKNNQueryProfiler(k=k)
+        self._knn = EmbeddingKNNQueryProfiler(
+            k=k, agentic_escalation_threshold=agentic_escalation_threshold
+        )
         self._use_corpus_affinity = use_corpus_affinity
+        self._agentic_tau = agentic_escalation_threshold
 
     def _corpus_affinity_hint(self, query: str, explanation: dict) -> bool:
         """Milestone 9: does the real corpus actually contain something

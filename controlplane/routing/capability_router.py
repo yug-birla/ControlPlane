@@ -105,17 +105,39 @@ class CapabilityRouter:
         # data requirements -- rather than this router always emitting
         # exactly one agent node.
         #
-        # Consulted only for AGENTIC queries. A read-only multi-source
-        # query needs no agents: agents exist to be *governed*, and adding
-        # identities and permission sets to a pure read buys nothing --
-        # which is the planner's own "no agent overhead" rule.
-        agent_plan = None
-        if agent_selected:
-            agent_plan = self._agent_planner.plan(
-                data_requirements=set(fingerprint.data_requirement or []),
-                is_agentic=True,
-                restricted_capabilities=set(policy.restricted_capabilities),
-            )
+        # THE PLANNER IS ALWAYS CONSULTED, AND is_agentic IS TRUTHFUL.
+        #
+        # It used to be consulted only when CapabilityHint.AGENT was
+        # selected, with is_agentic hard-coded to True. The stated reason
+        # was that "agents exist to be governed, so a pure read buys
+        # nothing". That argument is about governance only, and it
+        # silently decided a question that belongs to the planner.
+        #
+        # The cost was measured, not theorised. AgentPlanner has an
+        # explicit branch for two independent gatherers on a NON-agentic
+        # task, covered by six unit tests including
+        # ``test_two_independent_data_sources_justify_two_agents_in_parallel``.
+        # Because this gate never passed is_agentic=False, that branch was
+        # unreachable in production: every one of those tests exercised an
+        # input the runtime could not generate. In the multi-agent
+        # benchmark, six of the eight cases that expect agents ran with
+        # ZERO agents (MA-001/004/005/008/010/012), each carrying both
+        # RAG_CORPUS and SQL_DB. Plan-shape accuracy was 0.417, and the
+        # four ablation conditions were the same execution path on nine of
+        # twelve cases -- which is why they returned identical quality.
+        #
+        # Deciding whether agents are justified is the planner's whole
+        # job, and it already returns zero agents when they are not: a
+        # lone servable source with no action still yields an empty plan.
+        # Whether decomposing a two-source READ actually pays is now an
+        # empirical question the ablation can answer, rather than an
+        # assumption baked into a gate.
+        agent_plan = self._agent_planner.plan(
+            data_requirements=set(fingerprint.data_requirement or []),
+            is_agentic=agent_selected,
+            restricted_capabilities=set(policy.restricted_capabilities),
+            selected_capabilities=selected,
+        )
         gatherers = (
             [a for a in agent_plan.agents if a.role is not AgentRole.NOTIFIER]
             if agent_plan else []
@@ -138,7 +160,21 @@ class CapabilityRouter:
                         "serves_capability": _ROLE_CAPABILITY[agent.role],
                     },
                 ))
-            evidence_nodes = tuple(a.agent_id for a in gatherers)
+            # ...but only the capabilities a gatherer actually SERVES.
+            # Gatherers cover RAG and SQL; a query that also wants WEB or
+            # CHAT_HISTORY still needs those plain nodes. Dropping every
+            # data node whenever any gatherer existed lost evidence
+            # sources silently, and made the multi-agent ablation
+            # asymmetric: the single-agent arm kept those nodes and the
+            # multi-agent arm did not, so the two arms differed by more
+            # than the variable under test.
+            served = {_ROLE_CAPABILITY[a.role] for a in gatherers}
+            unserved = [c for c in data_caps if c not in served]
+            for cap in unserved:
+                graph.add_node(ExecutionNode(node_id=f"data_{cap.lower()}", capability=cap))
+            evidence_nodes = tuple(
+                [a.agent_id for a in gatherers] + [f"data_{c.lower()}" for c in unserved]
+            )
         elif data_caps:
             for cap in data_caps:
                 graph.add_node(ExecutionNode(node_id=f"data_{cap.lower()}", capability=cap))

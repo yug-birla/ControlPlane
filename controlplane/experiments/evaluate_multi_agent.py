@@ -174,9 +174,26 @@ def _run_case(runtime, case: dict) -> dict:
         "agent_count": len(agent_nodes),
         "expected_agent_count": case["expected_agent_count"],
         "agent_count_matches_plan": len(agent_nodes) == case["expected_agent_count"],
+        # COUNT IS NOT COMPOSITION. MA-008 expects ANALYST + NOTIFIER and,
+        # once the router's agent gate was widened, produced RETRIEVER +
+        # ANALYST -- two agents, matching the expected count, testing
+        # nothing the case was written to test. A count-only metric scores
+        # that as a pass. Roles are what governance reasons about, so the
+        # roles are what get compared.
+        "agent_roles": sorted(
+            (n.get("input_ref") or {}).get("role", "UNKNOWN") for n in agent_nodes
+        ),
+        "expected_agent_roles": sorted(case.get("expected_roles") or []),
+        "agent_roles_match_plan": (
+            sorted((n.get("input_ref") or {}).get("role", "UNKNOWN") for n in agent_nodes)
+            == sorted(case.get("expected_roles") or [])
+        ),
         "concurrent_agents": len(independent),
         "answered": answer is not None,
         "key_fact_correct": correct,
+        # Without this flag the aggregate cannot tell "got it wrong" apart
+        # from "there was nothing here to get right".
+        "scoreable_for_key_fact": bool(expected),
         "decision": decision,
         "composition_risk": composition.risk.value if composition else None,
         "expected_composition_risk": case.get("expected_composition_risk"),
@@ -187,9 +204,31 @@ def _run_case(runtime, case: dict) -> dict:
 
 
 def _aggregate(rows: list[dict]) -> dict:
+    """
+    KEY_FACT_ACCURACY IS SCORED OVER SCOREABLE CASES ONLY.
+
+    It used to divide by every row. Four of the twelve cases carry
+    ``expected_values: []`` -- MA-003, MA-007, MA-008 and MA-010 are
+    governance and action cases whose correct outcome is a composition
+    verdict, not a retrieved fact. ``_run_case`` computes
+    ``bool(expected) and ...``, so those four were hard-False in every
+    arm, in every run, by construction.
+
+    That put a ceiling of 8/12 = 0.667 on the metric, and the measured
+    value was 0.583 = 7/12 in ALL FOUR conditions: the ceiling minus
+    exactly one genuine failure (MA-005). The benchmark had one case of
+    headroom. It was reported as "multi-agent does not improve quality",
+    when what it actually showed was that this measurement could not
+    have detected an improvement of any size.
+
+    The four governance cases are still run and still reported -- under
+    ``composition_risk_accuracy``, which is the metric that applies to
+    them -- and their count is surfaced here so the denominator is
+    visible rather than inferred.
+    """
     n = len(rows)
     scored = [r for r in rows if r["expected_agent_count"] is not None]
-    factual = [r for r in rows if r["key_fact_correct"] or r["answered"]]
+    scoreable = [r for r in rows if r["scoreable_for_key_fact"]]
     latencies = sorted(r["latency_ms"] for r in rows)
 
     def _pct(p):
@@ -198,11 +237,40 @@ def _aggregate(rows: list[dict]) -> dict:
     governance = [r for r in rows if r["expected_composition_risk"]]
     return {
         "sample_count": n,
-        "key_fact_accuracy": sum(1 for r in rows if r["key_fact_correct"]) / n if n else None,
+        "key_fact_scoreable_count": len(scoreable),
+        "key_fact_unscoreable_count": n - len(scoreable),
+        "key_fact_accuracy": (
+            sum(1 for r in scoreable if r["key_fact_correct"]) / len(scoreable)
+            if scoreable else None
+        ),
+        # The pre-fix denominator, kept so the 0.583 figure quoted in
+        # earlier reports stays traceable to the run that produced it.
+        "key_fact_accuracy_all_rows_legacy": (
+            sum(1 for r in rows if r["key_fact_correct"]) / n if n else None
+        ),
         "answered_rate": sum(1 for r in rows if r["answered"]) / n if n else None,
         "request_failure_rate": sum(1 for r in rows if r["request_failed"]) / n if n else None,
         "plan_shape_accuracy": (
             sum(1 for r in scored if r["agent_count_matches_plan"]) / len(scored) if scored else None
+        ),
+        # The stricter of the two, and the one that reflects what
+        # composition governance actually consumes.
+        "plan_role_accuracy": (
+            sum(1 for r in scored if r["agent_roles_match_plan"]) / len(scored) if scored else None
+        ),
+        "right_count_wrong_roles_count": sum(
+            1 for r in scored if r["agent_count_matches_plan"] and not r["agent_roles_match_plan"]
+        ),
+        # SS6 of the agent directive: an agent-count error has a direction,
+        # and the two directions mean opposite things. Too few agents means
+        # missing governance; too many means wasted latency and tokens.
+        "unnecessary_agent_rate": (
+            sum(1 for r in scored if r["agent_count"] > r["expected_agent_count"]) / len(scored)
+            if scored else None
+        ),
+        "missing_agent_rate": (
+            sum(1 for r in scored if r["agent_count"] < r["expected_agent_count"]) / len(scored)
+            if scored else None
         ),
         "composition_risk_accuracy": (
             sum(1 for r in governance if r["composition_risk"] == r["expected_composition_risk"])
@@ -253,7 +321,9 @@ def main() -> None:
     header = f"{'METRIC':<32}" + "".join(f"{c.split('_', 1)[1][:14]:>16}" for c in CONDITIONS)
     print(header)
     print("=" * 96)
-    for metric in ("key_fact_accuracy", "answered_rate", "plan_shape_accuracy",
+    for metric in ("key_fact_accuracy", "key_fact_scoreable_count", "answered_rate",
+                   "plan_shape_accuracy", "plan_role_accuracy", "right_count_wrong_roles_count",
+                   "unnecessary_agent_rate", "missing_agent_rate",
                    "composition_risk_accuracy", "mean_concurrent_agents",
                    "total_agent_messages", "latency_ms_mean", "latency_ms_p95"):
         row = f"{metric:<32}"

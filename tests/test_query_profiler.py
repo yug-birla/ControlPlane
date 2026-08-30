@@ -154,3 +154,124 @@ def test_real_action_requests_stay_agentic_despite_the_threshold_guard():
     ):
         fp = profiler.profile(query)
         assert fp.actionability == Actionability.AGENTIC, f"{query!r} wrongly demoted to informational"
+
+
+# ---------------------------------------------------------------------------
+# COHERENCE. An AGENTIC fingerprint that does not request the agent
+# capability is self-contradictory, and it was reachable: the rules
+# baseline sets actionability and CapabilityHint.AGENT together, but the
+# k-NN baseline derives them from two INDEPENDENT majority votes -- one
+# over neighbours' actionability labels, one over their taxonomy labels.
+#
+# Measured on the 135 held-out query profiles, five queries came out of
+# the shipped profiler asserting an action while requesting no agent
+# capability, including "Initiate an automated batch payout of $150,000
+# to all approved affiliate partners" (hints: ['GENERAL']). Each was
+# routed as plain generation: no actor node, therefore no AgentGate and
+# no chain for CompositionGovernor.
+# ---------------------------------------------------------------------------
+
+
+def test_an_agentic_fingerprint_always_requests_the_agent_capability():
+    from controlplane.query_intelligence.fingerprint import (
+        Actionability,
+        Ambiguity,
+        CapabilityHint,
+        Complexity,
+        Impact,
+        Intent,
+        QueryFingerprint,
+        Sensitivity,
+    )
+
+    fingerprint = QueryFingerprint(
+        intent=Intent.ACTION_REQUEST,
+        complexity=Complexity.LOW,
+        sensitivity=Sensitivity.NONE,
+        ambiguity=Ambiguity.LOW,
+        impact=Impact.HIGH,
+        actionability=Actionability.AGENTIC,
+        capability_hints=[CapabilityHint.GENERAL],
+    )
+    assert CapabilityHint.AGENT in fingerprint.capability_hints
+    # GENERAL is the "nothing specific applies" floor; it must not survive
+    # alongside a real capability or the router's selection is muddied.
+    assert CapabilityHint.GENERAL not in fingerprint.capability_hints
+
+
+def test_the_invariant_adds_a_hint_and_never_removes_a_real_one():
+    from controlplane.query_intelligence.fingerprint import (
+        Actionability,
+        Ambiguity,
+        CapabilityHint,
+        Complexity,
+        Impact,
+        Intent,
+        QueryFingerprint,
+        Sensitivity,
+    )
+
+    fingerprint = QueryFingerprint(
+        intent=Intent.ACTION_REQUEST,
+        complexity=Complexity.HIGH,
+        sensitivity=Sensitivity.NONE,
+        ambiguity=Ambiguity.LOW,
+        impact=Impact.HIGH,
+        actionability=Actionability.AGENTIC,
+        capability_hints=[CapabilityHint.SQL, CapabilityHint.RAG],
+    )
+    assert set(fingerprint.capability_hints) == {
+        CapabilityHint.SQL, CapabilityHint.RAG, CapabilityHint.AGENT,
+    }
+
+
+def test_a_non_agentic_fingerprint_is_left_exactly_as_produced():
+    """The invariant must not manufacture agent paths for ordinary reads,
+    which would be over-control introduced by a validator."""
+    from controlplane.query_intelligence.fingerprint import (
+        Actionability,
+        Ambiguity,
+        CapabilityHint,
+        Complexity,
+        Impact,
+        Intent,
+        QueryFingerprint,
+        Sensitivity,
+    )
+
+    fingerprint = QueryFingerprint(
+        intent=Intent.FACTUAL_LOOKUP,
+        complexity=Complexity.LOW,
+        sensitivity=Sensitivity.NONE,
+        ambiguity=Ambiguity.LOW,
+        impact=Impact.LOW,
+        actionability=Actionability.INFORMATIONAL,
+        capability_hints=[CapabilityHint.RAG],
+    )
+    assert fingerprint.capability_hints == [CapabilityHint.RAG]
+
+
+def test_no_held_out_query_profiles_into_the_incoherent_state():
+    """The measurement that found the defect, kept as a regression.
+
+    Runs the real profiler over the real held-out splits, so it fails if
+    any future change reintroduces a fingerprint that claims an action
+    while declining the capability that governs one.
+    """
+    import json
+    from pathlib import Path
+
+    from controlplane.query_intelligence.fingerprint import Actionability, CapabilityHint
+    from controlplane.query_intelligence.knn_profiler import HybridQueryProfiler
+
+    profiler = HybridQueryProfiler()
+    offenders = []
+    for split in ("validation", "test"):
+        path = Path(f"data/evaluation/{split}/query_profiles_{split}.json")
+        with open(path, encoding="utf-8-sig") as f:
+            for record in json.load(f):
+                fingerprint = profiler.profile(record["query"])
+                if (fingerprint.actionability is Actionability.AGENTIC
+                        and CapabilityHint.AGENT not in fingerprint.capability_hints):
+                    offenders.append(record["query"][:70])
+    assert offenders == [], offenders
