@@ -24,6 +24,13 @@ curl -s http://127.0.0.1:8141/health/ready
 
 **Dashboard URL:** <http://127.0.0.1:8141/dashboard>
 
+**Execution Console (the hero screen):**
+`/dashboard/console/{request_id}` — the governance spine for one request,
+with **Replay** stepping through the recorded event stream in order. Every
+stage is a recorded value or is marked `NOT_RECORDED`; a stage that did not
+fire (no replan on the flagship) says so rather than rendering an empty box
+that reads like a stage that passed.
+
 > **Start a FRESH process after any code change.** Jinja templates are
 > re-read per request but Python modules are not, so a stale server
 > serves new templates against old code — a live 500 while the whole test
@@ -73,7 +80,10 @@ before it will report anything.
 
 ### Panels to show, in order
 
-1. **`/dashboard`** — request list, live stats (3.9k requests, decision and
+1. **`/dashboard/console/req_c0edde9d-944f-48ed-952b-84345aeb23a0`** — the
+   Execution Console. Press **Replay** and let the governance spine light up
+   stage by stage from the recorded events. This is the shot.
+2. **`/dashboard`** — request list, live stats (3.9k requests, decision and
    intervention distributions).
 2. **Request detail → Execution map** — the graph, the parallel group, node
    status and per-node latency.

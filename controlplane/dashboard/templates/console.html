@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+{% block title %}Execution Console{% endblock %}
+{% block content %}
+
+<style>
+  .console-top { display:flex; gap:18px; flex-wrap:wrap; align-items:baseline;
+                 border:1px solid #2a2f3a; padding:10px 14px; margin-bottom:14px; }
+  .console-top .k { font-size:11px; opacity:.6; text-transform:uppercase; letter-spacing:.06em; }
+  .console-top .v { font-family:ui-monospace,Consolas,monospace; font-size:12px; }
+  .spine { display:grid; grid-template-columns: 210px 1fr; gap:0; }
+  .stage { border-left:2px solid #2a2f3a; padding:0 0 14px 16px; margin-left:8px; position:relative; }
+  .stage:last-child { padding-bottom:0; }
+  .stage .dot { position:absolute; left:-7px; top:2px; width:12px; height:12px;
+                border-radius:50%; border:2px solid #11141a; }
+  .st-COMPLETED     .dot { background:#3fb950; }
+  .st-WARNING       .dot { background:#d29922; }
+  .st-FAILED        .dot { background:#f85149; }
+  .st-NOT_TRIGGERED .dot { background:#6e7681; }
+  .st-NOT_RECORDED  .dot { background:#30363d; }
+  .stage.dim { opacity:.28; }
+  .stage h3 { font-size:13px; margin:0 0 2px; letter-spacing:.02em; }
+  .stage .sum { font-size:12px; opacity:.82; margin-bottom:6px; }
+  .stage table { width:100%; border-collapse:collapse; }
+  .stage td { padding:2px 8px 2px 0; vertical-align:top; font-size:12px; }
+  .stage td.k { width:190px; opacity:.6; white-space:nowrap; }
+  .stage td.n { opacity:.5; font-size:11px; }
+  .badge-st { font-size:10px; padding:1px 6px; border:1px solid #30363d; margin-left:6px; }
+  .feed { max-height:340px; overflow:auto; border:1px solid #2a2f3a; }
+  .feed table { width:100%; border-collapse:collapse; }
+  .feed td { padding:3px 8px; font-size:12px; border-bottom:1px solid #1c2027; }
+  .feed tr.future { opacity:.22; }
+  .ctl button { background:#1c2027; color:inherit; border:1px solid #30363d;
+                padding:5px 12px; margin-right:6px; cursor:pointer; font-size:12px; }
+  .ctl button:hover { border-color:#58a6ff; }
+  .ctl { margin:10px 0; }
+</style>
+
+<h1 style="font-size:20px;margin-bottom:4px;">Live Execution Console</h1>
+<p class="note">
+  Every value on this page is read from a recorded event, trajectory row or ledger entry for this
+  request. Replay steps through the actual event stream in recorded order &mdash; it is a replay of
+  what happened, never a simulation of what might have. A stage that did not fire says so, and a
+  measurement that was not taken says <em>not recorded</em> rather than showing zero.
+</p>
+
+{% if not console.available %}
+<div class="panel"><h2>No request selected</h2>
+<p>Open a request from the <a href="/dashboard">request list</a>.</p></div>
+{% else %}
+
+<div class="console-top">
+  <div><div class="k">status</div><div class="v">
+    <span class="badge {% if console.final_status == 'COMPLETED' %}severity-LOW_RISK{% else %}severity-HIGH_RISK{% endif %}">{{ console.final_status }}</span>
+  </div></div>
+  <div><div class="k">request</div><div class="v">{{ console.request_id }}</div></div>
+  <div><div class="k">trajectory</div><div class="v">{{ console.trajectory_id }}</div></div>
+  <div><div class="k">events</div><div class="v">{{ console.event_count }}</div></div>
+  <div style="flex:1;"><div class="k">query</div><div class="v">{{ console.query }}</div></div>
+</div>
+
+<div class="ctl">
+  <button id="cp-replay">&#9658; Replay</button>
+  <button id="cp-step">Step</button>
+  <button id="cp-all">Show all</button>
+  <span class="note" id="cp-pos">showing all {{ console.event_count }} events</span>
+</div>
+
+<div class="panel">
+  <h2>Governance trajectory</h2>
+  <div id="cp-spine">
+    {% for s in console.stages %}
+    <div class="stage st-{{ s.status }}" data-stage="{{ s.key }}">
+      <span class="dot"></span>
+      <h3>{{ s.label }}<span class="badge-st">{{ s.status }}</span></h3>
+      <div class="sum">{{ s.summary|safe }}</div>
+      <table>
+        {% for r in s.rows %}
+        <tr>
+          <td class="k">{{ r.label }}</td>
+          <td>{{ r.value if r.value is not none else "not recorded" }}
+            {% if r.note %}<div class="n">{{ r.note }}</div>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% if agent_panel and agent_panel.has_any %}
+<div class="panel">
+  <h2>Agent topology &amp; communication</h2>
+  {% if agent_panel.composition %}
+  <p>composition risk =
+    <span class="badge {% if agent_panel.composition.risk == 'CRITICAL' %}severity-CRITICAL{% elif agent_panel.composition.risk == 'ELEVATED' %}severity-HIGH_RISK{% else %}severity-LOW_RISK{% endif %}">{{ agent_panel.composition.risk }}</span>
+    &middot; chain <code>{{ agent_panel.composition.agent_chain|join(" &rarr; ")|safe }}</code></p>
+  <div class="why">{{ agent_panel.composition.reason }}</div>
+  {% endif %}
+  {% if agent_panel.handoffs %}
+  <table>
+    <tr><th>From</th><th></th><th>To</th><th>Payload</th><th>Sensitivity</th></tr>
+    {% for m in agent_panel.handoffs %}
+    <tr>
+      <td class="mono">{{ m.from_agent }}</td>
+      <td class="note">&mdash;{{ m.message_type }}&rarr;</td>
+      <td class="mono">{{ m.to_agent or "ControlPlane" }}</td>
+      <td class="note">{{ m.payload_summary }}</td>
+      <td><span class="badge {% if m.data_sensitivity in ('CONFIDENTIAL','RESTRICTED') %}severity-HIGH_RISK{% else %}severity-LOW_RISK{% endif %}">{{ m.data_sensitivity }}</span></td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p class="note">Edges are drawn only for messages actually recorded on the event stream, and each
+    was sent at the moment the receiving agent ran &mdash; not reconstructed afterwards.</p>
+  {% endif %}
+  {% if agent_panel.contribution %}
+  <table style="margin-top:10px;">
+    <tr><th>Agent</th><th>Role</th><th>Verdict</th><th>Unique</th><th>Influence on receiver</th></tr>
+    {% for a in agent_panel.contribution.agents %}
+    <tr>
+      <td class="mono">{{ a.agent_id }}</td><td>{{ a.role }}</td>
+      <td><span class="badge {% if a.verdict == 'ESSENTIAL' %}severity-LOW_RISK{% elif a.verdict in ('REDUNDANT','INERT') %}severity-HIGH_RISK{% else %}severity-MEDIUM_RISK{% endif %}">{{ a.verdict }}</span></td>
+      <td>{{ a.unique_evidence }}</td><td class="mono">{{ a.downstream_influence }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p class="note">Influence is taken from the receiving agent's own record. A message that arrived
+    and changed nothing reads <code>OBSERVED_ONLY</code> &mdash; existence is not influence.
+    <em>answer influence is a lexical proxy and is reported separately, never as causal proof.</em></p>
+  {% endif %}
+  {% if agent_panel.mcp_calls %}
+  <table style="margin-top:10px;">
+    <tr><th>MCP capability</th><th>Status</th><th>Evidence</th><th>Latency</th></tr>
+    {% for c in agent_panel.mcp_calls %}
+    <tr><td class="mono">{{ c.capability_id }}</td><td>{{ c.status }}</td>
+        <td>{{ c.evidence_count if c.evidence_count is not none else "not recorded" }}</td>
+        <td class="note">{% if c.latency_ms %}{{ "%.0f"|format(c.latency_ms) }} ms{% else %}not recorded{% endif %}</td></tr>
+    {% endfor %}
+  </table>
+  <p class="note">ControlPlane decides <strong>what, why, whether</strong>. MCP is only <strong>how</strong>.</p>
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="panel">
+  <h2>Event stream</h2>
+  <div class="feed">
+    <table id="cp-feed">
+      <tr><th>+ms</th><th>Event</th><th>Severity</th><th>Stage</th></tr>
+      {% for e in console.timeline %}
+      <tr data-idx="{{ loop.index0 }}" data-stage="{{ e.stage or '' }}">
+        <td class="mono">{{ e.offset_ms if e.offset_ms is not none else "--" }}</td>
+        <td>{{ e.event_type }}</td>
+        <td class="note">{{ e.severity }}</td>
+        <td class="note">{{ e.stage or "--" }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+
+{% if console.failure_localization and console.failure_localization.component %}
+<div class="panel">
+  <h2>Failure localization</h2>
+  <p>component = <code>{{ console.failure_localization.component }}</code>
+     &middot; attribution = <code>{{ console.failure_localization.attribution }}</code></p>
+  <div class="why">{{ console.failure_localization.reason }}</div>
+</div>
+{% endif %}
+
+<script>
+(function () {
+  var rows = Array.prototype.slice.call(document.querySelectorAll('#cp-feed tr[data-idx]'));
+  var stages = Array.prototype.slice.call(document.querySelectorAll('#cp-spine .stage'));
+  var pos = document.getElementById('cp-pos');
+  var total = rows.length, at = total, timer = null;
+
+  // Stages reached by the events up to index `n`. Derived from the
+  // recorded stream, so replay can only reveal what actually happened.
+  function render(n) {
+    at = n;
+    var reached = {};
+    rows.forEach(function (r, i) {
+      var future = i >= n;
+      r.classList.toggle('future', future);
+      if (!future && r.dataset.stage) { reached[r.dataset.stage] = true; }
+    });
+    stages.forEach(function (s) {
+      s.classList.toggle('dim', n < total && !reached[s.dataset.stage]);
+    });
+    pos.textContent = (n >= total)
+      ? ('showing all ' + total + ' events')
+      : ('replaying event ' + n + ' of ' + total);
+  }
+
+  function stop() { if (timer) { clearInterval(timer); timer = null; } }
+
+  document.getElementById('cp-step').onclick = function () {
+    stop(); render(at >= total ? 1 : at + 1);
+  };
+  document.getElementById('cp-all').onclick = function () { stop(); render(total); };
+  document.getElementById('cp-replay').onclick = function () {
+    stop(); render(0);
+    timer = setInterval(function () {
+      if (at >= total) { stop(); return; }
+      render(at + 1);
+    }, 420);
+  };
+  render(total);
+})();
+</script>
+
+{% endif %}
+{% endblock %}

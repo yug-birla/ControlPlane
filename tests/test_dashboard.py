@@ -504,3 +504,71 @@ def test_the_agent_page_is_reachable_from_every_other_page():
         response = client.get(path)
         assert response.status_code == 200, path
         assert "/dashboard/agents" in response.text, path
+
+
+# ---------------------------------------------------------------------------
+# Live Execution Console. The detail page answers "what did each component
+# record"; the console answers "what did ControlPlane decide, and why did
+# the execution change". It must never turn an absent measurement into a
+# confident value.
+# ---------------------------------------------------------------------------
+
+
+def test_the_console_marks_a_stage_that_did_not_fire_rather_than_showing_it_empty():
+    """A request with no replan must say so. An empty box reads like a
+    stage that passed, which is the null-as-zero defect in another form."""
+    from controlplane.dashboard.console import build_console
+
+    console = build_console({
+        "request": {"id": "req_x", "query_text": "q", "status": "COMPLETED"},
+        "replans": [], "interventions": [],
+    })
+    stage = next(s for s in console["stages"] if s["key"] == "intervention")
+    assert stage["status"] == "NOT_TRIGGERED"
+    assert "did not fire" in stage["rows"][0]["value"]
+
+
+def test_the_console_reports_missing_data_as_not_recorded():
+    from controlplane.dashboard.console import build_console
+
+    console = build_console({"request": {"id": "req_x", "query_text": "q"}})
+    for key in ("understanding", "risk", "verification", "trust"):
+        stage = next(s for s in console["stages"] if s["key"] == key)
+        assert stage["status"] == "NOT_RECORDED", (key, stage["status"])
+
+
+def test_an_unknown_event_type_does_not_break_the_replay():
+    """Out-of-order, late or unrecognised events must not corrupt the
+    view -- they appear in the feed with no stage rather than raising."""
+    from controlplane.dashboard.console import build_console
+
+    console = build_console({
+        "request": {"id": "req_x", "query_text": "q"},
+        "events": [
+            {"event_type": "QUERY_RECEIVED", "observed_at": "2026-08-30T10:00:00+00:00"},
+            {"event_type": "SOMETHING_NEW", "observed_at": "2026-08-30T10:00:01+00:00"},
+        ],
+    })
+    stages = [e["stage"] for e in console["timeline"]]
+    assert stages == ["query", None]
+    assert console["timeline"][1]["offset_ms"] == 1000
+
+
+def test_the_console_renders_for_a_real_recorded_request():
+    from fastapi.testclient import TestClient
+
+    from controlplane.dashboard.queries import list_recent_requests
+    from controlplane.main import app
+
+    recent = list_recent_requests(limit=1)
+    if not recent:
+        import pytest
+
+        pytest.skip("no recorded requests")
+    request_id = recent[0]["request_id"]
+
+    client = TestClient(app)
+    page = client.get(f"/dashboard/console/{request_id}")
+    assert page.status_code == 200
+    assert "Governance trajectory" in page.text
+    assert client.get(f"/dashboard/api/console/{request_id}").status_code == 200

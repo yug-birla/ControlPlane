@@ -752,3 +752,40 @@ indistinguishable from having tested it and passed. Four such rates
 (`false_alarm_rate`, `missed_drift_rate`, `over_control_rate`,
 `missed_fabrication_rate`) now return `None` where undefined, with the
 count beside them unchanged.
+
+### The Live Execution Console
+
+**Problem.** The detail page is a set of panels. It answers "what did each
+component record" and not the question the product exists to answer:
+*what did ControlPlane decide, and why did the execution change.*
+
+**Options.** (a) A React/graph frontend with a streaming transport.
+(b) Server-rendered governance spine over the existing Jinja dashboard,
+with replay driven by the recorded event stream.
+
+**Chosen: (b).** A second transport and a second state model would be a
+duplicate source of truth for execution state — the exact failure this
+project has spent two milestones removing — and could not have been
+validated against real traces in the time available. The console reuses
+`get_request_detail`, so it and the detail page cannot disagree about
+what happened.
+
+**Trade-off.** No live-streaming graph: replay walks a *recorded* stream.
+That is stated on the page rather than implied away, and it is the honest
+capability — the runtime has no event push, and inventing one to animate
+a demo would be fabricating behaviour the system does not have.
+
+**Honesty rules encoded in the builder, not left to the template:**
+a stage that did not fire renders `NOT_TRIGGERED` with an explanation
+("the plan executed as created — this stage exists and did not fire,
+which is different from not being implemented"); a missing measurement
+renders `NOT_RECORDED`, never `0`; unknown event types map to no stage and
+appear in the feed without moving the spine, so an unexpected event cannot
+corrupt the view; communication edges are drawn only for messages actually
+on the event stream; and agent influence is taken from the *receiver's*
+record, so a message that arrived and changed nothing reads
+`OBSERVED_ONLY`. Answer influence is labelled a lexical proxy on screen.
+
+**Validation.** Renders for all three recorded demo requests; four tests
+pin the honesty rules, including that an unrecognised event does not break
+replay.

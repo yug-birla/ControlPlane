@@ -19,6 +19,7 @@ from controlplane.dashboard.agents import (
     MIN_OBSERVATIONS_FOR_ROLE_VERDICT,
     build_agent_view,
 )
+from controlplane.dashboard.console import build_console
 from controlplane.dashboard.dataset_health import build_dataset_health
 from controlplane.dashboard.evidence import build_evidence
 from controlplane.dashboard.queries import (
@@ -128,3 +129,27 @@ def dashboard_agents(request: Request) -> HTMLResponse:
         request, "agents.html",
         {"view": build_agent_view(), "min_observations": MIN_OBSERVATIONS_FOR_ROLE_VERDICT},
     )
+
+
+@router.get("/console/{request_id}", response_class=HTMLResponse)
+def dashboard_console(request: Request, request_id: str) -> HTMLResponse:
+    """The Live Execution Console: one request as a governed trajectory.
+
+    Reuses ``get_request_detail`` rather than querying again, so the
+    console and the detail page can never disagree about what happened.
+    """
+    detail = get_request_detail(request_id)
+    if detail is None:
+        raise HTTPException(status_code=404, detail="request not found")
+    return _templates.TemplateResponse(
+        request, "console.html",
+        {"console": build_console(detail), "agent_panel": build_agent_panel(detail)},
+    )
+
+
+@router.get("/api/console/{request_id}")
+def api_console(request_id: str) -> dict:
+    detail = get_request_detail(request_id)
+    if detail is None:
+        raise HTTPException(status_code=404, detail="request not found")
+    return build_console(detail)
