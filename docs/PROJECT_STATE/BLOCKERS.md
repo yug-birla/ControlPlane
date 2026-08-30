@@ -133,3 +133,22 @@ Only 1 of 8 shards landed and the partial blobs were cleaned up, leaving 753MB o
 - The successful approach was to re-enable Xet (the working host) and wrap `snapshot_download` in a bounded retry loop, relying on its resume behaviour. The original CAS error was transient.
 
 Completed: 14GB, 8 shards plus index, verified on E:, confirmed by the process's own success line rather than by directory size.
+
+
+## B14 — Latency conditions are not separable at n=12 (found 2026-08-30, Milestone 16) — **OPEN, methodological**
+
+The multi-agent experiment cannot support any latency claim, in either direction, and I made one from it before checking.
+
+**Evidence.** `A_single_agent` reported a mean of 193,631ms driven entirely by ONE case (MA-012) at **1,287,171ms** — 10x every other condition on the same query — while its *median* (118,054ms) was the lowest of the four. Between the first and second runs, "sequential vs parallel" moved from 1.84x to 1.04x with no relevant code change in that path.
+
+**Cause.** CPU generation latency for the FAST model varies by an order of magnitude per call (measured p50 44,186ms, mean 65,307ms, max 989,843ms across 212 real invocations). At n=12, one outlier dominates the mean.
+
+**What is needed:** report medians and paired per-case deltas, not means; and treat any latency difference under ~20% at this sample size as unmeasured. Applied retroactively — the 1.84x parallelism claim is retracted in `PROGRESS.md`.
+
+## B15 — A running dashboard serves new templates against old code (found 2026-08-30, Milestone 16) — **OPEN, operational**
+
+A `uvicorn` process started before a code change kept serving. Jinja templates are re-read from disk per request, but Python modules are not — so after adding `over_control_breakdown` to `evidence.py` and the template together, the live page returned **500** while the full test suite passed, and a newly added route returned **404**.
+
+**Why it matters here:** §77 requires the dashboard to be verified *live*, and a stale process passes a naive "is it up?" check while serving broken or missing views.
+
+**What is needed:** either `--reload` for development, or a restart step in any verification that follows a code change. Current practice is to start a fresh port and verify every route explicitly, which is what caught this.
