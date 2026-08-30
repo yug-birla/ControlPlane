@@ -80,6 +80,24 @@ def _load() -> list[dict]:
     return sorted(cases, key=lambda c: c["case_id"])[:_SUBSET_SIZE]
 
 
+
+def _score_grounding(case: dict, answer: str | None) -> str | None:
+    """Score the answer against the case's gold document text, the same
+    way the primary benchmark does. Returns None when there is nothing
+    to score, so an unscoreable case is never counted as UNSUPPORTED."""
+    if not answer:
+        return None
+    from controlplane.evaluation.evaluators import EvaluationContext, GroundingEvaluator
+    from controlplane.experiments.evaluate_baseline_vs_controlplane import _gold_evidence
+
+    evidence = _gold_evidence(case.get("gold_document"))
+    if not evidence:
+        return None
+    return GroundingEvaluator().evaluate(
+        EvaluationContext(query=case["query"], answer=answer, evidence_texts=evidence)
+    ).label
+
+
 def _run_case(runtime, case: dict) -> dict:
     ctx = RequestContext.new()
     started = time.monotonic()
@@ -91,10 +109,19 @@ def _run_case(runtime, case: dict) -> dict:
             state = runtime.handle(ctx, state)
         answer = state.metadata.get("answer")
         decision = (state.metadata.get("decision") or {}).get("action")
-        grounding = None
-        for result in state.metadata.get("evaluation_results") or []:
-            if result.get("evaluator") == "grounding":
-                grounding = result.get("label")
+        # Grounding is scored INDEPENDENTLY against the case's gold
+        # document, exactly as evaluate_baseline_vs_controlplane does --
+        # not read from state metadata.
+        #
+        # The first version of this harness looked for
+        # state.metadata["evaluation_results"], a key the runtime does
+        # not write, so `grounding` was None on every row and the
+        # aggregate reported a confident 0.000. That is the same
+        # "field exists, always reports nothing" defect this milestone
+        # found four times elsewhere -- introduced here by me, and
+        # caught only because 0.000 is implausible next to the 0.717 the
+        # 62-case run measured.
+        grounding = _score_grounding(case, answer)
     except Exception as exc:
         failed, decision, grounding = True, f"ERROR: {type(exc).__name__}", None
     latency_ms = int((time.monotonic() - started) * 1000)
@@ -105,6 +132,7 @@ def _run_case(runtime, case: dict) -> dict:
     return {
         "case_id": case["case_id"],
         "category": case["category"],
+        "answer": (answer or "")[:400],
         "correct": correct,
         "answered": bool(answer),
         "grounding": grounding,
@@ -121,7 +149,13 @@ def _aggregate(rows: list[dict]) -> dict:
         "sample_count": len(rows),
         "key_fact_accuracy": sum(1 for r in rows if r["correct"]) / n,
         "answered_rate": sum(1 for r in rows if r["answered"]) / n,
-        "grounding_supported_rate": sum(1 for r in rows if r["grounding"] == "SUPPORTED") / n,
+        # Only over cases where grounding could be scored at all --
+        # dividing by every row would silently report unscoreable cases
+        # as ungrounded.
+        "grounding_scored_count": sum(1 for r in rows if r["grounding"] is not None),
+        "grounding_supported_rate": (
+            sum(1 for r in rows if r["grounding"] == "SUPPORTED")
+            / max(sum(1 for r in rows if r["grounding"] is not None), 1)),
         "request_failure_rate": sum(1 for r in rows if r["request_failed"]) / n,
         "latency_ms_mean": sum(latencies) / n,
         "latency_ms_median": latencies[len(latencies) // 2] if latencies else 0,

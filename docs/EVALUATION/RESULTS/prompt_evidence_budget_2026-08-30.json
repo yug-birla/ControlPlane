@@ -1,0 +1,611 @@
+{
+  "experiment_id": "exp_bf24ad79-1e87-4513-a9f3-c44ad9533b16",
+  "results": {
+    "k_all": {
+      "sample_count": 14,
+      "key_fact_accuracy": 0.9285714285714286,
+      "answered_rate": 1.0,
+      "grounding_supported_rate": 0.0,
+      "request_failure_rate": 0.0,
+      "latency_ms_mean": 50113.5,
+      "latency_ms_median": 44125
+    },
+    "k_3": {
+      "sample_count": 14,
+      "key_fact_accuracy": 1.0,
+      "answered_rate": 1.0,
+      "grounding_supported_rate": 0.0,
+      "request_failure_rate": 0.0,
+      "latency_ms_mean": 58241.78571428572,
+      "latency_ms_median": 36983
+    },
+    "k_2": {
+      "sample_count": 14,
+      "key_fact_accuracy": 1.0,
+      "answered_rate": 1.0,
+      "grounding_supported_rate": 0.0,
+      "request_failure_rate": 0.0,
+      "latency_ms_mean": 36548.57142857143,
+      "latency_ms_median": 30781
+    },
+    "k_1": {
+      "sample_count": 14,
+      "key_fact_accuracy": 1.0,
+      "answered_rate": 1.0,
+      "grounding_supported_rate": 0.0,
+      "request_failure_rate": 0.0,
+      "latency_ms_mean": 120631.28571428571,
+      "latency_ms_median": 22469
+    }
+  },
+  "rows": {
+    "k_all": [
+      {
+        "case_id": "BVC-001",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 143578,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-002",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 52328,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-003",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 39610,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-004",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 42530,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-005",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 44234,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-006",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 45921,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-007",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "VERIFY",
+        "latency_ms": 40843,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-008",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 50266,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-009",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 39421,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-010",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "VERIFY",
+        "latency_ms": 36781,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-011",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 37063,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-012",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 44125,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-013",
+        "category": "SPECIFIC_THRESHOLD",
+        "correct": false,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 44702,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-014",
+        "category": "SPECIFIC_THRESHOLD",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "VERIFY",
+        "latency_ms": 40187,
+        "request_failed": false
+      }
+    ],
+    "k_3": [
+      {
+        "case_id": "BVC-001",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 34016,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-002",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 42671,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-003",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "VERIFY",
+        "latency_ms": 29483,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-004",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 30859,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-005",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 37312,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-006",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 30859,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-007",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "VERIFY",
+        "latency_ms": 32406,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-008",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 36983,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-009",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 27922,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-010",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "VERIFY",
+        "latency_ms": 29577,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-011",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 50094,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-012",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 104843,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-013",
+        "category": "SPECIFIC_THRESHOLD",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 91860,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-014",
+        "category": "SPECIFIC_THRESHOLD",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "VERIFY",
+        "latency_ms": 236500,
+        "request_failed": false
+      }
+    ],
+    "k_2": [
+      {
+        "case_id": "BVC-001",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 71186,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-002",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 79546,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-003",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "VERIFY",
+        "latency_ms": 46703,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-004",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 28280,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-005",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 43609,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-006",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 35171,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-007",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "VERIFY",
+        "latency_ms": 26265,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-008",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 33109,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-009",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 23360,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-010",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "VERIFY",
+        "latency_ms": 24280,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-011",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 21859,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-012",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 23796,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-013",
+        "category": "SPECIFIC_THRESHOLD",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 30781,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-014",
+        "category": "SPECIFIC_THRESHOLD",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "VERIFY",
+        "latency_ms": 23735,
+        "request_failed": false
+      }
+    ],
+    "k_1": [
+      {
+        "case_id": "BVC-001",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 23344,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-002",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 20780,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-003",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "VERIFY",
+        "latency_ms": 17828,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-004",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 22469,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-005",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "VERIFY",
+        "latency_ms": 29061,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-006",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 22765,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-007",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "VERIFY",
+        "latency_ms": 20578,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-008",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 20781,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-009",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 16796,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-010",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "VERIFY",
+        "latency_ms": 16750,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-011",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 1393610,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-012",
+        "category": "GROUNDED_POLICY",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 16139,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-013",
+        "category": "SPECIFIC_THRESHOLD",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "CONTINUE",
+        "latency_ms": 23796,
+        "request_failed": false
+      },
+      {
+        "case_id": "BVC-014",
+        "category": "SPECIFIC_THRESHOLD",
+        "correct": true,
+        "answered": true,
+        "grounding": null,
+        "decision": "VERIFY",
+        "latency_ms": 44141,
+        "request_failed": false
+      }
+    ]
+  }
+}
