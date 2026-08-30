@@ -56,12 +56,27 @@ class AgentCapability:
         self._gate = gate or AgentGate()
         self._sql = sql_capability or SQLCapability()
 
-    def _propose(self, query_text: str) -> tuple[str, str, str]:
+    def _propose(self, query_text: str, handoff=None) -> tuple[str, str, str]:
         """Returns ``(tool_name, tool_call_description, step_risk)`` --
-        deterministic pattern matching only, never an LLM decision."""
+        deterministic pattern matching only, never an LLM decision.
+
+        ``handoff`` is what a predecessor agent actually handed over. It
+        matters here for one reason: an external send carrying data
+        another agent just read out of the enterprise database is a
+        materially different act from the same send with nothing in hand,
+        and the gate could not previously tell them apart. It saw a tool
+        call and a static risk label, never the data the call would
+        carry, so a sensitive-read-then-external-send chain was caught
+        only AFTERWARDS, by ``CompositionGovernor``.
+        """
         if _NOTIFY_PATTERNS.search(query_text):
             tool_call = f"send_notification(query={query_text!r})"
             risk = "HIGH_RISK" if _HIGH_STAKES_NOTIFY_PATTERNS.search(query_text) else "MEDIUM_RISK"
+            if handoff is not None and handoff.carries_sensitive_data:
+                # MEDIUM_RISK restricts; HIGH_RISK demands human sign-off.
+                # The escalation is caused by the handoff, which is what
+                # makes this communication rather than logging.
+                risk = "HIGH_RISK"
             return "send_notification", tool_call, risk
         if _REPORT_PATTERNS.search(query_text):
             return "write_report", f"write_report(query={query_text!r})", "LOW_RISK"
@@ -69,7 +84,14 @@ class AgentCapability:
             return "sql_read_query", f"sql_read_query(query={query_text!r})", "LOW_RISK"
         return "no_actionable_tool", f"no_actionable_tool(query={query_text!r})", "NO_ACTION"
 
-    def execute(self, query_text: str) -> dict:
+    def execute(self, query_text: str, handoff=None) -> dict:
+        """``handoff`` is a ``controlplane.governance.handoff.HandoffContext``
+        or ``None`` when nothing was delivered.
+
+        Every result records what arrived and whether it changed
+        anything, so "did this message matter?" is answered from the
+        execution record rather than from the fact that a message exists.
+        """
         if _DESTRUCTIVE_PATTERNS.search(query_text):
             tool_call = f"destructive_operation(query={query_text!r})"
             # Still asked, purely for the audit record -- the outcome
@@ -87,7 +109,8 @@ class AgentCapability:
                 "tool_result": {"status": "NOT_EXECUTED"},
             }
 
-        tool_name, tool_call, step_risk = self._propose(query_text)
+        baseline_tool, _, baseline_risk = self._propose(query_text, handoff=None)
+        tool_name, tool_call, step_risk = self._propose(query_text, handoff=handoff)
         decision = self._gate.evaluate_step(tool_call, step_risk=step_risk)
 
         result: dict = {
@@ -97,6 +120,18 @@ class AgentCapability:
             "step_risk": step_risk,
             "governance_action": decision.action.value,
             "governance_reason": decision.reason,
+            "handoff_received": handoff.to_dict() if handoff is not None else None,
+            # SS19: a message is not useful because it exists. This is
+            # measured by re-proposing WITHOUT the handoff and comparing,
+            # so the classification rests on a counterfactual the code
+            # actually evaluates.
+            "handoff_influence": (
+                "NONE" if handoff is None
+                else "CHANGED_STEP_RISK"
+                if step_risk != baseline_risk or tool_name != baseline_tool
+                else "OBSERVED_ONLY"
+            ),
+            "step_risk_without_handoff": baseline_risk,
         }
 
         if decision.action == GovernanceAction.BLOCK:
@@ -123,8 +158,13 @@ class AgentCapability:
             if restricted:
                 result["tool_result"] = {"status": "PREVIEW_ONLY", "note": "RESTRICT: file not actually written"}
             else:
-                path = self._write_report(query_text)
+                path = self._write_report(query_text, handoff=handoff)
                 result["tool_result"] = {"status": "WRITTEN", "path": str(path)}
+                if handoff is not None and handoff.evidence_digest:
+                    # The report now contains what the gatherers found
+                    # rather than restating the question, so the handoff
+                    # changed the artifact and not merely the audit trail.
+                    result["handoff_influence"] = "CHANGED_TOOL_OUTPUT"
             result["consequence_class"] = "REVERSIBLE_WRITE"
         elif tool_name == "send_notification":
             if restricted:
@@ -144,9 +184,20 @@ class AgentCapability:
         return result
 
     @staticmethod
-    def _write_report(query_text: str) -> Path:
+    def _write_report(query_text: str, handoff=None) -> Path:
         _REPORTS_DIR.mkdir(parents=True, exist_ok=True)
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f")
         path = _REPORTS_DIR / f"report_{timestamp}.md"
-        path.write_text(f"# Agent Report\n\nGenerated for query: {query_text}\n", encoding="utf-8")
+        body = [f"# Agent Report\n\nGenerated for query: {query_text}\n"]
+        if handoff is not None and handoff.evidence_digest:
+            body.append(
+                f"\n## Evidence received\n\n"
+                f"From {', '.join(handoff.from_agents)} via "
+                f"{', '.join(handoff.sources) or 'unknown source'} "
+                f"({handoff.evidence_count} item(s), sensitivity "
+                f"{handoff.max_sensitivity.value}):\n"
+            )
+            body.extend(f"\n- {item}" for item in handoff.evidence_digest)
+            body.append("\n")
+        path.write_text("".join(body), encoding="utf-8")
         return path

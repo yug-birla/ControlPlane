@@ -428,8 +428,14 @@ def test_multi_agent_composition_is_governed_at_runtime():
 
         def __init__(self):
             self.calls = 0
+            self.received_handoffs = []
 
-        def execute(self, query_text):
+        def execute(self, query_text, handoff=None):
+            # ``handoff`` accepted because the real AgentCapability now
+            # receives what its predecessors found. A double that does not
+            # track the interface fails as a silently FAILED graph node --
+            # which is exactly how this surfaced.
+            self.received_handoffs.append(handoff)
             self.calls += 1
             if self.calls == 1:
                 return {"status": "EXECUTED", "proposed_tool": "sql_read_query",

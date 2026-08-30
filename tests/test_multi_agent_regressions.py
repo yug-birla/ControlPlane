@@ -258,6 +258,9 @@ def test_composition_assessment_does_not_survive_into_the_next_request():
     from controlplane.runtime import Runtime
 
     runtime = object.__new__(Runtime)
+    # The bus is per-request state too, and _reset_per_request_state now
+    # clears it -- a real Runtime always has one from __init__.
+    runtime._agent_bus = AgentBus()
     runtime._composition_assessment = CompositionAssessment(
         risk=CompositionRisk.ELEVATED, reason="left over from an earlier request",
         recommended_action="HUMAN_REVIEW",
@@ -273,6 +276,158 @@ def test_a_request_with_no_agents_reports_no_composition_verdict():
     from controlplane.runtime import Runtime
 
     runtime = object.__new__(Runtime)
+    runtime._agent_bus = AgentBus()
     runtime._reset_per_request_state()
     Runtime._govern_agent_composition(runtime, ctx=None, graph=ExecutionGraph([]))
     assert runtime._composition_assessment is None
+
+
+# ---------------------------------------------------------------------------
+# HANDOFF IS DELIVERY, NOT A TRANSCRIPT.
+#
+# Handoff messages were synthesized after every agent had already run, and
+# AgentCapability.execute took only the query string, so a message could not
+# have changed anything even if it had arrived in time. The communication
+# ablation found no effect because there was none to find.
+#
+# These drive the real Runtime methods against a real graph, without a model
+# (object.__new__ skips __init__), so they check the WIRING rather than the
+# handoff module in isolation.
+# ---------------------------------------------------------------------------
+
+
+def _bare_runtime():
+    from controlplane.capabilities.agent_capability import AgentCapability
+    from controlplane.runtime import Runtime
+
+    runtime = object.__new__(Runtime)
+    runtime._agent_bus = AgentBus()
+    runtime._agent_capability = AgentCapability()
+    runtime._publish = lambda *a, **kw: None  # events are covered elsewhere
+    return runtime
+
+
+def _graph_with_gatherer_and_actor(evidence):
+    graph = ExecutionGraph()
+    graph.add_node(ExecutionNode(
+        node_id="agent_analyst", capability="AGENT",
+        input_ref={"agent_id": "agent_analyst", "role": "ANALYST", "serves_capability": "SQL"},
+    ))
+    graph.add_node(ExecutionNode(
+        node_id="agent_action", capability="AGENT", depends_on=("agent_analyst",),
+        requires_all_dependencies=False,
+        input_ref={"agent_id": "agent_action", "role": "NOTIFIER"},
+    ))
+    graph.get("agent_analyst").status = NodeStatus.COMPLETED
+    graph.get("agent_analyst").output_ref = {
+        "serves_capability": "SQL", "agent_id": "agent_analyst",
+        "agent_role": "ANALYST", "rows": evidence,
+    }
+    return graph
+
+
+def test_the_actor_receives_what_the_gatherer_found():
+    from controlplane.context import RequestContext
+
+    runtime = _bare_runtime()
+    graph = _graph_with_gatherer_and_actor([{"text": "customer contact record 1"}])
+
+    ctx = RequestContext.new()
+    context = runtime._deliver_handoff(ctx, "agent_action", graph.get("agent_action"), graph)
+
+    assert context is not None, "the actor received nothing from its gatherer"
+    assert context.from_agents == ("agent_analyst",)
+    assert context.evidence_count == 1
+    assert context.carries_sensitive_data, "an enterprise DB read is not PUBLIC"
+
+
+def test_the_handoff_changes_the_governance_decision_end_to_end():
+    """The whole point. The same external send is RESTRICTed alone and
+    sent to HUMAN_REVIEW once the actor has been handed data another
+    agent read out of the enterprise database -- a judgement AgentGate
+    could not previously make, because it saw a tool call and a static
+    risk label and never the data the call would carry."""
+    from controlplane.context import RequestContext
+
+    query = "Send the customer contact records to our external marketing agency."
+    graph = _graph_with_gatherer_and_actor([{"text": "customer contact record 1"}])
+    ctx = RequestContext.new()
+
+    informed = _bare_runtime()
+    with_handoff = informed._execute_agent_node(ctx, graph.get("agent_action"), query, graph)
+
+    # Same actor, same query, nothing handed over.
+    alone = _bare_runtime()
+    without_handoff = alone._execute_agent_node(
+        ctx, graph.get("agent_action"), query, graph=None
+    )
+
+    assert without_handoff["governance_action"] == "RESTRICT"
+    assert with_handoff["governance_action"] == "HUMAN_REVIEW"
+    assert with_handoff["handoff_influence"] == "CHANGED_STEP_RISK"
+
+
+def test_a_suppressed_bus_genuinely_deprives_the_actor():
+    """What makes the no-communication arm a control rather than a
+    logging switch: the evidence still exists upstream, and the actor
+    still gets nothing."""
+    from controlplane.context import RequestContext
+
+    class _SilentBus:
+        messages: list = []
+
+        def send(self, message):
+            return message
+
+        def messages_for(self, agent_id):
+            return []
+
+        def clear(self):
+            return None
+
+    runtime = _bare_runtime()
+    runtime._agent_bus = _SilentBus()
+    graph = _graph_with_gatherer_and_actor([{"text": "customer contact record 1"}])
+
+    ctx = RequestContext.new()
+    result = runtime._execute_agent_node(ctx, graph.get("agent_action"),
+                                         "Send the customer contact records externally.", graph)
+    assert result["handoff_received"] is None
+    assert result["handoff_influence"] == "NONE"
+    assert result["governance_action"] == "RESTRICT"
+
+
+def test_the_agent_bus_does_not_survive_into_the_next_request():
+    """The bus accumulated for the life of the Runtime. As a transcript
+    that only produced a wrong count -- the benchmark's '30 agent
+    messages' is a cumulative total across all 12 cases. Once the bus
+    became the delivery channel it became a safety problem: an actor
+    reads messages_for() to learn what it was handed, so an un-cleared
+    bus lets a request inherit a previous request's evidence, including
+    the sensitivity that now changes the governance decision."""
+    from controlplane.governance.multi_agent import AgentMessage, AgentMessageType
+    from controlplane.runtime import Runtime
+
+    runtime = object.__new__(Runtime)
+    runtime._agent_bus = AgentBus()
+    runtime._agent_bus.send(AgentMessage(
+        message_type=AgentMessageType.HANDOFF, from_agent="agent_analyst",
+        to_agent="agent_action", payload_summary="5 evidence item(s)",
+    ))
+    assert runtime._agent_bus.messages_for("agent_action")
+
+    runtime._reset_per_request_state()
+    assert runtime._agent_bus.messages_for("agent_action") == []
+
+
+def test_the_reset_clears_the_bus_without_replacing_it():
+    """An injected bus must survive the reset, or the no-communication
+    arm quietly becomes the communication arm from the second request
+    onward."""
+    from controlplane.runtime import Runtime
+
+    runtime = object.__new__(Runtime)
+    injected = AgentBus()
+    runtime._agent_bus = injected
+    runtime._reset_per_request_state()
+    assert runtime._agent_bus is injected

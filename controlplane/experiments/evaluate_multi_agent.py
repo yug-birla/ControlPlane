@@ -111,6 +111,20 @@ class _SilentBus:
     def send(self, message):
         return message
 
+    def clear(self) -> None:
+        return None
+
+    def messages_for(self, agent_id: str) -> list:
+        """Always empty -- this is now the variable under test.
+
+        Handoffs used to be synthesized after execution, so suppressing
+        the bus removed a log entry and nothing else, and conditions C
+        and D were identical by construction. The bus is now the channel:
+        an actor reads its inbox to learn what its gatherers found, so an
+        empty inbox means the actor genuinely acts without that evidence.
+        """
+        return []
+
     def triage_replan_request(self, message, **kwargs):
         from controlplane.governance.agent_bus import RequestTriage, TriageResult
 

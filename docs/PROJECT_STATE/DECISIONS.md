@@ -526,3 +526,102 @@ or version, and generalises to Band C and fiscal 2022 untouched.
 The purely-lexical ceiling is visible in that list, and so is the shape of
 the next step: D_semantic wins exactly where C loses. E already combines
 them and already works — it is blocked on the guard, not on the idea.
+
+---
+
+## Milestone 15b — Agent collaboration made real
+
+### The handoff was manufactured after the fact
+
+`_govern_agent_composition` runs *after* the graph has executed. It read
+the finished agent results, found the actor among them, and constructed
+`HANDOFF` messages describing an exchange that had already not happened.
+`AgentCapability.execute` took `query_text` and nothing else, so an actor
+could not have used a handoff even if one had arrived in time.
+
+That is §4's "fake multi-agent" precisely: agents producing output in
+parallel, a merge, and a record of communication that changed nothing. It
+also disposes of the communication ablation. Conditions C and D differed
+only in whether a post-execution log was written — **there was no effect
+to find**, and reporting "communication is observability, not capability"
+credited the system with a negative result it had not earned.
+
+| Decision | Reason | Result |
+|---|---|---|
+| The bus becomes the **channel**, not the transcript | Handoffs are sent by `_deliver_handoff` at the moment the receiving agent runs, from upstream `output_ref` the executor has already populated, and the actor reads its own inbox via `messages_for` | Suppressing the bus now genuinely deprives the actor of evidence, which is what makes the no-communication arm a control rather than a logging flag | **ADOPT** |
+| `AgentGate` sees the tool call only | The actor's proposal carries the **sensitivity of what it was handed** | An external send carrying data another agent just read out of the enterprise database is a materially different act from the same send with nothing in hand. The gate saw a tool call and a static risk label, so this chain was caught only afterwards by `CompositionGovernor` | Same query, same tool: `RESTRICT` alone, **`HUMAN_REVIEW`** once handed CONFIDENTIAL evidence | **ADOPT** |
+| Structured context, capped | `HandoffContext` carries contributing agents, sources, count, max sensitivity and a digest capped at 3 items × 240 chars | §12/§37: passing the upstream trajectory would inflate every actor prompt for no gain. A 50-item retrieval hands over 3 snippets and the true count | **ADOPT** |
+
+Influence is not assumed from a message existing. `AgentCapability`
+re-proposes **without** the handoff and compares, so
+`handoff_influence` (`NONE` / `OBSERVED_ONLY` / `CHANGED_STEP_RISK` /
+`CHANGED_TOOL_OUTPUT`) rests on a counterfactual the code actually
+evaluates. A handoff of PUBLIC evidence is recorded as `OBSERVED_ONLY`
+and changes nothing — the guard against buying safety by escalating
+everything.
+
+### A second state leak, which the change turned into a safety problem
+
+`_reset_per_request_state` cleared `_composition_assessment` and nothing
+else. **`AgentBus` accumulated every message for the life of the
+Runtime.** While the bus was only a transcript this produced a wrong
+number: the multi-agent benchmark's *"30 agent messages"* is a cumulative
+total across all 12 cases, not a per-request figure.
+
+Once the bus became the delivery channel it became a correctness and
+safety problem — `messages_for` is how an actor learns what it was
+handed, so an un-cleared bus lets a request inherit a **previous
+request's evidence**, including the sensitivity that now changes the
+governance decision. Same family as the composition-verdict leak that
+made "What is the capital of France?" report `ELEVATED`.
+
+The bus is **cleared, never replaced**. Replacing it would restore a real
+`AgentBus` over the injected silent one on every request after the first,
+quietly turning the no-communication arm back into the communication arm.
+
+### Which agents earned their place
+
+Agent count, message count and latency were all recorded; none of them
+answers whether decomposition paid for itself. `governance/contribution.py`
+measures, per agent and kept deliberately separate (§11):
+
+`evidence_contributed`, `unique_evidence`, `duplicate_evidence`,
+`information_gain`, `downstream_influence`, `answer_influence`, `latency_ms`
+
+| Verdict | Meaning |
+|---|---|
+| `ESSENTIAL` | unique evidence that reached the answer or changed a downstream decision |
+| `CONTRIBUTING` | unique evidence, no traceable effect |
+| `REDUNDANT` | everything it produced, another agent also produced |
+| `INERT` | produced nothing, influenced nothing |
+
+`wasted_agent_rate` — the share that are REDUNDANT or INERT — is the
+number the planner should be judged on, and the one that makes §72's
+"minimum necessary complexity" measurable rather than a slogan.
+
+Two limits stated rather than buried. `answer_influence` is lexical
+overlap, so it is a proxy: it is reported as its own dimension, never
+folded into a headline, and an agent with downstream influence is
+ESSENTIAL regardless. Duplicate detection normalises case and whitespace
+only — two agents quoting the same passage differently have not each
+contributed it.
+
+### The multi-agent control view
+
+`/dashboard/agents` answers §67 from recorded events: per **role**
+USEFUL / REDUNDANT / UNCERTAIN, and per **channel** whether delivered
+handoffs changed anything. A role stays UNCERTAIN below 3 observations
+however uniform its record — one redundant run is an anecdote, and a
+dashboard that calls a role useless on a single observation is worse than
+one that says nothing.
+
+Communication `utility_rate` is *changed / delivered*, not messages sent.
+Volume is not utility, which was the original error.
+
+### Still not measured
+
+The corrected multi-agent ablation has **not** been re-run: it needs the
+generation model, which the Prometheus judge comparison holds. Everything
+above is verified by unit and wiring tests driving the real `Runtime`
+methods against a real graph; the end-to-end quality effect of genuine
+handoff remains **NOT_MEASURED**.

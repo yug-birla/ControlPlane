@@ -15,6 +15,10 @@ from fastapi.requests import Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
+from controlplane.dashboard.agents import (
+    MIN_OBSERVATIONS_FOR_ROLE_VERDICT,
+    build_agent_view,
+)
 from controlplane.dashboard.dataset_health import build_dataset_health
 from controlplane.dashboard.evidence import build_evidence
 from controlplane.dashboard.queries import (
@@ -102,4 +106,22 @@ def dashboard_datasets(request: Request) -> HTMLResponse:
 def dashboard_component_health(request: Request) -> HTMLResponse:
     return _templates.TemplateResponse(
         request, "health.html", {"health": aggregate_component_health()}
+    )
+
+
+@router.get("/api/agents")
+def api_agents() -> dict:
+    return build_agent_view()
+
+
+@router.get("/agents", response_class=HTMLResponse)
+def dashboard_agents(request: Request) -> HTMLResponse:
+    """§50: the dedicated multi-agent control view.
+
+    Answers "which agents were worth running", which agent counts and
+    message counts cannot.
+    """
+    return _templates.TemplateResponse(
+        request, "agents.html",
+        {"view": build_agent_view(), "min_observations": MIN_OBSERVATIONS_FOR_ROLE_VERDICT},
     )

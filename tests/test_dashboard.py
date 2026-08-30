@@ -423,3 +423,84 @@ def test_a_version_increment_is_not_credited_as_a_split():
 
     stems = {"baseline_vs_controlplane_cases", "baseline_vs_controlplane_cases_v2"}
     assert _sibling_split_partner("baseline_vs_controlplane_cases", stems) is None
+
+
+# ---------------------------------------------------------------------------
+# SS50/SS52/SS67 -- the multi-agent control view. The dashboard could already
+# draw agent topology and messages; it could not say which agents were worth
+# running, which is the question a reviewer actually asks.
+# ---------------------------------------------------------------------------
+
+
+def test_the_agent_view_survives_an_empty_event_stream():
+    """It must render "nothing recorded" rather than an empty table that
+    reads like a measured zero."""
+    from controlplane.dashboard.agents import build_agent_view
+
+    view = build_agent_view(limit=0)
+    assert view["request_count"] == 0
+    assert view["total_agents"] == 0
+    assert view["wasted_agent_rate"] is None
+    assert view["communication"]["utility_rate"] is None
+
+
+def test_a_role_is_not_judged_on_too_few_observations():
+    """One redundant run is an anecdote. A dashboard that calls a role
+    useless on a single observation is worse than one that says nothing."""
+    from controlplane.dashboard.agents import (
+        MIN_OBSERVATIONS_FOR_ROLE_VERDICT,
+        _role_verdict,
+    )
+
+    one_bad = [{"verdict": "REDUNDANT"}]
+    verdict, reason = _role_verdict(one_bad)
+    assert verdict == "UNCERTAIN"
+    assert "too few" in reason
+
+    many_bad = [{"verdict": "REDUNDANT"}] * MIN_OBSERVATIONS_FOR_ROLE_VERDICT
+    assert _role_verdict(many_bad)[0] == "REDUNDANT"
+
+    many_good = [{"verdict": "ESSENTIAL"}] * MIN_OBSERVATIONS_FOR_ROLE_VERDICT
+    assert _role_verdict(many_good)[0] == "USEFUL"
+
+
+def test_an_inconsistent_role_is_uncertain_rather_than_useful():
+    """Half the runs adding nothing is not a role that has earned a
+    USEFUL verdict."""
+    from controlplane.dashboard.agents import _role_verdict
+
+    mixed = [{"verdict": "ESSENTIAL"}, {"verdict": "REDUNDANT"},
+             {"verdict": "INERT"}, {"verdict": "CONTRIBUTING"}]
+    verdict, reason = _role_verdict(mixed)
+    assert verdict == "UNCERTAIN"
+    assert "inconsistently" in reason
+
+
+def test_the_agent_page_and_its_api_both_render():
+    from fastapi.testclient import TestClient
+
+    from controlplane.main import app
+
+    client = TestClient(app)
+    page = client.get("/dashboard/agents")
+    assert page.status_code == 200
+    assert "Multi-Agent Control" in page.text
+
+    api = client.get("/dashboard/api/agents")
+    assert api.status_code == 200
+    body = api.json()
+    for key in ("request_count", "total_agents", "roles", "communication", "verdict_counts"):
+        assert key in body, key
+
+
+def test_the_agent_page_is_reachable_from_every_other_page():
+    """A view nobody can navigate to is not part of the dashboard."""
+    from fastapi.testclient import TestClient
+
+    from controlplane.main import app
+
+    client = TestClient(app)
+    for path in ("/dashboard", "/dashboard/evidence", "/dashboard/health-map"):
+        response = client.get(path)
+        assert response.status_code == 200, path
+        assert "/dashboard/agents" in response.text, path

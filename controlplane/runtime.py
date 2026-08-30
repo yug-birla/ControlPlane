@@ -59,7 +59,13 @@ from controlplane.intervention.engine import InterventionEngine, InterventionSpe
 from controlplane.events.store import EventStore
 from controlplane.events.transport import EventTransport, InProcessEventTransport
 from controlplane.execution.executor import GraphExecutor
-from controlplane.governance.agent_bus import AgentBus, evidence_handoff
+from controlplane.governance.agent_bus import AgentBus
+from controlplane.governance.contribution import measure_contributions, summarise
+from controlplane.governance.handoff import (
+    build_handoff_context,
+    evidence_items,
+    handoff_messages_for,
+)
 from controlplane.governance.multi_agent import (
     AgentMessage,
     AgentMessageType,
@@ -212,6 +218,7 @@ class Runtime:
         # Agent-to-agent communication (Milestone 12): every message is
         # recorded, so there is no hidden agent channel.
         self._agent_bus = AgentBus()
+        self._agent_contributions: list = []
         self._composition_assessment = None
         # MCP capability fabric (Milestone 11): uniform discovery and
         # invocation, normalized results, classified failures. Wired to
@@ -238,6 +245,26 @@ class Runtime:
         field added has an obvious place to go.
         """
         self._composition_assessment = None
+        self._agent_contributions = []
+        # THE BUS IS PER-REQUEST STATE AND WAS NOT BEING CLEARED.
+        #
+        # ``AgentBus`` accumulated every message for the life of the
+        # Runtime. While it was only a transcript that produced a wrong
+        # count: the multi-agent benchmark's "30 agent messages" is a
+        # CUMULATIVE total across all 12 cases, not a per-request figure.
+        #
+        # Once the bus became the delivery channel it became a
+        # correctness and safety problem: ``messages_for`` is how an actor
+        # learns what it was handed, so an un-cleared bus lets a request
+        # inherit a previous request's evidence -- including its
+        # sensitivity, which now changes the governance decision. Exactly
+        # the leak that made "What is the capital of France?" report a
+        # composition risk belonging to an earlier request.
+        #
+        # Cleared, never replaced: a bus injected by an experiment must
+        # survive the reset or the no-communication arm quietly becomes
+        # the communication arm from the second request onward.
+        self._agent_bus.clear()
 
     def _publish(
         self, event_type: EventType, ctx: RequestContext, *, source: str, payload: dict, severity: Severity | None = None
@@ -735,7 +762,9 @@ class Runtime:
             # COMPLETED here because this dict bypassed it entirely.
             "SQL": lambda node: self._invoke_via_mcp(ctx, "SQL", query),
             "RAG": lambda node: self._invoke_via_mcp(ctx, "RAG", query),
-            "AGENT": lambda node: self._execute_agent_node(ctx, node, query),
+            "AGENT": lambda node: self._execute_agent_node(
+                ctx, node, query, capability_route.graph
+            ),
         }
         executor = GraphExecutor(handlers=handlers)
         graph_result = executor.run(capability_route.graph, mode="parallel")
@@ -769,13 +798,16 @@ class Runtime:
             if node.capability == "AGENT" and node.status == NodeStatus.COMPLETED:
                 self._record_agent_action(ctx, node.output_ref)
 
-        self._govern_agent_composition(ctx, capability_route.graph)
+        self._govern_agent_composition(
+            ctx, capability_route.graph,
+            answer=(captured.get("result") or {}).get("content"),
+        )
 
         if "generation" in graph_result.failed:
             raise captured["error"]
         return captured["result"]
 
-    def _execute_agent_node(self, ctx: RequestContext, node, query: str) -> dict:
+    def _execute_agent_node(self, ctx: RequestContext, node, query: str, graph=None) -> dict:
         """Run one AGENT node.
 
         Two kinds of agent node exist and they do different work:
@@ -811,8 +843,56 @@ class Runtime:
                 "execution_status": "EXECUTED" if result.get("status") != "FAILED" else "FAILED",
             }
 
-        return {**self._agent_capability.execute(query), "agent_id": agent_id,
+        # AN ACTOR RECEIVES WHAT ITS PREDECESSORS FOUND.
+        #
+        # Handoff messages used to be synthesized after every agent had
+        # already run, describing an exchange that never happened, and
+        # ``AgentCapability.execute`` took only the query string -- so a
+        # handoff could not have changed anything even if one had arrived
+        # in time. That is why the communication ablation found no effect:
+        # there was none to find.
+        #
+        # The actor depends on its gatherers, so by the time this runs the
+        # executor has already populated their ``output_ref``. The
+        # messages are sent through the bus HERE, at the real moment of
+        # handoff, and the actor then reads its own inbox. Suppressing the
+        # bus now genuinely deprives the actor of evidence, which is what
+        # makes the no-communication arm a control rather than a logging
+        # switch.
+        handoff = self._deliver_handoff(ctx, agent_id, node, graph)
+        return {**self._agent_capability.execute(query, handoff=handoff),
+                "agent_id": agent_id,
                 "agent_role": input_ref.get("role", "NOTIFIER")}
+
+    def _deliver_handoff(self, ctx: RequestContext, agent_id: str, node, graph):
+        """Send this agent's inbound handoffs, then read its inbox."""
+        if graph is None or not getattr(node, "depends_on", ()):
+            return None
+
+        upstream: list[tuple[str, dict]] = []
+        for dependency in node.depends_on:
+            try:
+                upstream_node = graph.get(dependency)
+            except Exception:
+                continue
+            if upstream_node is None or upstream_node.capability != "AGENT":
+                continue
+            if not upstream_node.output_ref:
+                continue
+            upstream.append((dependency, upstream_node.output_ref))
+
+        if not upstream:
+            return None
+
+        for message in handoff_messages_for(to_agent=agent_id, upstream=upstream):
+            self._agent_bus.send(message)
+            self._publish(
+                EventType.AGENT_MESSAGE_SENT, ctx, source="agent_bus",
+                payload=message.to_dict(),
+            )
+
+        delivered = self._agent_bus.messages_for(agent_id)
+        return build_handoff_context(delivered=delivered, upstream=upstream)
 
     def _decide_compute(
         self,
@@ -901,7 +981,9 @@ class Runtime:
             )
         return {**result.output, "mcp": result.to_dict()}
 
-    def _govern_agent_composition(self, ctx: RequestContext, graph: ExecutionGraph) -> None:
+    def _govern_agent_composition(
+        self, ctx: RequestContext, graph: ExecutionGraph, answer: str | None = None
+    ) -> None:
         """Evaluate the COMPOSED agent chain, not just individual steps.
 
         Milestone 10: ``AgentGate`` evaluates one proposed step against
@@ -929,30 +1011,51 @@ class Runtime:
         assessment = self._composition_governor.evaluate(steps)
         self._composition_assessment = assessment
 
+        # WHAT DID EACH AGENT ACTUALLY ADD?
+        #
+        # Agent count, message count and latency were all recorded; none
+        # of them answers whether decomposition paid for itself. An agent
+        # that re-fetches what another agent already holds costs latency,
+        # tokens and a governance surface and contributes nothing, and
+        # nothing in the system could say so.
+        latencies = {
+            node.node_id: node.latency_ms
+            for node in graph.nodes
+            if node.capability == "AGENT" and node.latency_ms is not None
+        }
+        self._agent_contributions = measure_contributions(
+            agent_results=agent_results, answer=answer, latencies_ms=latencies,
+        )
+        if self._agent_contributions:
+            self._publish(
+                EventType.AGENT_ACTION_GOVERNED, ctx, source="controlplane",
+                severity=Severity.NOTICE,
+                payload={
+                    "scope": "CONTRIBUTION",
+                    "agents": [c.to_dict() for c in self._agent_contributions],
+                    **summarise(self._agent_contributions),
+                },
+            )
+
         # AGENT COMMUNICATION (Milestone 12). Every handoff between agents
         # is recorded on the event stream, so there is no path by which two
         # agents exchange anything unobserved. A gatherer that produced
         # evidence hands it to the actor; a gatherer that produced none
         # raises a REPLAN_REQUEST, which ControlPlane triages rather than
         # obeys.
-        actor_step = next((s for s in steps if s.agent.role is AgentRole.NOTIFIER), None)
+        # HANDOFFS ARE NO LONGER SYNTHESIZED HERE. They are sent by
+        # ``_deliver_handoff`` at the moment the receiving agent runs, so
+        # the message precedes the behaviour it influences instead of
+        # describing it afterwards. What remains is the case with no
+        # receiver to inform: a gatherer that produced nothing, whose
+        # claim ControlPlane triages rather than obeys.
         for step in steps:
             if step.agent.role is AgentRole.NOTIFIER:
                 continue
             result = dict(agent_results)[step.agent.agent_id]
-            evidence_count = len(result.get("evidence") or result.get("chunks") or result.get("rows") or [])
+            evidence_count = len(evidence_items(result))
 
-            if evidence_count and actor_step is not None:
-                message = evidence_handoff(
-                    from_agent=step.agent.agent_id, to_agent=actor_step.agent.agent_id,
-                    evidence_count=evidence_count, sensitivity=step.data_sensitivity,
-                )
-                self._agent_bus.send(message)
-                self._publish(
-                    EventType.AGENT_MESSAGE_SENT, ctx, source="agent_bus",
-                    payload=message.to_dict(),
-                )
-            elif not evidence_count:
+            if not evidence_count:
                 request = AgentMessage(
                     message_type=AgentMessageType.REPLAN_REQUEST,
                     from_agent=step.agent.agent_id, to_agent=None,

@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}Multi-Agent Control{% endblock %}
+{% block content %}
+
+<h1 style="font-size:20px;margin-bottom:4px;">Multi-Agent Control</h1>
+<p class="note">
+  Every figure here is aggregated from recorded events. The question this page answers is not
+  how many agents ran, but which of them were worth running &mdash; an agent that re-fetches
+  what another agent already holds costs latency, tokens and a governance surface, and
+  contributes nothing.
+</p>
+
+{% if view.request_count == 0 %}
+<div class="panel">
+  <h2>No agent activity recorded</h2>
+  <p>No request has yet emitted a contribution record. Send a request that justifies agents
+  (two independent data sources, or an action), then reload.</p>
+</div>
+{% else %}
+
+<div class="panel">
+  <h2>Across {{ view.request_count }} request(s)</h2>
+  <table>
+    <tr>
+      <th>Agents run</th><td>{{ view.total_agents }}</td>
+      <th>Wasted agent rate</th>
+      <td>
+        {% if view.wasted_agent_rate is not none %}
+          <span class="badge {% if view.wasted_agent_rate > 0.33 %}severity-HIGH_RISK{% else %}severity-LOW_RISK{% endif %}">
+            {{ '%.3f'|format(view.wasted_agent_rate) }}
+          </span>
+        {% else %}<span class="note">n/a</span>{% endif %}
+      </td>
+    </tr>
+    <tr>
+      <th>Latency spent on agents that added nothing</th>
+      <td>{{ '%.0f'|format(view.wasted_latency_ms) }} ms</td>
+      <th>Verdicts</th>
+      <td class="mono">
+        {% for verdict, count in view.verdict_counts.items() %}{{ verdict }}={{ count }} {% endfor %}
+      </td>
+    </tr>
+  </table>
+  <p class="note">
+    <strong>Wasted agent rate</strong> is the share of agents judged REDUNDANT (everything it
+    produced, another agent also produced) or INERT (produced nothing and influenced nothing).
+    It is the number the planner should be judged on: agents that could have been left out
+    without losing anything measurable.
+  </p>
+</div>
+
+<div class="panel">
+  <h2>Is each role earning its place?</h2>
+  <table>
+    <tr><th>Role</th><th>Observations</th><th>Verdict</th><th>Unique</th>
+        <th>Duplicate</th><th>Information gain</th><th>Basis</th></tr>
+    {% for role in view.roles %}
+    <tr>
+      <td class="mono">{{ role.role }}</td>
+      <td>{{ role.observations }}</td>
+      <td>
+        <span class="badge {% if role.verdict == 'USEFUL' %}severity-LOW_RISK{% elif role.verdict == 'REDUNDANT' %}severity-HIGH_RISK{% else %}severity-MEDIUM_RISK{% endif %}">
+          {{ role.verdict }}
+        </span>
+      </td>
+      <td>{{ role.unique_evidence }}</td>
+      <td>{{ role.duplicate_evidence }}</td>
+      <td>{{ '%.3f'|format(role.information_gain) }}</td>
+      <td class="note">{{ role.reason }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p class="note">
+    A role stays <strong>UNCERTAIN</strong> below {{ min_observations }} observations however
+    uniform its record looks. One redundant run is an anecdote, and a dashboard that declares a
+    role useless on a single observation is worse than one that says nothing.
+  </p>
+</div>
+
+<div class="panel">
+  <h2>Did communication change anything?</h2>
+  {% set comm = view.communication %}
+  <table>
+    <tr>
+      <th>Handoffs sent</th><td>{{ comm.handoff_count }}</td>
+      <th>Delivered to an agent</th><td>{{ comm.delivered_count }}</td>
+    </tr>
+    <tr>
+      <th>Changed the receiver's behaviour</th><td>{{ comm.changed_behaviour_count }}</td>
+      <th>Utility rate</th>
+      <td>
+        {% if comm.utility_rate is not none %}
+          <span class="badge {% if comm.utility_rate > 0 %}severity-LOW_RISK{% else %}severity-MEDIUM_RISK{% endif %}">
+            {{ '%.3f'|format(comm.utility_rate) }}
+          </span>
+        {% else %}<span class="note">no handoffs delivered yet</span>{% endif %}
+      </td>
+    </tr>
+    <tr>
+      <th>Sensitivity of handed-over data</th>
+      <td colspan="3" class="mono">
+        {% for level, count in comm.sensitivity_breakdown.items() %}{{ level }}={{ count }} {% endfor %}
+      </td>
+    </tr>
+  </table>
+  <p class="note">
+    <strong>Utility rate</strong> is the share of delivered handoffs that altered what the
+    receiving agent did &mdash; taken from the receiver's own execution record, not from the
+    existence of a message. Volume is not utility. A handoff carrying CONFIDENTIAL data into an
+    external send escalates that step from RESTRICT to HUMAN_REVIEW, which is what a changed
+    behaviour looks like here.
+  </p>
+</div>
+
+{% if view.composition_flags %}
+<div class="panel">
+  <h2>Compositions flagged</h2>
+  <table>
+    <tr><th>Request</th><th>Risk</th><th>Chain</th><th>Reason</th></tr>
+    {% for flag in view.composition_flags %}
+    <tr>
+      <td class="mono"><a href="/dashboard/requests/{{ flag.request_id }}">{{ flag.request_id[:12] }}</a></td>
+      <td><span class="badge {% if flag.risk == 'CRITICAL' %}severity-CRITICAL{% else %}severity-HIGH_RISK{% endif %}">{{ flag.risk }}</span></td>
+      <td class="mono">{{ flag.agent_chain|join(' &rarr; ')|safe }}</td>
+      <td class="note">{{ flag.reason }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p class="note">
+    Individually permissible steps that are unsafe together &mdash; a sensitive read followed by
+    an external send. Only steps that actually executed are counted: a blocked step has not
+    exfiltrated anything, and counting it would manufacture a risk the system already prevented.
+  </p>
+</div>
+{% endif %}
+
+<div class="panel">
+  <h2>Per request</h2>
+  <table>
+    <tr><th>Request</th><th>Agents</th><th>Essential</th><th>Redundant</th>
+        <th>Inert</th><th>Wasted rate</th><th>Wasted latency</th></tr>
+    {% for row in view.per_request %}
+    <tr>
+      <td class="mono"><a href="/dashboard/requests/{{ row.request_id }}">{{ row.request_id[:12] }}</a></td>
+      <td>{{ row.agent_count }}</td>
+      <td>{{ row.essential_count }}</td>
+      <td>{{ row.redundant_count }}</td>
+      <td>{{ row.inert_count }}</td>
+      <td>{{ '%.2f'|format(row.wasted_agent_rate) }}</td>
+      <td>{{ '%.0f'|format(row.wasted_latency_ms) }} ms</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+{% endif %}
+{% endblock %}

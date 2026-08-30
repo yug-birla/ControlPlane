@@ -91,6 +91,18 @@ class AgentBus:
             )
         return message
 
+    def clear(self) -> None:
+        """Drop everything belonging to one request.
+
+        The Runtime clears the bus rather than replacing it, so a bus
+        injected for an experiment -- notably the suppressed bus in the
+        no-communication arm -- survives the reset. Replacing it would
+        silently restore normal communication on every request after the
+        first and turn that arm back into the control it is compared to.
+        """
+        self.messages.clear()
+        self._replan_requests.clear()
+
     def messages_for(self, agent_id: str) -> list[AgentMessage]:
         return [m for m in self.messages if m.to_agent == agent_id]
 

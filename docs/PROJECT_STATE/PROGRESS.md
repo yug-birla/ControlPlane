@@ -2,6 +2,56 @@
 
 Reverse-chronological. Each entry: what happened, evidence.
 
+## 2026-08-30 — Milestone 15b: agent collaboration made real
+
+**The handoff was manufactured after the fact.** `_govern_agent_composition`
+runs after the graph has executed; it read the finished results and
+constructed `HANDOFF` messages describing an exchange that had already not
+happened. `AgentCapability.execute` took the query string and nothing else.
+This is §4's "fake multi-agent" exactly — and it disposes of the
+communication ablation: conditions C and D differed only in whether a
+post-execution log was written, so there was no effect to find.
+"Communication is observability, not capability" was a negative result the
+system had not earned.
+
+The bus is now the **channel**. Handoffs are sent at the moment the
+receiving agent runs, from upstream `output_ref` the executor has already
+populated, and the actor reads its own inbox. Suppressing the bus now
+genuinely deprives the actor of evidence.
+
+**Communication changes a governance decision.** The actor's proposal
+carries the sensitivity of what it was handed, so `AgentGate` can judge the
+data the call will carry rather than only the tool name. Same query, same
+tool: **`RESTRICT` alone, `HUMAN_REVIEW` once handed CONFIDENTIAL
+evidence.** Influence is not assumed from a message existing — the agent
+re-proposes *without* the handoff and compares, so `handoff_influence` rests
+on a counterfactual the code evaluates. A handoff of PUBLIC evidence is
+recorded `OBSERVED_ONLY` and changes nothing.
+
+**A second state leak, which this turned dangerous.** `AgentBus`
+accumulated for the life of the Runtime. As a transcript that only produced
+a wrong number — the benchmark's "30 agent messages" is cumulative across
+all 12 cases. As a delivery channel it lets a request inherit a *previous
+request's* evidence, including the sensitivity that now changes the
+governance decision. The bus is cleared, never replaced: replacing it would
+restore a real bus over the injected silent one and quietly turn the
+no-communication arm back into the communication arm.
+
+**Which agents earned their place.** `governance/contribution.py` measures
+unique vs duplicate evidence, information gain, downstream influence and
+answer influence per agent — kept separate, never collapsed — and derives
+`ESSENTIAL` / `CONTRIBUTING` / `REDUNDANT` / `INERT`. `wasted_agent_rate` is
+what makes "minimum necessary complexity" measurable.
+
+**`/dashboard/agents`** answers §67 from recorded events: per role
+USEFUL/REDUNDANT/UNCERTAIN, per channel whether delivered handoffs changed
+anything. A role stays UNCERTAIN below 3 observations — one redundant run is
+an anecdote. Utility rate is *changed / delivered*, not messages sent.
+
+19 new tests (contribution, handoff behaviour, wiring against a real graph,
+dashboard). All affected suites pass. The corrected ablation is still
+**NOT_MEASURED** — it needs the generation model Prometheus holds.
+
 ## 2026-08-30 — Milestone 15: Agent System Perfection — three fixes, one retraction
 
 Started from the directive's first instruction: root-cause the multi-agent
