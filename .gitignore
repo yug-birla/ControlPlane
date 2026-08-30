@@ -24,3 +24,9 @@ data/agent_reports/
 # shared cache (used by other, unrelated projects too, not just
 # ControlPlane) and can grow to several GB -- never commit it.
 .cache/
+
+# IDE / AI assistant metadata — machine-local, not project source.
+.claude/
+
+# Research PDFs — large binary blobs, not source code.
+Research papers/
