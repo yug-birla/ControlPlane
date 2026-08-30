@@ -2,6 +2,48 @@
 
 Reverse-chronological. Each entry: what happened, evidence.
 
+## 2026-08-30 — Milestone 16d: A dataset that finally discriminates, and what it exposed
+
+The frozen benchmark's 5 UNANSWERABLE cases proved nothing: both arms refuse all five, because every one is a topic entirely absent from the corpus. 20 new cases put **adjacent** evidence in reach instead. They discriminate immediately.
+
+| metric | baseline | ControlPlane |
+|---|---:|---:|
+| correct abstention | **0.714** | 0.357 |
+| confabulation | **0.286** | 0.643 |
+| control answered (6 answerable) | 0.333 | **1.000** |
+| over-abstention on controls | 0.667 | **0.000** |
+| control value factually correct | 0.000 | **0.500** |
+| **discrimination** | +0.048 | **+0.357** |
+
+**Read the first row carefully.** The baseline abstains *more* — and that is not a virtue. It also refuses **two thirds of the answerable questions** and gets **none** of the control values right. It is not abstaining well; it is refusing indiscriminately, which is what a model with no retrieved information does. `discrimination` (control-answered minus confabulation) is the metric that separates those, and it is designed so both degenerate strategies score 0. ControlPlane scores **7.4× higher**, and the gap holds on the held-out split (+0.286 vs +0.048).
+
+**But ControlPlane confabulates on 64% of the hard unanswerable cases**, and that is a real weakness this dataset was built to expose.
+
+### Root cause, confirmed at the code level
+
+Per hardness type, ControlPlane's behaviour is not random:
+
+| type | result |
+|---|---|
+| `period_absent_from_table` | **2/2 correct** — Q4 2024, 2023 APAC |
+| `adjacent_tier_interpolation` | 0/2 |
+| `absent_subgroup` | 0/2 |
+| `unstated_threshold` | 0/2 |
+
+**Structural absence is handled; semantic absence is not.** When a table simply has no rows, SQL returns nothing and the system says so. When a *document* contains adjacent-but-inapplicable text, retrieval returns it and the model answers from it.
+
+Verified directly rather than inferred:
+
+```
+Q: What is the hotel allowance for Tier 3 cities?   -> SUFFICIENT, coverage 1.00
+Q: What is the hotel allowance for Tier 1 cities?   -> SUFFICIENT, coverage 1.00
+                                                        (identical top chunk)
+```
+
+`RAGAdequacyEvaluator` computes `|query_terms ∩ evidence_terms| / |query_terms|` over **unigrams**. "Tier 3" tokenises to `{tier, 3}`, both of which appear in text about Tier 1. The evaluator structurally cannot tell that the retrieved passage is about a **different entity** than the one asked about. A contractor question scored coverage 0.33 and was still labelled `SUFFICIENT`.
+
+Root-cause class: **ALGORITHM** — lexical unigram coverage cannot express entity mismatch. A candidate fix is n-gram coverage (the bigram "tier 3" is absent from the corpus while "tier 1" is present), which is a representation refinement rather than an exception list. Not attempted yet; recorded in `FUTURE_WORK.md` with the dev/test split already in place so it cannot be tuned on its own evaluation.
+
 ## 2026-08-30 — Milestone 16c: The abstention metric was measuring its own keyword list
 
 Two headline metrics were wrong, and the error was in the harness, not the system.
