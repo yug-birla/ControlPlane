@@ -53,13 +53,20 @@ from controlplane.db.models import (
 )
 from controlplane.decision.engine import ControlAction, ControlDecision, DecisionEngine
 from controlplane.errors import ConfigurationError, ControlPlaneError, DependencyError, TimeoutError
-from controlplane.evaluation.evaluators import EvaluationContext, EvaluationResult, EvaluationSuite
+from controlplane.evaluation.evaluators import (
+    EvaluationContext,
+    EvaluationResult,
+    EvaluationStatus,
+    EvaluationSuite,
+)
 from controlplane.events.schema import Event, EventType, Severity
 from controlplane.intervention.engine import InterventionEngine, InterventionSpec, InterventionType
 from controlplane.events.store import EventStore
 from controlplane.events.transport import EventTransport, InProcessEventTransport
 from controlplane.execution.executor import GraphExecutor
 from controlplane.governance.agent_bus import AgentBus
+from controlplane.governance.agent_conflict import detect_conflicts
+from controlplane.governance.agent_conflict import summarise as summarise_conflicts
 from controlplane.governance.contribution import measure_contributions, summarise
 from controlplane.governance.handoff import (
     build_handoff_context,
@@ -219,6 +226,7 @@ class Runtime:
         # recorded, so there is no hidden agent channel.
         self._agent_bus = AgentBus()
         self._agent_contributions: list = []
+        self._agent_conflicts: list = []
         self._composition_assessment = None
         # MCP capability fabric (Milestone 11): uniform discovery and
         # invocation, normalized results, classified failures. Wired to
@@ -246,6 +254,7 @@ class Runtime:
         """
         self._composition_assessment = None
         self._agent_contributions = []
+        self._agent_conflicts = []
         # THE BUS IS PER-REQUEST STATE AND WAS NOT BEING CLEARED.
         #
         # ``AgentBus`` accumulated every message for the life of the
@@ -1162,6 +1171,29 @@ class Runtime:
             if node.capability == "AGENT" and node.status == NodeStatus.COMPLETED:
                 agent_governance_action = node.output_ref.get("governance_action")
 
+        # CROSS-AGENT DISAGREEMENT (SS15).
+        #
+        # Two gatherers reading different sources can return incompatible
+        # answers to the same question -- a policy document saying the
+        # meal limit is $75 and a database row saying $100. Nothing
+        # looked: both results went into the merge node, generation saw
+        # both, and whichever the model happened to favour became the
+        # answer with no record that a disagreement had occurred.
+        #
+        # Surfaced as a CONFLICTING evaluation result rather than as a
+        # new signal nobody reads, so the decision path that already
+        # distinguishes conflicting evidence from missing evidence
+        # applies to agents too -- including its refusal to replan, since
+        # a conflict needs an AUTHORITATIVE source rather than an
+        # additional one.
+        agent_results = [
+            (node.node_id, node.output_ref)
+            for node in capability_route.graph.nodes
+            if node.capability == "AGENT" and node.status == NodeStatus.COMPLETED
+            and node.output_ref
+        ]
+        self._agent_conflicts = detect_conflicts(agent_results) if len(agent_results) > 1 else []
+
         eval_ctx = EvaluationContext(
             query=query, answer=answer, evidence_texts=evidence_texts, sql_rows=sql_rows,
             rag_adequacy=rag_adequacy, agent_governance_action=agent_governance_action,
@@ -1170,6 +1202,40 @@ class Runtime:
         eval_elapsed: list[float] = []
         with _phase(eval_elapsed):
             results = self._evaluation_suite.run(eval_ctx)
+
+        if self._agent_conflicts:
+            summary = summarise_conflicts(self._agent_conflicts)
+            unresolved = summary["unresolved_count"]
+            results = [*results, EvaluationResult(
+                evaluator="agent_conflict_v1",
+                status=EvaluationStatus.IMPLEMENTED,
+                # CONFLICTING deliberately, not a bespoke label: the
+                # decision path already distinguishes conflicting evidence
+                # from missing evidence and refuses to replan for it,
+                # because a conflict needs an authoritative source rather
+                # than an additional one. The same reasoning applies when
+                # the disagreement is between agents.
+                label="CONFLICTING" if unresolved else "RESOLVED_BY_SOURCE_AUTHORITY",
+                evidence=summary,
+                issues=[
+                    f"{c.left_agent} and {c.right_agent} disagree on "
+                    f"{c.subject or 'the same figure'}: {c.left_value} vs {c.right_value}"
+                    for c in self._agent_conflicts
+                ],
+                rationale=(
+                    f"{summary['conflict_count']} cross-agent disagreement(s); "
+                    f"{unresolved} without a defensible basis for preferring either value"
+                    if unresolved else
+                    f"{summary['conflict_count']} cross-agent disagreement(s), all resolved "
+                    "by source authority"
+                ),
+                recommended_signal="FLAG_FOR_REVIEW" if unresolved else "OK",
+            )]
+            self._publish(
+                EventType.AGENT_ACTION_GOVERNED, ctx, source="controlplane",
+                severity=Severity.WARNING if unresolved else Severity.NOTICE,
+                payload={"scope": "AGENT_CONFLICT", **summary},
+            )
 
         with session_scope() as session:
             for r in results:

@@ -625,3 +625,37 @@ generation model, which the Prometheus judge comparison holds. Everything
 above is verified by unit and wiring tests driving the real `Runtime`
 methods against a real graph; the end-to-end quality effect of genuine
 handoff remains **NOT_MEASURED**.
+
+### Agents that disagree are no longer settled by whichever ran first
+
+§15. Two gatherers reading different sources can return incompatible
+answers to the same question — a policy document saying the meal limit is
+$75 and a database row saying $100. Nothing looked. Both results went
+into the merge node, generation saw both, and whichever the model
+happened to favour became the answer with **no record that a
+disagreement had occurred**.
+
+Conflict handling existed, but only at the *evidence* level
+(`AdequacyLabel.CONFLICTING` within one retrieval). Agent-versus-agent
+disagreement had no detector.
+
+| Decision | Reason |
+|---|---|
+| Reuse `extract_numeric_claims` from the reasoning evaluator | It is already built and measured. A second notion of "the same claim" would drift from the first |
+| Require subject overlap ≥ 0.34 before two figures are a conflict | Two numbers in a corpus are usually about different things. Without it every pair of figures is a disagreement — the false-positive guard is a test |
+| Cross-agent only | Two figures inside one agent's evidence are that source's own business, and the reasoning evaluator already checks an answer for internal contradiction |
+| Exactly **one** authority rule, stated: the enterprise database is authoritative for figures it stores; a document quoting one can be stale | There is no measured basis for a general source hierarchy here, and an invented ranking applied confidently would be precisely the silent choosing this prevents |
+| `UNRESOLVED` is a result, not a failure | This runtime already holds that conflicting evidence differs from missing evidence and that the response is to disclose rather than pick a side. An unresolved conflict tells the decision engine to surface or ask, which beats a confident answer drawn from a coin flip |
+
+**Surfaced as `CONFLICTING`, deliberately not as a bespoke label.** The
+decision path already distinguishes conflicting evidence from missing
+evidence and *refuses to replan* for it — a conflict needs an
+authoritative source, not an additional one. The same reasoning applies
+when the disagreement is between agents, so reusing the label inherits
+that behaviour rather than requiring the decision engine to learn a new
+one. `_attempt_capability_replan` returning `None` on a cross-agent
+conflict is asserted directly against the real method.
+
+`_agent_conflicts` joins `_composition_assessment`, `_agent_bus` and
+`_agent_contributions` as per-request state cleared on every request —
+the leak family that has now produced three separate defects.
