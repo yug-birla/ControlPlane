@@ -1,7 +1,29 @@
 # ControlPlane.ai — Current State
 
-**Last updated:** 2026-08-30 (Milestone 16)
+**Last updated:** 2026-08-30 (Milestone 15c — Final Prototype Completion phase)
 **Context:** Accenture Innovation Challenge 2026, Round 2 — Prototype Development (Problem Track 1, "ControlPlane.ai"). See `Problem_Statement/` for the original brief (partially captured as screenshots; not yet transcribed to text — see `BLOCKERS.md`).
+
+## Readiness: NOT YET READY — three blockers
+
+Stated first because it is the question that matters, and the honest
+answer is no. The architecture is complete and the control loop is real;
+what is missing is **evidence for two of the central claims**.
+
+| Blocker | Why it blocks | Path to clear |
+|---|---|---|
+| Multi-agent **quality** is `NOT_MEASURED` | The published null result was retracted: it came from a metric at its structural ceiling (7/12) run over four arms that were the same execution path on nine of twelve cases. The corrected benchmark has not been re-run | Needs the generation model, held by the Prometheus judge run (B19). ~1–2 h once free |
+| Judge comparison is `NOT_MEASURED` | Prometheus has run 8h15m against a 4.5h estimate (B19). No result claimed | Verify `PIPESTATUS_PYTHON`, result file, and 7/7 cases before comparing anything |
+| Adaptive model routing is unbenchmarked | ALWAYS_FAST / ALWAYS_STRONG / CURRENT / ADAPTIVE / ADAPTIVE+SELF_REFINE has never been run end to end, so "adaptive routing helps" is unsupported | Needs the generation model; queued behind the above |
+
+**What IS supported by evidence**, and would stand up to scrutiny today:
+
+| Claim | Evidence |
+|---|---|
+| ControlPlane beats an unmanaged baseline on grounded factual work | key-fact accuracy 0.065 → **0.826**; hallucination 0.304 → **0.043**; grounding 0.000 → **0.717**; unsafe-action control 0.000 → **1.000** (62 cases, same model both arms) |
+| Agent communication changes a governance decision | `HUMAN_REVIEW` with the channel, `RESTRICT` without, on a confidential-read-then-external-send. **n = 2 scored cases** — a demonstrated mechanism, not a system-level rate |
+| Composition governance catches what per-step gating cannot | individually-permissible steps flagged `ELEVATED` as a chain |
+| RAG semantic absence is measurably reduced | held-out false-confidence 0.929 → **0.714**, at no cost on the 150-case regression guard |
+| The system abstains poorly on adjacent evidence | discrimination +0.048 baseline vs **+0.357** ControlPlane, but it still confabulates on 64% of hard unanswerable cases — reported because it is true |
 
 ## What Exists
 
