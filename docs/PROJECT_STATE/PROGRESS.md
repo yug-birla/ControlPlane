@@ -2,6 +2,31 @@
 
 Reverse-chronological. Each entry: what happened, evidence.
 
+## 2026-08-30 — Milestone 16c: The abstention metric was measuring its own keyword list
+
+Two headline metrics were wrong, and the error was in the harness, not the system.
+
+**Found by reading the five UNANSWERABLE answers instead of trusting the rate.** Every one of them, in BOTH arms, is an unambiguous refusal:
+
+- *"I'm sorry, but I can't answer this question."*
+- *"there is no explicit mention of the gross margin percentage"*
+- *"the given context does not provide any information about the Singapore office"*
+
+`_ABSTENTION_MARKERS` matched only 3 of 5 per arm, so the harness scored real refusals as **confabulations**.
+
+| Metric | Reported | Re-scored |
+|---|---|---|
+| Abstention (baseline / ControlPlane) | 0.600 / 0.600 | **1.000 / 1.000** |
+| Confabulation (baseline / ControlPlane) | 0.400 / 0.400 | **0.000 / 0.000** |
+
+The correction moves both arms identically and does not favour ControlPlane. Original metrics preserved under `metrics_before_rescore`, following the `rescored`/`rescoring_note` convention already used for the ablations file.
+
+**What this changes.** "ControlPlane does not improve abstention" survives — but the reason is now visible, and it is a **dataset** limitation rather than a system one. The base model already refuses all five correctly, so there is nothing for ControlPlane to improve. These cases cannot discriminate between the two systems, and any claim about abstention in either direction needs a harder set first.
+
+**Why a keyword list is still the right tool here.** §68's no-keyword-patching rule governs the system's own semantic judgement, not the measurement harness. A scorer needs to be deterministic and auditable; what it must not be is *incomplete without saying so*. Two tests now pin it from both sides: it recognises plain refusals, and it does not fire on ordinary answers — because a marker list that matched real answers would make abstention look perfect and be worthless in the other direction.
+
+**Third harness defect this milestone**, after the prompt-evidence grounding metric and the component-latency nulls. All three had the same signature: a field that existed, was reported with confidence, and could not have been right.
+
 ## 2026-08-30 — Milestone 16b: Multi-Agent Re-Run, and a Retraction
 
 ### RETRACTION: parallelism is not a 1.84x latency win

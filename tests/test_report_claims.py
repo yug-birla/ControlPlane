@@ -40,12 +40,32 @@ def test_baseline_comparison_headline_numbers():
 
 
 def test_abstention_really_is_flat():
-    """The report retracts an earlier 0.500 -> 1.000 claim. If abstention
-    ever does improve, this fails and the retraction must be revisited."""
+    """ControlPlane does not improve abstention. That finding survived a
+    scoring correction: the rate was 0.600 in both arms only because the
+    harness missed unambiguous refusals; re-scored, both arms are 1.000.
+    Flat either way -- and the reason is now clear, which the wrong
+    number obscured: the base model already refuses all five, so there
+    is nothing for ControlPlane to improve on this dataset."""
     data = _load("baseline_vs_controlplane")
     base = data["baseline"]["metrics"]["appropriate_abstention_rate_unanswerable"]
     cp = data["controlplane"]["metrics"]["appropriate_abstention_rate_unanswerable"]
-    assert base == cp == pytest.approx(0.600, abs=0.001)
+    assert base == cp == pytest.approx(1.000, abs=0.001)
+
+
+def test_neither_arm_actually_confabulated():
+    """The harness reported 0.400 confabulation for a system that
+    confabulated nothing. Pinned so the artifact cannot come back."""
+    data = _load("baseline_vs_controlplane")
+    assert data["baseline"]["metrics"]["confabulation_rate_unanswerable"] == 0.0
+    assert data["controlplane"]["metrics"]["confabulation_rate_unanswerable"] == 0.0
+
+
+def test_the_rescore_preserved_the_original_numbers():
+    """A correction that overwrites its own history is not auditable."""
+    data = _load("baseline_vs_controlplane")
+    assert data.get("rescoring_note")
+    before = data["controlplane"]["metrics_before_rescore"]
+    assert before["appropriate_abstention_rate_unanswerable"] == pytest.approx(0.600, abs=0.001)
 
 
 def test_injection_adoption_beat_the_incumbent_where_it_claimed_to():
@@ -94,3 +114,35 @@ def test_the_report_still_names_its_unmeasured_items():
     assert "NOT_MEASURED" in text
     assert "Prometheus" in text
     assert "RETRACTED" in text or "retracted" in text
+
+
+def test_the_abstention_detector_recognises_a_plain_refusal():
+    """The specific miss: 'I can't answer this question' was scored as a
+    confabulation. Any scorer that cannot see that is measuring its own
+    keyword list, not the system."""
+    from controlplane.experiments.evaluate_baseline_vs_controlplane import _ABSTENTION_MARKERS
+
+    refusals = [
+        "I'm sorry, but I can't answer this question.",
+        "there is no explicit mention of the gross margin percentage",
+        "the given context does not provide any information about the Singapore office",
+        "Based on the provided SQL result, there is no data available for fiscal year 2019.",
+        "I do not have enough context to determine the headcount",
+    ]
+    for text in refusals:
+        assert any(m in text.lower() for m in _ABSTENTION_MARKERS), text
+
+
+def test_the_abstention_detector_does_not_fire_on_a_real_answer():
+    """Guard: if the markers matched ordinary answers, abstention would
+    look perfect and the metric would be worthless in the other
+    direction."""
+    from controlplane.experiments.evaluate_baseline_vs_controlplane import _ABSTENTION_MARKERS
+
+    answers = [
+        "The hotel allowance is $250 per night in Tier 1 cities.",
+        "An expense of $12,000 requires department director approval.",
+        "The minimum password length is 14 characters.",
+    ]
+    for text in answers:
+        assert not any(m in text.lower() for m in _ABSTENTION_MARKERS), text

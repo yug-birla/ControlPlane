@@ -118,6 +118,25 @@ _ABSTENTION_MARKERS = (
     "not available", "don't have access", "do not have access",
     "cannot determine", "can't determine", "would need", "please provide",
     "not specified", "insufficient information", "unclear",
+    # MEASUREMENT BUG, found 2026-08-30 by reading the five UNANSWERABLE
+    # answers instead of trusting the rate. Every one of them, in BOTH
+    # arms, is an unambiguous refusal -- "I'm sorry, but I can't answer
+    # this question", "there is no explicit mention of ...", "the given
+    # context does not provide any information". The list above matched
+    # only 3 of 5 per arm, so the harness scored real abstentions as
+    # CONFABULATIONS and reported a confabulation rate of 0.400 for a
+    # system that confabulated nothing.
+    #
+    # This is a scoring-harness defect, not a model behaviour, and the
+    # correction moves BOTH arms identically -- it does not favour
+    # ControlPlane. Extending a marker list is the right tool here
+    # precisely because this is measurement, not the system's own
+    # semantic judgement (which is what the no-keyword-patching rule
+    # governs); the alternative is a scorer whose errors are invisible.
+    "can't answer", "cannot answer", "unable to answer",
+    "does not provide", "doesn't provide", "no explicit mention",
+    "no data available", "not included in", "does not include",
+    "not enough context", "no mention of",
 )
 
 

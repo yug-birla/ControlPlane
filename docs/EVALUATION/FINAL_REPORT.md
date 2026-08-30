@@ -1,6 +1,6 @@
 # ControlPlane.ai — Final Completion Report
 
-**Date:** 2026-08-30 · **Tests:** 492 passing · **Scale of the primary benchmark:** `DEVELOPMENT_TEST` (62 cases)
+**Date:** 2026-08-30 · **Tests:** 496 passing · **Scale of the primary benchmark:** `DEVELOPMENT_TEST` (62 cases)
 
 Every number in this report comes from a committed result file under `docs/EVALUATION/RESULTS/`. Where something was not measured, it says `NOT_MEASURED` rather than being estimated.
 
@@ -18,15 +18,23 @@ Every number in this report comes from a committed result file under `docs/EVALU
 | Hallucination rate | 0.304 | **0.043** | **−0.261** (7× fewer) |
 | Grounding supported | 0.000 | **0.717** | +0.717 |
 | Control on unsafe cases (11) | 0.000 | **1.000** | +1.000 |
-| Abstention when unanswerable (5) | 0.600 | 0.600 | **0.000** |
-| Confabulation when unanswerable | 0.400 | 0.400 | **0.000** |
+| Abstention when unanswerable (5) | **1.000** | **1.000** | **0.000** |
+| Confabulation when unanswerable | **0.000** | **0.000** | **0.000** |
 | Over-control on benign | 0.000 | 0.304 | −0.304 |
 | Latency p50 / p95 | 32.5s / 110.8s | 58.1s / 199.2s | ~1.8× slower |
 | Output tokens | 6,393 | 2,989 | −53% |
 
 Per-category, the gain is concentrated where evidence exists: GROUNDED_POLICY 1→24 correct of 26, with baseline hallucinations 11→**0**; SPECIFIC_THRESHOLD 0→7 of 9.
 
-**The flat result is real and was previously overstated.** An earlier 26-case run showed abstention 0.500→1.000. At 62 cases it is 0.600→0.600 — no benefit. The earlier figure rested on 2 cases and was small-sample noise; it is retracted.
+**The flat result is real, and the numbers reporting it were wrong twice.**
+
+An earlier 26-case run showed abstention 0.500→1.000. At 62 cases it is flat — the earlier figure rested on 2 cases and is retracted.
+
+Then, on 2026-08-30, reading the five UNANSWERABLE answers instead of trusting the rate showed the harness itself was wrong. Every one of them, **in both arms**, is an unambiguous refusal — *"I'm sorry, but I can't answer this question"*, *"there is no explicit mention of"*, *"the given context does not provide any information"*. The abstention marker list matched only 3 of 5 per arm, so the harness scored real refusals as **confabulations** and reported a confabulation rate of 0.400 for a system that confabulated nothing.
+
+Re-scored: **abstention 1.000 in both arms, confabulation 0.000 in both arms.** Original metrics preserved under `metrics_before_rescore`; the correction moves both arms identically and does not favour ControlPlane.
+
+**The conclusion changes shape.** "ControlPlane adds nothing on abstention" is still true, but the reason is now visible and it is a *dataset* limitation, not a system one: the base model already refuses all five correctly, so there is nothing to improve. These UNANSWERABLE cases cannot discriminate between the two systems, and a harder set is needed before any claim about abstention — in either direction — is worth making.
 
 ---
 
@@ -120,6 +128,8 @@ None failed. None broke a test. Each was found by reading recorded output and as
 | MCP permissions | `[]` for the most-used capability | RAG declared no `required_permissions` while SQL did |
 | MCP events | zero in 3000 consecutive events | no event type existed |
 | `DriftLevel.HIGH` | never emitted (precision 0.000, recall 0.000) | level derived from signal *count*, saturating at MEDIUM |
+| Abstention / confabulation | 0.600 / 0.400 in **both** arms | marker list missed "I can't answer this question"; real refusals scored as confabulations. Re-scored to 1.000 / 0.000 |
+| Evidence-budget grounding | 0.000 in all four conditions | harness read a state key the runtime does not write |
 
 **The counter-example, same day:** making the MCP change I broke the agent path, and two control-loop tests failed instantly and named the cause. **Paths with behavioural tests fail loudly; fields with only a schema stay silently wrong.** Every fix here ships with a test asserting on a recorded *value*.
 
