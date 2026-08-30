@@ -62,10 +62,14 @@ def get_configured_provider(settings: Settings, role: str = "STRONG") -> ModelPr
     # model, and Gemini was reachable only from comparison scripts and
     # never from the routing path at all.
     #
-    # Only STRONG is sent remote. FAST answers locally in ~5 s at no cost
-    # and with no quota; paying an API to make the cheap path slower is
-    # not a trade worth making. STRONG is where local hurts: Qwen3-4B on
-    # CPU took 505 s on the flagship request.
+    # STRONG gets the CHAIN. FAST keeps the pre-existing single-provider
+    # behaviour: Groq when a key is set, local otherwise. So with a key
+    # configured both roles are remote -- measured, FAST answers in 764 ms
+    # on openai/gpt-oss-20b -- and the difference is that only STRONG
+    # falls over to Gemini and then to local when its first choice is
+    # unavailable. STRONG is where that matters: Qwen3-4B on CPU took
+    # 505 s on the flagship request, so a failed remote call there is the
+    # difference between seconds and minutes.
     #
     # The chain degrades to the local model, so a key-less environment
     # behaves exactly as it does today and the system stays runnable

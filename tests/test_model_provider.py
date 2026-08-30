@@ -20,14 +20,27 @@ def test_registry_falls_back_to_the_local_model_without_an_api_key(monkeypatch):
     key-less environment used to raise ConfigurationError, which left the
     whole system with no generative model and forced every end-to-end
     scenario onto scripted fakes. It now falls back to the offline local
-    provider. See controlplane/models/local_generation_provider.py."""
+    provider. See controlplane/models/local_generation_provider.py.
+
+    CONTRACT CHANGE 2026-08-30: STRONG now resolves through a failover
+    chain, so its fallback happens at generate() time rather than at
+    construction. The GUARANTEE is unchanged and is asserted at both
+    levels below -- a key-less environment still ends up on the local
+    model, whichever role asked.
+    """
     sentinel = object()
     monkeypatch.setattr(
         "controlplane.models.local_generation_provider.get_local_generation_provider",
         lambda role: sentinel,
     )
     settings = Settings(groq_api_key=None, groq_model="some-model")
-    assert get_configured_provider(settings) is sentinel
+
+    # FAST still resolves eagerly.
+    assert get_configured_provider(settings, role="FAST") is sentinel
+
+    # STRONG returns the chain; local is its floor and must be reached.
+    chain = get_configured_provider(settings, role="STRONG")
+    assert [c.name for c in chain.candidates][-1] == "local_hf_generation"
 
 
 def test_registry_reports_configuration_error_when_no_provider_is_available_at_all(monkeypatch):
@@ -43,8 +56,19 @@ def test_registry_reports_configuration_error_when_no_provider_is_available_at_a
         _unavailable,
     )
     settings = Settings(groq_api_key=None, groq_model="some-model")
+
+    # FAST: the eager path still raises a clean configuration error.
     with pytest.raises(ConfigurationError):
-        get_configured_provider(settings)
+        get_configured_provider(settings, role="FAST")
+
+    # STRONG: the chain has nothing usable, and says so at call time
+    # rather than pretending it produced an answer.
+    from controlplane.models.provider import ModelProviderError
+
+    chain = get_configured_provider(settings, role="STRONG")
+    with pytest.raises(ModelProviderError):
+        chain.generate(prompt="hi")
+    assert [a.outcome for a in chain.attempts] == ["UNAVAILABLE"] * 3
 
 
 def test_local_generation_is_preferred_when_explicitly_forced(monkeypatch):
@@ -61,8 +85,10 @@ def test_local_generation_is_preferred_when_explicitly_forced(monkeypatch):
 
 def test_registry_raises_configuration_error_without_model():
     settings = Settings(groq_api_key="sk-not-real", groq_model=None)
+    # The eager (FAST) path. A model name is never hard-coded, so a key
+    # without a model is a configuration error rather than a guess.
     with pytest.raises(ConfigurationError):
-        get_configured_provider(settings)
+        get_configured_provider(settings, role="FAST")
 
 
 def test_failing_provider_raises_model_provider_error():

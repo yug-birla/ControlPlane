@@ -8,11 +8,13 @@ remote providers were never being used. Gemini was reachable only from
 comparison scripts and never from the routing path at all.
 
 WHAT CHANGES, AND WHAT DELIBERATELY DOES NOT. Only the STRONG role gets
-a remote chain. FAST stays local: it answers in ~5 s, costs nothing, has
-no quota, and sending it to a paid API would spend money to make the
-cheap path slower. STRONG is where the local model hurts -- Qwen3-4B on
-CPU took 505 s on the flagship request -- so that is where a remote call
-is worth making.
+a FAILOVER CHAIN. FAST keeps its existing single-provider resolution --
+Groq when a key is set, local otherwise -- so with keys configured both
+roles are remote (FAST measured at 764 ms on openai/gpt-oss-20b). The
+difference is what happens when the first choice is unavailable: STRONG
+falls over to Gemini and then to local, FAST does not. STRONG is where
+that matters, because its local floor is a 4B on CPU that took 505 s on
+the flagship request.
 
 Gemini is placed LAST in the chain on purpose. The project's standing
 instruction is "do not use Gemini automatically as the default model",
