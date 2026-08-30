@@ -1,5 +1,9 @@
 # ControlPlane.ai
 
+<p align="center">
+  <img src="assets/logo/logo.png" alt="ControlPlane.ai Logo" width="320"/>
+</p>
+
 **An adaptive control plane for AI execution.** Enterprise AI systems fail in ways that look like success: a model answers confidently from evidence about a different entity, an agent emails confidential records to an external address because each individual step was permitted, a retrieval layer reports "sufficient evidence" for a question its corpus cannot answer. ControlPlane.ai sits *between* the request and the model and governs the execution: profiling the query, assessing risk, planning capabilities, routing models, decomposing into agents, evaluating the output, deciding whether to intervene, replanning when observation contradicts the plan, verifying the result, and assigning trust. Every stage is recorded as a queryable event.
 
 The system is measured, not asserted. On a frozen 62-case benchmark against the same base model with no governance, key-fact accuracy rises **0.065 → 0.826** and hallucination falls **0.304 → 0.043**. Where results are negative or unmeasured, this document says so.
