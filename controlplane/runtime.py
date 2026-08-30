@@ -813,7 +813,26 @@ class Runtime:
         )
 
         if "generation" in graph_result.failed:
-            raise captured["error"]
+            # ``captured["error"]`` is only populated when _invoke_model
+            # raised a typed ControlPlaneError. Generation failing any
+            # OTHER way left the dict empty, so the real cause was
+            # replaced by `KeyError: 'error'` and the request returned an
+            # opaque INTERNAL_ERROR with nothing to diagnose from.
+            #
+            # Found by the first live end-to-end run, not by a test: every
+            # test that exercises this path injects a provider that fails
+            # in the typed way.
+            if "error" in captured:
+                raise captured["error"]
+            node = capability_route.graph.get("generation")
+            raise DependencyError(
+                f"generation failed: {getattr(node, 'error', None) or 'no error recorded on the node'}"
+            )
+        if "result" not in captured:
+            raise DependencyError(
+                "generation produced no result and did not fail -- the graph completed "
+                "without running the generation node"
+            )
         return captured["result"]
 
     def _execute_agent_node(self, ctx: RequestContext, node, query: str, graph=None) -> dict:

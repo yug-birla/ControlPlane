@@ -96,9 +96,27 @@ class DecisionEngine:
         # security concern, never something a retry/regenerate can
         # resolve (the malicious instruction is in the query itself).
         if prompt_injection and prompt_injection.label == "INJECTION_PATTERN_DETECTED":
+            # The reason must describe HOW it was detected, not assume a
+            # keyword match. The detector has two layers: a deterministic
+            # phrase list and an embedding k-NN layer, and the semantic
+            # layer populates `evidence` while leaving `issues` empty.
+            # Reading `issues` unconditionally printed
+            # "detected known injection phrasing: []" for exactly the
+            # cases the semantic layer caught -- a message that looks
+            # broken and understates the system, on the one screen where
+            # a reviewer is deciding whether to trust it.
+            evidence = prompt_injection.evidence or {}
+            nearest = evidence.get("nearest_reference_example")
+            if prompt_injection.issues:
+                detail = f"matched phrasing: {prompt_injection.issues}"
+            elif nearest:
+                method = evidence.get("detection_method", "semantic")
+                detail = f"{method} match, nearest known example: {nearest!r}"
+            else:
+                detail = prompt_injection.rationale or "no detail recorded"
             return ControlDecision(
                 action=ControlAction.HUMAN_REVIEW,
-                reason=f"prompt_injection detected known injection phrasing: {prompt_injection.issues}",
+                reason=f"prompt_injection -- {detail}",
                 triggering_evaluator="prompt_injection",
                 attempt_number=attempt_number,
                 can_retry=can_retry,

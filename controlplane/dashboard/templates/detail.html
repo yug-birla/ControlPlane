@@ -139,6 +139,96 @@
   </table>
 </div>
 
+{% if agent_panel and agent_panel.has_any %}
+<div class="panel">
+  <h2>Multi-Agent Execution</h2>
+
+  {% if agent_panel.composition %}
+  <p>composition risk =
+    <span class="badge {% if agent_panel.composition.risk == 'CRITICAL' %}severity-CRITICAL{% elif agent_panel.composition.risk == 'ELEVATED' %}severity-HIGH_RISK{% else %}severity-LOW_RISK{% endif %}">{{ agent_panel.composition.risk }}</span>
+    &middot; recommended = <code>{{ agent_panel.composition.recommended_action }}</code>
+  </p>
+  <div class="why">{{ agent_panel.composition.reason }}</div>
+  <p class="note">chain: <code>{{ agent_panel.composition.agent_chain|join(" &rarr; ")|safe }}</code>
+     &middot; sensitive data reached an external destination:
+     <code>{{ agent_panel.composition.sensitive_data_reached_external }}</code></p>
+  <p class="note">Individually permissible steps judged as a CHAIN. Only steps that actually
+     executed are counted -- a blocked step has not exfiltrated anything, and counting it would
+     manufacture a risk the system already prevented.</p>
+  {% endif %}
+
+  {% if agent_panel.handoffs %}
+  <h3 style="font-size:14px;margin-top:14px;">Agent-to-agent communication</h3>
+  <table>
+    <tr><th>From</th><th>To</th><th>Type</th><th>Payload</th><th>Sensitivity</th></tr>
+    {% for m in agent_panel.handoffs %}
+    <tr>
+      <td class="mono">{{ m.from_agent }}</td>
+      <td class="mono">{{ m.to_agent or "ControlPlane" }}</td>
+      <td>{{ m.message_type }}</td>
+      <td class="note">{{ m.payload_summary }}</td>
+      <td>
+        <span class="badge {% if m.data_sensitivity in ('CONFIDENTIAL','RESTRICTED') %}severity-HIGH_RISK{% else %}severity-LOW_RISK{% endif %}">{{ m.data_sensitivity }}</span>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p class="note">Sent at the moment the receiving agent ran, through the agent bus, and read from
+     its inbox before it acted -- not reconstructed after execution. Sensitivity travels with the
+     message because it changes what the receiver is allowed to do: an external send carrying
+     CONFIDENTIAL evidence is gated as HIGH_RISK rather than MEDIUM_RISK.</p>
+  {% endif %}
+
+  {% if agent_panel.contribution %}
+  <h3 style="font-size:14px;margin-top:14px;">Did each agent earn its place?</h3>
+  <table>
+    <tr><th>Agent</th><th>Role</th><th>Verdict</th><th>Unique</th><th>Duplicate</th>
+        <th>Downstream influence</th><th>Latency</th></tr>
+    {% for a in agent_panel.contribution.agents %}
+    <tr>
+      <td class="mono">{{ a.agent_id }}</td>
+      <td>{{ a.role }}</td>
+      <td>
+        <span class="badge {% if a.verdict == 'ESSENTIAL' %}severity-LOW_RISK{% elif a.verdict in ('REDUNDANT','INERT') %}severity-HIGH_RISK{% else %}severity-MEDIUM_RISK{% endif %}">{{ a.verdict }}</span>
+      </td>
+      <td>{{ a.unique_evidence }}</td>
+      <td>{{ a.duplicate_evidence }}</td>
+      <td class="mono">{{ a.downstream_influence }}</td>
+      <td class="note">{% if a.latency_ms %}{{ "%.0f"|format(a.latency_ms) }} ms{% else %}--{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p class="note">wasted agent rate =
+     <strong>{{ "%.3f"|format(agent_panel.contribution.wasted_agent_rate) }}</strong>
+     ({{ agent_panel.contribution.essential_count }} essential,
+     {{ agent_panel.contribution.redundant_count }} redundant,
+     {{ agent_panel.contribution.inert_count }} inert of
+     {{ agent_panel.contribution.agent_count }}).
+     Influence is taken from the RECEIVER's own record, so a message that arrived and changed
+     nothing does not count.</p>
+  {% endif %}
+
+  {% if agent_panel.mcp_calls %}
+  <h3 style="font-size:14px;margin-top:14px;">Capability access via MCP</h3>
+  <table>
+    <tr><th>Capability</th><th>Server</th><th>Status</th><th>Evidence</th><th>Latency</th><th>Permissions</th></tr>
+    {% for c in agent_panel.mcp_calls %}
+    <tr>
+      <td class="mono">{{ c.capability_id }}</td>
+      <td class="note">{{ c.server or "--" }}</td>
+      <td>{{ c.status }}</td>
+      <td>{{ c.evidence_count if c.evidence_count is not none else "--" }}</td>
+      <td class="note">{% if c.latency_ms %}{{ "%.0f"|format(c.latency_ms) }} ms{% else %}--{% endif %}</td>
+      <td class="note mono">{{ (c.permissions or [])|join(", ") or "--" }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p class="note">Every capability call goes through the MCP fabric, so it is normalised and
+     correlated like any other operation. ControlPlane decides WHAT and WHETHER; MCP is only HOW.</p>
+  {% endif %}
+</div>
+{% endif %}
+
 <div class="panel">
   <h2>Events</h2>
   <table>

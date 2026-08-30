@@ -602,3 +602,58 @@ def aggregate_component_health(limit: int = 200) -> dict:
                 "samples. None means not measured, never zero. Real "
                 "per-node latency is on the execution map.",
     }
+
+
+def build_agent_panel(detail: dict) -> dict:
+    """Multi-agent execution facts for one request.
+
+    The events table on the detail page renders type, severity and
+    timestamp only, so the handoffs, the composition verdict and the
+    per-agent contribution were all RECORDED and none of them were
+    visible -- the whole multi-agent story was invisible on the page that
+    shows a request.
+
+    Derived from ``detail["events"]``, which ``get_request_detail`` has
+    already fetched, so this adds no queries. Everything here comes from
+    a recorded event; nothing is recomputed at page load.
+    """
+    if not detail:
+        return {}
+
+    handoffs, mcp_calls, contribution, composition = [], [], None, None
+    for event in detail.get("events") or []:
+        payload = event.get("payload") or {}
+        kind = event.get("event_type")
+        if kind == "AGENT_MESSAGE_SENT":
+            handoffs.append({
+                "from_agent": payload.get("from_agent"),
+                "to_agent": payload.get("to_agent"),
+                "message_type": payload.get("message_type"),
+                "payload_summary": payload.get("payload_summary"),
+                "data_sensitivity": payload.get("data_sensitivity"),
+                "triage": (payload.get("triage") or {}).get("triage"),
+            })
+        elif kind == "CAPABILITY_INVOKED_VIA_MCP":
+            mcp_calls.append({
+                "capability_id": payload.get("capability_id"),
+                "server": payload.get("server"),
+                "status": payload.get("status"),
+                "evidence_count": payload.get("evidence_count"),
+                "latency_ms": payload.get("latency_ms"),
+                "permissions": payload.get("permissions"),
+                "operation_id": payload.get("operation_id"),
+            })
+        elif kind == "AGENT_ACTION_GOVERNED":
+            scope = payload.get("scope")
+            if scope == "CONTRIBUTION":
+                contribution = payload
+            elif scope == "COMPOSITION":
+                composition = payload
+
+    return {
+        "handoffs": handoffs,
+        "mcp_calls": mcp_calls,
+        "contribution": contribution,
+        "composition": composition,
+        "has_any": bool(handoffs or mcp_calls or contribution or composition),
+    }

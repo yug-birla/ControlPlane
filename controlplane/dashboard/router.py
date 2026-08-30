@@ -24,6 +24,7 @@ from controlplane.dashboard.evidence import build_evidence
 from controlplane.dashboard.queries import (
     aggregate_component_health,
     aggregate_stats,
+    build_agent_panel,
     build_execution_map,
     get_request_detail,
     list_recent_requests,
@@ -49,7 +50,9 @@ def dashboard_request_detail(request: Request, request_id: str) -> HTMLResponse:
     # drawing the map costs the request nothing.
     execution_map = build_execution_map(detail)
     return _templates.TemplateResponse(
-        request, "detail.html", {"detail": detail, "execution_map": execution_map}
+        request, "detail.html",
+        {"detail": detail, "execution_map": execution_map,
+         "agent_panel": build_agent_panel(detail)},
     )
 
 
