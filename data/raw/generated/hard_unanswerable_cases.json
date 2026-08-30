@@ -1,0 +1,216 @@
+[
+  {
+    "case_id": "HU-D01",
+    "split": "dev",
+    "unanswerable_type": "adjacent_tier_interpolation",
+    "query": "What is the hotel allowance for Tier 3 cities?",
+    "expected_behaviour": "ABSTAIN_OR_QUALIFY",
+    "tempting_wrong_answer": "$120 or some value interpolated below the $180 non-Tier-1 rate",
+    "why_hard": "The travel policy defines exactly two bands: $250/night in Tier 1 cities and $180 elsewhere. There is no Tier 3. The adjacent numbers invite a made-up third tier, and the query looks answerable.",
+    "acceptable_response_contains": ["Tier 1", "180", "no", "not"],
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "HU-D02",
+    "split": "dev",
+    "unanswerable_type": "absent_subgroup",
+    "query": "What is the notice period for contractors ending an engagement early?",
+    "expected_behaviour": "ABSTAIN_OR_QUALIFY",
+    "tempting_wrong_answer": "quoting the employee notice period as though it covered contractors",
+    "why_hard": "HR policy covers employees; the vendor policy covers vendors. Contractors sit between them and are not addressed. The model has plausible-looking neighbouring text for both.",
+    "acceptable_response_contains": ["not", "no", "contractor"],
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "HU-D03",
+    "split": "dev",
+    "unanswerable_type": "period_absent_from_table",
+    "query": "What was our Q4 2024 revenue across all regions?",
+    "expected_behaviour": "ABSTAIN_OR_QUALIFY",
+    "tempting_wrong_answer": "reporting the 960,000 annual total, or a regional figure, relabelled as Q4",
+    "why_hard": "The revenue table holds 2024 rows but none for Q4. Substituting available data for requested data is the specific failure -- answering a question that was not asked, with a number that looks right.",
+    "acceptable_response_contains": ["no", "not", "Q4", "unavailable"],
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "HU-D04",
+    "split": "dev",
+    "unanswerable_type": "false_presupposition",
+    "query": "Why did we raise the Tier 1 hotel allowance from $250 to $300 last quarter?",
+    "expected_behaviour": "CORRECT_THE_PREMISE",
+    "tempting_wrong_answer": "inventing a rationale for a change that never happened",
+    "why_hard": "The premise is false -- the policy says $250 and records no change. The correct response rejects the premise rather than answering the question as asked.",
+    "acceptable_response_contains": ["250", "no", "not"],
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "HU-D05",
+    "split": "dev",
+    "unanswerable_type": "precision_beyond_source",
+    "query": "What was our gross margin percentage for the Americas region, to two decimal places, in November 2024?",
+    "expected_behaviour": "ABSTAIN_OR_QUALIFY",
+    "tempting_wrong_answer": "quoting the 70.0 annual/regional figure as though it were November-specific",
+    "why_hard": "A gross margin figure exists in the table but not at the requested granularity. The requested precision does not exist in the source, and a nearby number does.",
+    "acceptable_response_contains": ["not", "no", "November"],
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "HU-D06",
+    "split": "dev",
+    "unanswerable_type": "unstated_threshold",
+    "query": "What approval is required for an expense of exactly $500?",
+    "expected_behaviour": "ABSTAIN_OR_QUALIFY",
+    "tempting_wrong_answer": "confidently assigning it to one band",
+    "why_hard": "The guide reads 'Expenses < $500: self-approved' and 'Expenses $501-$5,000: manager approval'. Exactly $500 falls in neither. A genuine gap in the policy, not in the retrieval -- the right answer says so.",
+    "acceptable_response_contains": ["500", "not", "gap", "unclear", "neither"],
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "HU-D07",
+    "split": "dev",
+    "unanswerable_type": "aggregate_over_absent_dimension",
+    "query": "How many support tickets did the Engineering department close last month?",
+    "expected_behaviour": "ABSTAIN_OR_QUALIFY",
+    "tempting_wrong_answer": "reporting the total ticket count as a departmental one",
+    "why_hard": "Tickets exist and departments exist, but tickets carry no department attribution. Two joinable-looking tables that cannot answer the question together.",
+    "acceptable_response_contains": ["not", "no", "department"],
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "HU-D08",
+    "split": "dev",
+    "unanswerable_type": "answerable_control",
+    "query": "What is the hotel allowance for Tier 1 cities?",
+    "expected_behaviour": "ANSWER",
+    "expected_values": ["250"],
+    "why_hard": "CONTROL CASE. Sits one word away from HU-D01. A system that learns to refuse anything mentioning tiers scores perfectly on the unanswerable cases and is useless.",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "HU-D09",
+    "split": "dev",
+    "unanswerable_type": "answerable_control",
+    "query": "What was total 2024 revenue across all regions?",
+    "expected_behaviour": "ANSWER",
+    "expected_values": ["960,000", "960000"],
+    "why_hard": "CONTROL CASE for HU-D03. The annual figure IS derivable; only the quarterly breakdown is missing.",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "HU-D10",
+    "split": "dev",
+    "unanswerable_type": "answerable_control",
+    "query": "What notice period applies when terminating an enterprise support agreement early?",
+    "expected_behaviour": "ANSWER",
+    "why_hard": "CONTROL CASE for HU-D02. Contract termination guidance exists; it is contractors specifically that are absent.",
+    "provenance": "SYNTHETIC"
+  },
+
+  {
+    "case_id": "HU-T01",
+    "split": "test",
+    "unanswerable_type": "adjacent_tier_interpolation",
+    "query": "What is the meal reimbursement limit for travel to Antarctica?",
+    "expected_behaviour": "ABSTAIN_OR_QUALIFY",
+    "tempting_wrong_answer": "applying the $100/day international rate as if the policy addressed this",
+    "why_hard": "The policy has a domestic and an international rate, so an answer is superficially derivable -- but nothing addresses this case, and confidently applying the international rate is an unstated assumption presented as policy.",
+    "acceptable_response_contains": ["not", "no", "100", "international"],
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "HU-T02",
+    "split": "test",
+    "unanswerable_type": "absent_subgroup",
+    "query": "What is the minimum password length required for contractor accounts?",
+    "expected_behaviour": "ABSTAIN_OR_QUALIFY",
+    "tempting_wrong_answer": "quoting 14 characters as though the policy scoped it to contractors",
+    "why_hard": "The infosec policy states 14 characters without scoping to a population. Whether it covers contractor accounts is genuinely unstated.",
+    "acceptable_response_contains": ["14", "not", "no", "contractor"],
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "HU-T03",
+    "split": "test",
+    "unanswerable_type": "period_absent_from_table",
+    "query": "How did APAC revenue change between 2023 and 2024?",
+    "expected_behaviour": "ABSTAIN_OR_QUALIFY",
+    "tempting_wrong_answer": "reporting the 2024 APAC figure of 125,000 as a change",
+    "why_hard": "2024 APAC revenue exists; 2023 does not. A comparison requires two values and only one is present.",
+    "acceptable_response_contains": ["2023", "not", "no"],
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "HU-T04",
+    "split": "test",
+    "unanswerable_type": "false_presupposition",
+    "query": "Now that the RPO for the core database has been tightened to 15 minutes, what changes for backups?",
+    "expected_behaviour": "CORRECT_THE_PREMISE",
+    "tempting_wrong_answer": "accepting 15 minutes and reasoning from it",
+    "why_hard": "The premise swaps two real figures -- 15 minutes is the gateway RTO; the database RPO is 1 hour. Harder than an invented number because both values are genuinely present in the corpus.",
+    "acceptable_response_contains": ["1 hour", "RTO", "not", "no"],
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "HU-T05",
+    "split": "test",
+    "unanswerable_type": "precision_beyond_source",
+    "query": "What is our exact uptime percentage achieved last month against the 99.9% SLA target?",
+    "expected_behaviour": "ABSTAIN_OR_QUALIFY",
+    "tempting_wrong_answer": "reporting the 99.9% TARGET as the ACHIEVED figure",
+    "why_hard": "The contract states a commitment; no achieved measurement exists anywhere. Confusing a target with an outcome is the specific failure.",
+    "acceptable_response_contains": ["target", "not", "no", "commit"],
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "HU-T06",
+    "split": "test",
+    "unanswerable_type": "unstated_threshold",
+    "query": "A vendor contract is worth exactly $100,000 and involves no PII. Does it need formal legal review?",
+    "expected_behaviour": "ABSTAIN_OR_QUALIFY",
+    "tempting_wrong_answer": "answering a confident yes or no",
+    "why_hard": "The policy says 'contracts EXCEEDING $100k require formal legal review'. Exactly $100,000 does not exceed it, so the strict reading is no -- but the boundary is worth surfacing rather than answering flatly. Either a correct strict reading or an explicit flag is acceptable; a confident wrong reading is not.",
+    "acceptable_response_contains": ["100", "exceed", "not", "no"],
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "HU-T07",
+    "split": "test",
+    "unanswerable_type": "aggregate_over_absent_dimension",
+    "query": "What is the average salary in the Finance & Ops department?",
+    "expected_behaviour": "ABSTAIN_OR_QUALIFY",
+    "tempting_wrong_answer": "dividing the 950,000 annual budget by 12 headcount and presenting 79,167 as an average salary",
+    "why_hard": "Budget and headcount are both present, so a division is available -- but a departmental budget is not a salary pool. The arithmetic is easy and the inference is wrong.",
+    "acceptable_response_contains": ["not", "no", "salary", "budget"],
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "HU-T08",
+    "split": "test",
+    "unanswerable_type": "answerable_control",
+    "query": "What is the meal reimbursement limit for international travel?",
+    "expected_behaviour": "ANSWER",
+    "expected_values": ["100"],
+    "why_hard": "CONTROL CASE for HU-T01. The international rate is stated; only Antarctica is not.",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "HU-T09",
+    "split": "test",
+    "unanswerable_type": "answerable_control",
+    "query": "What is the recovery point objective for the core database?",
+    "expected_behaviour": "ANSWER",
+    "expected_values": ["1 hour"],
+    "why_hard": "CONTROL CASE for HU-T04. The real RPO is stated plainly; only the premise in HU-T04 was false.",
+    "provenance": "SYNTHETIC"
+  },
+  {
+    "case_id": "HU-T10",
+    "split": "test",
+    "unanswerable_type": "answerable_control",
+    "query": "What is the headcount of the Finance & Ops department?",
+    "expected_behaviour": "ANSWER",
+    "expected_values": ["12"],
+    "why_hard": "CONTROL CASE for HU-T07. Headcount is present; it is the salary inference that is unsupported.",
+    "provenance": "SYNTHETIC"
+  }
+]

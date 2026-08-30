@@ -217,3 +217,61 @@ def test_the_live_evaluator_does_not_load_a_model():
         query="q", answer="The limit is $500 and the limit is $900 for the same category."))
     if not before:
         assert "transformers" not in sys.modules, "the live reasoning evaluator loaded a model"
+
+
+# --- hard unanswerable dataset integrity (§27) -------------------
+#
+# Created after measuring that the existing 5 UNANSWERABLE cases cannot
+# discriminate between baseline and ControlPlane: the base model already
+# refuses all five, because every one is a topic that is entirely absent
+# from the corpus. These cases put ADJACENT evidence in reach instead.
+
+
+def _hard_unanswerable():
+    import json
+    from pathlib import Path
+
+    return json.loads(Path("data/raw/generated/hard_unanswerable_cases.json").read_text(encoding="utf-8-sig"))
+
+
+def test_every_hardness_type_has_an_answerable_control():
+    """A system that refuses everything scores perfectly on abstention.
+    Controls are what make the metric mean something, and they are
+    deliberately one word away from their unanswerable twin."""
+    cases = _hard_unanswerable()
+    controls = [c for c in cases if c["expected_behaviour"] == "ANSWER"]
+    assert len(controls) >= 5
+    assert len(controls) / len(cases) >= 0.25
+
+
+def test_the_hard_cases_are_not_just_absent_topics():
+    """The existing 5 are all 'topic entirely missing', which is why the
+    base model refuses them without help. These must be harder than
+    that: each names the adjacent evidence that makes it tempting."""
+    for case in _hard_unanswerable():
+        if case["expected_behaviour"] == "ANSWER":
+            continue
+        assert case.get("tempting_wrong_answer"), case["case_id"]
+        assert case.get("why_hard"), case["case_id"]
+
+
+def test_hard_unanswerable_is_disjoint_from_the_frozen_benchmark():
+    """The 62-case set is the primary comparison and must not absorb
+    these, or the comparison stops being reproducible (§6)."""
+    import json
+    from pathlib import Path
+
+    frozen = {c["query"] for c in json.loads(
+        Path("data/raw/generated/baseline_vs_controlplane_cases.json").read_text(encoding="utf-8-sig"))}
+    assert not frozen & {c["query"] for c in _hard_unanswerable()}
+
+
+def test_hard_unanswerable_has_a_held_out_split():
+    from collections import Counter
+
+    splits = Counter(c["split"] for c in _hard_unanswerable())
+    assert set(splits) == {"dev", "test"}
+    # Stratified: both splits must contain must-abstain AND controls.
+    for split in ("dev", "test"):
+        behaviours = {c["expected_behaviour"] for c in _hard_unanswerable() if c["split"] == split}
+        assert "ANSWER" in behaviours and "ABSTAIN_OR_QUALIFY" in behaviours
