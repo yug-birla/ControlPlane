@@ -73,7 +73,26 @@ Run 1's 42.6s is one-time model loading, not per-request cost.
 | 750–999 | 24 | 103,217 ms |
 | 1000–1249 | 14 | 139,280 ms |
 
-**Conclusion: the 2.1× is CPU prefill of retrieved evidence, not governance overhead.** Retrieval places all 5 reranked chunks in the prompt while the cross-encoder's measured recall@1 is 1.000 — chunks 3–5 may be paid for on every request and used by none. `prompt_evidence_k` implements the cap (model sees N; adequacy and grounding still judge all 5). **Not adopted**: selecting a value from the frozen benchmark would be tuning on the final test set.
+**Conclusion: the 2.1× is CPU prefill of retrieved evidence, not governance overhead.** Retrieval places all 5 reranked chunks in the prompt while the cross-encoder's measured recall@1 is 1.000.
+
+### 3a. Capping prompt evidence — measured, and it is *not* free
+
+14 evidence-dependent cases, paired per-case medians:
+
+| condition | median latency gain | faster in | key-fact accuracy | grounding SUPPORTED |
+|---|---:|---:|---:|---:|
+| k_all | — | — | 0.929 | **1.000** (13/13) |
+| k_3 | **+25.4%** | 14/14 | 1.000 | 0.846 (11/13) |
+| k_2 | **+37.7%** | 14/14 | 1.000 | 0.846 (11/13) |
+| k_1 | **+53.6%** | 14/14 | 1.000 | 0.846 (11/13) |
+
+Latency falls monotonically and consistently — faster in **every** case, with no outliers this run. Key-fact accuracy does not drop; it rises by one case (BVC-013, the expense-band question wrong in every prior run, becomes correct with fewer distracting chunks).
+
+**But grounding degrades: 1.000 → 0.846.** BVC-003 falls from `SUPPORTED` to `PARTIALLY_SUPPORTED` at every cap; BVC-005 and BVC-006 flap between caps, which at n=13 is generation noise rather than signal.
+
+**This is the trade the first run could not see.** That run reported `grounding_supported_rate 0.000` for all four conditions because the harness read a state key the runtime does not write — the same "field exists, always reports nothing" defect catalogued in §5, committed by me hours after documenting the pattern. It was caught only because 0.000 is implausible next to the 0.717 the 62-case run measured. Had it gone unnoticed, the conclusion would have been "capping evidence is free". It is not.
+
+**Not adopted, now for two reasons.** Selecting a value from the frozen benchmark would be tuning on the final test set (§62/§66) — and independently, ControlPlane's central claim is grounding (0.000 → 0.717 against baseline), so trading grounding for latency cuts against the product thesis. The degradation is soft (`SUPPORTED` → `PARTIALLY_SUPPORTED`, never → `UNSUPPORTED`) and the sample is 13 cases, so the size of the cost is not well established — but its direction is consistent, and that is enough to stop it being adopted silently.
 
 ---
 
