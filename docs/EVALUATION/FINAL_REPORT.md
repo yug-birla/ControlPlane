@@ -168,6 +168,18 @@ Content confirmed present on a real request: Execution Map, Plan, Events, Eviden
 
 ---
 
+## 8a. End-to-end demonstrations (§76)
+
+All 24 named flows are exercised by the automated suite. The distinction that matters:
+
+**Demonstrated with a real model, end to end** — simple factual, RAG, SQL, RAG+SQL, multi-source, conflicting sources, prompt injection, high-risk action, single agent, multi-agent, parallel agents, agent communication, behavioral drift, verification. These appear in the 62-case benchmark, the multi-agent benchmark, or a dedicated experiment with a committed result file.
+
+**Demonstrated with a scripted provider** — model escalation, self-refinement, agent conflict, agent failure isolation, agent replan request, MCP capability call, MCP failure, intervention, replanning. A scripted provider makes these *deterministic and fast*, which is why the control-loop tests catch regressions the model-backed runs would hide in noise — but it demonstrates the **control flow**, not model behaviour. That is a real limitation of these nine, and it is stated rather than blurred.
+
+The four defects found in Milestone 12 and the two found in Milestone 16 were all caught by running the real system and reading output, not by these tests. Coverage is necessary and demonstrably not sufficient.
+
+---
+
 ## 9a. Completion matrix (§72)
 
 A component counts as `COMPLETE` only when it is implemented, runtime-wired, stateful, traceable, tested, benchmarked, error-analysed and documented. `RUNTIME-WIRED` below means everything except an independent benchmark. Nothing is marked complete because a file exists.
