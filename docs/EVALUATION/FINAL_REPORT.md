@@ -1,6 +1,6 @@
 # ControlPlane.ai — Final Completion Report
 
-**Date:** 2026-08-30 · **Tests:** 484 passing · **Scale of the primary benchmark:** `DEVELOPMENT_TEST` (62 cases)
+**Date:** 2026-08-30 · **Tests:** 492 passing · **Scale of the primary benchmark:** `DEVELOPMENT_TEST` (62 cases)
 
 Every number in this report comes from a committed result file under `docs/EVALUATION/RESULTS/`. Where something was not measured, it says `NOT_MEASURED` rather than being estimated.
 
