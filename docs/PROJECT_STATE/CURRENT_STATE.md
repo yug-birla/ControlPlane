@@ -23,7 +23,7 @@ All fixed, each with a test asserting on a recorded **value** rather than a code
 
 **Over-control decomposed (§8).** The 0.304 headline counts three behaviours: withheld a **correct** answer (0.130, the defect), asked for clarification (0.109), and correctly controlled a **wrong** answer (0.065 — the system working, charged as a cost). Root cause of the largest contributor found and fixed: `factuality` flagged numbers **the user supplied in their own question**.
 
-**Multi-agent, measured (§12).** Four conditions, identical queries and model. `key_fact_accuracy` **0.583 in all four** — decomposition changed nothing. Communication (24 messages vs 0) changed nothing: it is currently **observability, not capability**. Parallelism is the one genuine win (1.84× faster than sequential). The run exposed a **safety gap**: the planner discarded a lone gatherer, so the flagship exfiltration case could not fire (composition risk accuracy 0.000). Fixed.
+**Multi-agent, measured (§12).** Four conditions, identical queries and model. `key_fact_accuracy` **0.583 in all four** — decomposition changed nothing. Communication (24 messages vs 0) changed nothing: it is currently **observability, not capability**. Parallelism is structurally real but its measured latency benefit is **negligible** (median +2.7% over sequential) -- the 1.84x figure from the first run was outlier distortion and is retracted. The run exposed a **safety gap**: the planner discarded a lone gatherer, so the flagship exfiltration case could not fire (composition risk accuracy 0.000). Fixed.
 
 ### Component status after Milestone 16
 

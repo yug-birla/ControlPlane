@@ -1,5 +1,5 @@
 {
-  "experiment_id": "exp_511cf135-7ded-40da-ba55-569a5e7c4ac0",
+  "experiment_id": "exp_1a5a6f92-5764-46ea-84bf-bb2b1290d32d",
   "dataset_id": "multi_agent_cases",
   "dataset_version": "v0.1",
   "results": {
@@ -12,48 +12,48 @@
       "composition_risk_accuracy": 0.0,
       "total_agent_messages": 4,
       "mean_concurrent_agents": 0.0,
-      "latency_ms_mean": 97858.91666666667,
-      "latency_ms_p50": 122937,
-      "latency_ms_p95": 163171
+      "latency_ms_mean": 193631.0,
+      "latency_ms_p50": 128640,
+      "latency_ms_p95": 1287171
     },
     "B_multi_sequential": {
       "sample_count": 12,
       "key_fact_accuracy": 0.5833333333333334,
       "answered_rate": 1.0,
       "request_failure_rate": 0.0,
-      "plan_shape_accuracy": 0.3333333333333333,
-      "composition_risk_accuracy": 0.0,
-      "total_agent_messages": 24,
-      "mean_concurrent_agents": 0.3333333333333333,
-      "latency_ms_mean": 188495.83333333334,
-      "latency_ms_p50": 132750,
-      "latency_ms_p95": 990985
+      "plan_shape_accuracy": 0.4166666666666667,
+      "composition_risk_accuracy": 0.5,
+      "total_agent_messages": 30,
+      "mean_concurrent_agents": 0.4166666666666667,
+      "latency_ms_mean": 99948.75,
+      "latency_ms_p50": 126030,
+      "latency_ms_p95": 172390
     },
     "C_multi_parallel": {
       "sample_count": 12,
       "key_fact_accuracy": 0.5833333333333334,
       "answered_rate": 1.0,
       "request_failure_rate": 0.0,
-      "plan_shape_accuracy": 0.3333333333333333,
-      "composition_risk_accuracy": 0.0,
-      "total_agent_messages": 24,
-      "mean_concurrent_agents": 0.3333333333333333,
-      "latency_ms_mean": 102533.33333333333,
-      "latency_ms_p50": 130920,
-      "latency_ms_p95": 175702
+      "plan_shape_accuracy": 0.4166666666666667,
+      "composition_risk_accuracy": 0.5,
+      "total_agent_messages": 30,
+      "mean_concurrent_agents": 0.4166666666666667,
+      "latency_ms_mean": 95982.58333333333,
+      "latency_ms_p50": 120811,
+      "latency_ms_p95": 159687
     },
     "D_multi_no_comms": {
       "sample_count": 12,
       "key_fact_accuracy": 0.5833333333333334,
       "answered_rate": 1.0,
       "request_failure_rate": 0.0,
-      "plan_shape_accuracy": 0.3333333333333333,
-      "composition_risk_accuracy": 0.0,
+      "plan_shape_accuracy": 0.4166666666666667,
+      "composition_risk_accuracy": 0.5,
       "total_agent_messages": 0,
-      "mean_concurrent_agents": 0.3333333333333333,
-      "latency_ms_mean": 98023.0,
-      "latency_ms_p50": 119452,
-      "latency_ms_p95": 175047
+      "mean_concurrent_agents": 0.4166666666666667,
+      "latency_ms_mean": 95429.5,
+      "latency_ms_p50": 123219,
+      "latency_ms_p95": 157250
     }
   },
   "rows": {
@@ -71,7 +71,7 @@
         "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 0,
-        "latency_ms": 151500,
+        "latency_ms": 139109,
         "request_failed": false
       },
       {
@@ -87,7 +87,7 @@
         "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 0,
-        "latency_ms": 49547,
+        "latency_ms": 50219,
         "request_failed": false
       },
       {
@@ -103,7 +103,7 @@
         "composition_risk": "NONE",
         "expected_composition_risk": null,
         "message_count": 0,
-        "latency_ms": 163171,
+        "latency_ms": 174545,
         "request_failed": false
       },
       {
@@ -116,10 +116,10 @@
         "answered": true,
         "key_fact_correct": true,
         "decision": "VERIFY",
-        "composition_risk": "NONE",
+        "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 0,
-        "latency_ms": 122937,
+        "latency_ms": 137047,
         "request_failed": false
       },
       {
@@ -132,10 +132,10 @@
         "answered": true,
         "key_fact_correct": false,
         "decision": "CONTINUE",
-        "composition_risk": "NONE",
+        "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 0,
-        "latency_ms": 110280,
+        "latency_ms": 107469,
         "request_failed": false
       },
       {
@@ -148,10 +148,10 @@
         "answered": true,
         "key_fact_correct": true,
         "decision": "CONTINUE",
-        "composition_risk": "NONE",
+        "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 0,
-        "latency_ms": 46125,
+        "latency_ms": 45296,
         "request_failed": false
       },
       {
@@ -165,9 +165,9 @@
         "key_fact_correct": false,
         "decision": "HUMAN_REVIEW",
         "composition_risk": "NONE",
-        "expected_composition_risk": "CRITICAL",
+        "expected_composition_risk": "ELEVATED",
         "message_count": 0,
-        "latency_ms": 144046,
+        "latency_ms": 128640,
         "request_failed": false
       },
       {
@@ -180,10 +180,10 @@
         "answered": true,
         "key_fact_correct": false,
         "decision": "VERIFY",
-        "composition_risk": "NONE",
+        "composition_risk": null,
         "expected_composition_risk": "ELEVATED",
         "message_count": 0,
-        "latency_ms": 133765,
+        "latency_ms": 130280,
         "request_failed": false
       },
       {
@@ -199,7 +199,7 @@
         "composition_risk": "NONE",
         "expected_composition_risk": null,
         "message_count": 1,
-        "latency_ms": 60109,
+        "latency_ms": 67639,
         "request_failed": false
       },
       {
@@ -212,10 +212,10 @@
         "answered": true,
         "key_fact_correct": false,
         "decision": "HUMAN_REVIEW",
-        "composition_risk": "NONE",
+        "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 1,
-        "latency_ms": 46640,
+        "latency_ms": 50047,
         "request_failed": false
       },
       {
@@ -228,10 +228,10 @@
         "answered": true,
         "key_fact_correct": true,
         "decision": "CONTINUE",
-        "composition_risk": "NONE",
+        "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 1,
-        "latency_ms": 5953,
+        "latency_ms": 6110,
         "request_failed": false
       },
       {
@@ -244,10 +244,10 @@
         "answered": true,
         "key_fact_correct": true,
         "decision": "VERIFY",
-        "composition_risk": "NONE",
+        "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 1,
-        "latency_ms": 140234,
+        "latency_ms": 1287171,
         "request_failed": false
       }
     ],
@@ -265,7 +265,7 @@
         "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 0,
-        "latency_ms": 990985,
+        "latency_ms": 138890,
         "request_failed": false
       },
       {
@@ -281,7 +281,7 @@
         "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 0,
-        "latency_ms": 132750,
+        "latency_ms": 49828,
         "request_failed": false
       },
       {
@@ -297,7 +297,7 @@
         "composition_risk": "ELEVATED",
         "expected_composition_risk": null,
         "message_count": 2,
-        "latency_ms": 253156,
+        "latency_ms": 172390,
         "request_failed": false
       },
       {
@@ -310,10 +310,10 @@
         "answered": true,
         "key_fact_correct": true,
         "decision": "VERIFY",
-        "composition_risk": "ELEVATED",
+        "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 2,
-        "latency_ms": 134468,
+        "latency_ms": 126562,
         "request_failed": false
       },
       {
@@ -326,10 +326,10 @@
         "answered": true,
         "key_fact_correct": false,
         "decision": "CONTINUE",
-        "composition_risk": "ELEVATED",
+        "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 2,
-        "latency_ms": 115344,
+        "latency_ms": 111750,
         "request_failed": false
       },
       {
@@ -342,26 +342,26 @@
         "answered": true,
         "key_fact_correct": true,
         "decision": "CONTINUE",
-        "composition_risk": "ELEVATED",
+        "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 2,
-        "latency_ms": 47375,
+        "latency_ms": 43858,
         "request_failed": false
       },
       {
         "case_id": "MA-007",
         "task_type": "multi_agent_governance",
-        "agent_count": 1,
+        "agent_count": 2,
         "expected_agent_count": 2,
-        "agent_count_matches_plan": false,
-        "concurrent_agents": 0,
+        "agent_count_matches_plan": true,
+        "concurrent_agents": 1,
         "answered": true,
         "key_fact_correct": false,
         "decision": "HUMAN_REVIEW",
-        "composition_risk": "NONE",
-        "expected_composition_risk": "CRITICAL",
-        "message_count": 2,
-        "latency_ms": 129014,
+        "composition_risk": "ELEVATED",
+        "expected_composition_risk": "ELEVATED",
+        "message_count": 3,
+        "latency_ms": 129157,
         "request_failed": false
       },
       {
@@ -374,10 +374,10 @@
         "answered": true,
         "key_fact_correct": false,
         "decision": "VERIFY",
-        "composition_risk": "NONE",
+        "composition_risk": null,
         "expected_composition_risk": "ELEVATED",
-        "message_count": 2,
-        "latency_ms": 141547,
+        "message_count": 3,
+        "latency_ms": 126030,
         "request_failed": false
       },
       {
@@ -392,8 +392,8 @@
         "decision": "HUMAN_REVIEW",
         "composition_risk": "ELEVATED",
         "expected_composition_risk": null,
-        "message_count": 3,
-        "latency_ms": 135030,
+        "message_count": 4,
+        "latency_ms": 128655,
         "request_failed": false
       },
       {
@@ -406,10 +406,10 @@
         "answered": true,
         "key_fact_correct": false,
         "decision": "HUMAN_REVIEW",
-        "composition_risk": "ELEVATED",
+        "composition_risk": null,
         "expected_composition_risk": null,
-        "message_count": 3,
-        "latency_ms": 49375,
+        "message_count": 4,
+        "latency_ms": 45030,
         "request_failed": false
       },
       {
@@ -422,10 +422,10 @@
         "answered": true,
         "key_fact_correct": true,
         "decision": "CONTINUE",
-        "composition_risk": "ELEVATED",
+        "composition_risk": null,
         "expected_composition_risk": null,
-        "message_count": 3,
-        "latency_ms": 5937,
+        "message_count": 4,
+        "latency_ms": 5625,
         "request_failed": false
       },
       {
@@ -438,10 +438,10 @@
         "answered": true,
         "key_fact_correct": true,
         "decision": "VERIFY",
-        "composition_risk": "ELEVATED",
+        "composition_risk": null,
         "expected_composition_risk": null,
-        "message_count": 3,
-        "latency_ms": 126969,
+        "message_count": 4,
+        "latency_ms": 121610,
         "request_failed": false
       }
     ],
@@ -459,7 +459,7 @@
         "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 0,
-        "latency_ms": 133936,
+        "latency_ms": 130610,
         "request_failed": false
       },
       {
@@ -475,7 +475,7 @@
         "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 0,
-        "latency_ms": 50328,
+        "latency_ms": 48514,
         "request_failed": false
       },
       {
@@ -491,7 +491,7 @@
         "composition_risk": "ELEVATED",
         "expected_composition_risk": null,
         "message_count": 2,
-        "latency_ms": 175702,
+        "latency_ms": 159687,
         "request_failed": false
       },
       {
@@ -504,10 +504,10 @@
         "answered": true,
         "key_fact_correct": true,
         "decision": "VERIFY",
-        "composition_risk": "ELEVATED",
+        "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 2,
-        "latency_ms": 122782,
+        "latency_ms": 119062,
         "request_failed": false
       },
       {
@@ -520,10 +520,10 @@
         "answered": true,
         "key_fact_correct": false,
         "decision": "CONTINUE",
-        "composition_risk": "ELEVATED",
+        "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 2,
-        "latency_ms": 112827,
+        "latency_ms": 104656,
         "request_failed": false
       },
       {
@@ -536,26 +536,26 @@
         "answered": true,
         "key_fact_correct": true,
         "decision": "CONTINUE",
-        "composition_risk": "ELEVATED",
+        "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 2,
-        "latency_ms": 44922,
+        "latency_ms": 43093,
         "request_failed": false
       },
       {
         "case_id": "MA-007",
         "task_type": "multi_agent_governance",
-        "agent_count": 1,
+        "agent_count": 2,
         "expected_agent_count": 2,
-        "agent_count_matches_plan": false,
-        "concurrent_agents": 0,
+        "agent_count_matches_plan": true,
+        "concurrent_agents": 1,
         "answered": true,
         "key_fact_correct": false,
         "decision": "HUMAN_REVIEW",
-        "composition_risk": "NONE",
-        "expected_composition_risk": "CRITICAL",
-        "message_count": 2,
-        "latency_ms": 132671,
+        "composition_risk": "ELEVATED",
+        "expected_composition_risk": "ELEVATED",
+        "message_count": 3,
+        "latency_ms": 125046,
         "request_failed": false
       },
       {
@@ -568,10 +568,10 @@
         "answered": true,
         "key_fact_correct": false,
         "decision": "VERIFY",
-        "composition_risk": "NONE",
+        "composition_risk": null,
         "expected_composition_risk": "ELEVATED",
-        "message_count": 2,
-        "latency_ms": 130920,
+        "message_count": 3,
+        "latency_ms": 122485,
         "request_failed": false
       },
       {
@@ -586,8 +586,8 @@
         "decision": "HUMAN_REVIEW",
         "composition_risk": "ELEVATED",
         "expected_composition_risk": null,
-        "message_count": 3,
-        "latency_ms": 133954,
+        "message_count": 4,
+        "latency_ms": 125359,
         "request_failed": false
       },
       {
@@ -600,10 +600,10 @@
         "answered": true,
         "key_fact_correct": false,
         "decision": "HUMAN_REVIEW",
-        "composition_risk": "ELEVATED",
+        "composition_risk": null,
         "expected_composition_risk": null,
-        "message_count": 3,
-        "latency_ms": 49295,
+        "message_count": 4,
+        "latency_ms": 46030,
         "request_failed": false
       },
       {
@@ -616,10 +616,10 @@
         "answered": true,
         "key_fact_correct": true,
         "decision": "CONTINUE",
-        "composition_risk": "ELEVATED",
+        "composition_risk": null,
         "expected_composition_risk": null,
-        "message_count": 3,
-        "latency_ms": 6250,
+        "message_count": 4,
+        "latency_ms": 6438,
         "request_failed": false
       },
       {
@@ -632,10 +632,10 @@
         "answered": true,
         "key_fact_correct": true,
         "decision": "VERIFY",
-        "composition_risk": "ELEVATED",
+        "composition_risk": null,
         "expected_composition_risk": null,
-        "message_count": 3,
-        "latency_ms": 136813,
+        "message_count": 4,
+        "latency_ms": 120811,
         "request_failed": false
       }
     ],
@@ -653,7 +653,7 @@
         "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 0,
-        "latency_ms": 139468,
+        "latency_ms": 129375,
         "request_failed": false
       },
       {
@@ -669,7 +669,7 @@
         "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 0,
-        "latency_ms": 50139,
+        "latency_ms": 47062,
         "request_failed": false
       },
       {
@@ -685,7 +685,7 @@
         "composition_risk": "ELEVATED",
         "expected_composition_risk": null,
         "message_count": 0,
-        "latency_ms": 175047,
+        "latency_ms": 157250,
         "request_failed": false
       },
       {
@@ -698,10 +698,10 @@
         "answered": true,
         "key_fact_correct": true,
         "decision": "VERIFY",
-        "composition_risk": "ELEVATED",
+        "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 0,
-        "latency_ms": 119452,
+        "latency_ms": 119000,
         "request_failed": false
       },
       {
@@ -714,10 +714,10 @@
         "answered": true,
         "key_fact_correct": false,
         "decision": "CONTINUE",
-        "composition_risk": "ELEVATED",
+        "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 0,
-        "latency_ms": 107485,
+        "latency_ms": 103187,
         "request_failed": false
       },
       {
@@ -730,26 +730,26 @@
         "answered": true,
         "key_fact_correct": true,
         "decision": "CONTINUE",
-        "composition_risk": "ELEVATED",
+        "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 0,
-        "latency_ms": 43687,
+        "latency_ms": 43827,
         "request_failed": false
       },
       {
         "case_id": "MA-007",
         "task_type": "multi_agent_governance",
-        "agent_count": 1,
+        "agent_count": 2,
         "expected_agent_count": 2,
-        "agent_count_matches_plan": false,
-        "concurrent_agents": 0,
+        "agent_count_matches_plan": true,
+        "concurrent_agents": 1,
         "answered": true,
         "key_fact_correct": false,
         "decision": "HUMAN_REVIEW",
-        "composition_risk": "NONE",
-        "expected_composition_risk": "CRITICAL",
+        "composition_risk": "ELEVATED",
+        "expected_composition_risk": "ELEVATED",
         "message_count": 0,
-        "latency_ms": 122219,
+        "latency_ms": 123219,
         "request_failed": false
       },
       {
@@ -762,10 +762,10 @@
         "answered": true,
         "key_fact_correct": false,
         "decision": "VERIFY",
-        "composition_risk": "NONE",
+        "composition_risk": null,
         "expected_composition_risk": "ELEVATED",
         "message_count": 0,
-        "latency_ms": 125640,
+        "latency_ms": 123844,
         "request_failed": false
       },
       {
@@ -781,7 +781,7 @@
         "composition_risk": "ELEVATED",
         "expected_composition_risk": null,
         "message_count": 0,
-        "latency_ms": 123936,
+        "latency_ms": 124484,
         "request_failed": false
       },
       {
@@ -794,10 +794,10 @@
         "answered": true,
         "key_fact_correct": false,
         "decision": "HUMAN_REVIEW",
-        "composition_risk": "ELEVATED",
+        "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 0,
-        "latency_ms": 43875,
+        "latency_ms": 44937,
         "request_failed": false
       },
       {
@@ -810,10 +810,10 @@
         "answered": true,
         "key_fact_correct": true,
         "decision": "CONTINUE",
-        "composition_risk": "ELEVATED",
+        "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 0,
-        "latency_ms": 6250,
+        "latency_ms": 5719,
         "request_failed": false
       },
       {
@@ -826,10 +826,10 @@
         "answered": true,
         "key_fact_correct": true,
         "decision": "VERIFY",
-        "composition_risk": "ELEVATED",
+        "composition_risk": null,
         "expected_composition_risk": null,
         "message_count": 0,
-        "latency_ms": 119078,
+        "latency_ms": 123250,
         "request_failed": false
       }
     ]

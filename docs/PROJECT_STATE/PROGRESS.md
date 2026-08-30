@@ -2,6 +2,42 @@
 
 Reverse-chronological. Each entry: what happened, evidence.
 
+## 2026-08-30 — Milestone 16b: Multi-Agent Re-Run, and a Retraction
+
+### RETRACTION: parallelism is not a 1.84x latency win
+
+I reported, from the first multi-agent run, that "parallelism is the one genuine win: sequential costs 1.84x the latency of parallel (188s vs 102s)". **That does not replicate and I am withdrawing it.**
+
+The second run, after the planner fix, gives sequential 99,949ms and parallel 95,983ms. Comparing means was the mistake — they are dominated by outliers. The paired per-case comparison is the honest one:
+
+| | value |
+|---|---|
+| median gain for parallel | **+2.72%** |
+| mean gain | +1.88% |
+| worst case | −14.5% (parallel slower) |
+| cases with >1 concurrent agent | **2 of 12** |
+
+And there is a mechanistic reason it *cannot* be large: gatherers perform retrieval (~1.7s measured), while a single model call dominates the request (~120s). Parallelising two ~1s retrievals inside a 120s request is worth ~1–2% by construction. The first run's 188s mean came from outliers, not from serialization.
+
+**What is true:** parallelism is structurally present and correct — independent gatherers have no dependencies and the scheduler runs them concurrently (`mean_concurrent_agents` 0.417). **What is not true:** that this currently buys meaningful latency in this workload.
+
+A related caution about the same data: `A_single_agent` shows a mean of 193,631ms driven entirely by one case (MA-012) taking **1,287,171ms** — 10x every other condition on the same query. Its *median* (118,054ms) is the lowest of the four. At n=12 with a CPU model whose per-call latency varies by an order of magnitude, **these conditions are not separable on latency at all**, and no latency claim should be made from this experiment in either direction.
+
+### The planner and state fixes worked
+
+| metric | before | after |
+|---|---|---|
+| `composition_risk_accuracy` | 0.000 | **0.500** |
+| `plan_shape_accuracy` | 0.333 | **0.417** |
+| agent messages (C) | 24 | 30 |
+
+`composition_risk_accuracy` 0.000 → 0.500 is MA-007, the exfiltration case, now firing correctly. The remaining half is MA-008, still 0 agents because the profiler does not treat "write an internal summary report" as actionable — recorded as a known gap, not adjusted.
+
+### What still holds from the first run
+
+- **`key_fact_accuracy` is 0.583 in all four conditions.** Multi-agent decomposition changes nothing about answer quality. Unchanged across both runs.
+- **Communication changed nothing.** C and D differ only in whether messages are recorded (30 vs 0) and score identically on every quality metric. Agent communication is **observability, not capability** — valuable for governance and audit, not something that currently changes an answer.
+
 ## 2026-08-30 — Milestone 16: Four Metrics That Measured Nothing
 
 A single theme runs through this milestone, and it was not planned. Every P0 I opened turned out to have a component that *existed, was wired, was tested, and reported a number that was structurally always wrong.* None of them failed. None broke a test. Each was found by reading recorded output and asking whether the value could be right.
