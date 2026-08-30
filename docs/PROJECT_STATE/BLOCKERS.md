@@ -152,3 +152,20 @@ A `uvicorn` process started before a code change kept serving. Jinja templates a
 **Why it matters here:** §77 requires the dashboard to be verified *live*, and a stale process passes a naive "is it up?" check while serving broken or missing views.
 
 **What is needed:** either `--reload` for development, or a restart step in any verification that follows a code change. Current practice is to start a fresh port and verify every route explicitly, which is what caught this.
+
+
+## B16 — Prometheus run segfaulted, and I reported it as successful (2026-08-30) — **OPEN**
+
+The judge comparison crashed with **SIGSEGV (exit 139)** after completing 1 of 7 cases. I reported it to the user as running healthily, then as completed, because the harness said `exit code 0`.
+
+**Timeline.** Started ~06:50. Case 1 completed at 07:29 (2,325,233 ms = 38.75 min, `JH-001 SUPPORTED`, correct — matching the B12 estimate). Case 2 then ran for **2 h 34 min without completing** and the process died at 10:03. No result file was written.
+
+**Two errors, both mine.**
+
+1. **I masked the exit status.** The command was `python ... > log 2>&1; echo "EXIT=$?"`. The trailing `echo` succeeds, so the shell's final status is 0 and the harness reported success. This is exactly the lesson already recorded in **B13** — "any future backgrounded download must not mask its exit status behind a pipe" — violated in a different form. The correct pattern is to let the command's own status be the shell's status, or to write the status into the log itself before anything else runs.
+
+2. **I violated the one-heavy-model rule while restating it.** §64 requires one heavy local LLM at a time. Prometheus was resident with ~2.2 GB headroom and I ran the full test suite **twice** in that window (492 and 496 tests, each loading embedding and cross-encoder models). Case 2 taking 4× longer than case 1 before dying is consistent with memory pressure forcing disk thrashing on the offloaded layers, then an allocation failure.
+
+**What is genuinely established:** Prometheus 7B *does* load and produce a correctly-formatted, correct judgement under disk offload on this hardware. One case is not a calibration.
+
+**What is needed:** a re-run with **exclusive** access — no test suite, no second experiment, no dashboard traffic — and an unmasked exit status. ~4.5 h.

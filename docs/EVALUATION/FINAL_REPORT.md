@@ -250,7 +250,7 @@ A component counts as `COMPLETE` only when it is implemented, runtime-wired, sta
 | What | Why it matters | Next action | Why not fixed |
 |---|---|---|---|
 | **Abstention unimproved (0.600)** | ControlPlane adds nothing on unanswerable questions | needs an abstention mechanism, not a threshold | root cause not yet isolated; 5 cases is too few to diagnose |
-| **Prometheus judge `NOT_MEASURED`** | the `PARTIALLY_SUPPORTED` collapse is unresolved | run the 7-case stratified calibration | RAM-serialised behind other heavy jobs; 14.5GB model on 15.7GB |
+| **Prometheus judge `NOT_MEASURED`** | the `PARTIALLY_SUPPORTED` collapse is unresolved | re-run the 7-case calibration with **exclusive** machine access | attempted 2026-08-30 and **segfaulted after 1 of 7 cases** — I ran the test suite twice alongside it, violating the one-heavy-model rule, and masked the failing exit status behind a trailing `echo`. See `BLOCKERS.md` B16 |
 | **Model routing benchmark not run** | §11 matrix item; adaptive routing unvalidated | ALWAYS FAST / ALWAYS STRONG / CURRENT / ADAPTIVE | STRONG measured ~417s per call; hours of CPU |
 | **Drift cannot see 4 of its own categories** | alert accuracy stuck at 0.773 | sequence/consequence features | needs representation change, not tuning |
 | **16 of 22 datasets have no held-out split** | the exact condition under which k=31 and entailment fooled their tuning splits | add splits | breadth of work |
