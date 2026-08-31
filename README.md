@@ -190,91 +190,53 @@ This is a **real recorded request**, `req_c0edde9d`, the flagship trace, reprodu
 
 ```mermaid
 sequenceDiagram
-    autonumber
-
-    participant U  as User
+    participant U as User
     participant RT as Runtime
-    participant QP as Query Profiler
-    participant CR as Router / Planner
+    participant QP as Profiler
+    participant CR as Router/Planner
     participant A1 as agent_retriever
     participant A2 as agent_analyst
     participant BUS as Agent Bus
     participant A3 as agent_action
-    participant EV as Evaluation Suite
-    participant DE as Decision Engine
+    participant EV as Evaluation
+    participant DE as Decision
 
-    
-        note over U,CR: Phase 1 — Intake & Planning
-        U  ->> RT : POST /v1/requests
-        activate RT
-        RT ->> QP : profile(query)
-        activate QP
-        QP -->> RT : data_requirement=[RAG_CORPUS, SQL_DB]<br/>actionability=agentic  |  MEDIUM_RISK
-        deactivate QP
-        RT ->> CR : route + plan
-        activate CR
-        CR -->> RT : 3 agents · 2 independent gatherers
-        deactivate CR
+    U->>RT: query
+    RT->>QP: profile
+    QP-->>RT: RAG_CORPUS + SQL_DB, agentic
+    RT->>CR: route
+    CR-->>RT: 3 agents, 2 in a parallel group
+    par concurrent, no dependencies
+        RT->>A1: RAG via MCP
+        A1-->>RT: 5 items (PUBLIC)
+    and
+        RT->>A2: SQL via MCP
+        A2-->>RT: 20 rows (CONFIDENTIAL)
     end
-
-    
-        note over RT,A2: Phase 2 — Parallel Execution (wave scheduler)
-        par RAG path — 578 ms
-            RT ->> A1 : execute(RAG via MCP)
-            activate A1
-            A1 -->> RT : 5 evidence items  [PUBLIC]
-            deactivate A1
-        and SQL path — 63 ms
-            RT ->> A2 : execute(SQL via MCP)
-            activate A2
-            A2 -->> RT : 20 rows  [CONFIDENTIAL]
-            deactivate A2
-        end
-    end
-
-    
-        note over A1,A3: Phase 3 — Handoff & Governance
-        A1  ->> BUS : HANDOFF · 5 items · sensitivity=PUBLIC
-        A2  ->> BUS : HANDOFF · 20 items · sensitivity=CONFIDENTIAL
-        BUS -->> A3 : inbox delivered before tool proposal
-        activate A3
-        note right of A3: Risk re-evaluated with held evidence:<br/>MEDIUM_RISK → HIGH_RISK
-        A3  ->> A3  : propose send_notification
-        A3 -->> RT  : AgentGate → HUMAN_REVIEW<br/>AWAITING_APPROVAL  (nothing sent)
-        deactivate A3
-    end
-
-    
-        note over RT,U: Phase 4 — Evaluation & Outcome
-        RT ->> EV : evaluate(answer + evidence)
-        activate EV
-        EV ->> DE : 11 evaluator signals
-        deactivate EV
-        activate DE
-        note right of DE: CompositionGovernor: ELEVATED<br/>wasted_agent_rate: 0.333
-        DE -->> U  : decision=HUMAN_REVIEW<br/>verification=REJECTED · trust=LOW
-        deactivate DE
-        deactivate RT
-    end
+    A1->>BUS: HANDOFF 5 items PUBLIC
+    A2->>BUS: HANDOFF 20 items CONFIDENTIAL
+    BUS-->>A3: inbox read before acting
+    A3->>A3: send_notification, escalated MEDIUM→HIGH
+    A3-->>RT: HUMAN_REVIEW, AWAITING_APPROVAL
+    RT->>EV: evaluate
+    EV->>DE: concerns
+    DE-->>U: HUMAN_REVIEW · verification REJECTED · trust LOW
 ```
 
-**Trace walkthrough — recorded values:**
+**Step by step, with recorded values:**
 
-| Phase | Step | What happened | Key value |
-|---|---|---|---|
-| **Intake** | 1. Reception | `RequestContext` mints `request_id` / `trace_id` / `trajectory_id`; `QUERY_RECEIVED` committed | — |
-| **Intake** | 2. Profiling | Hybrid profiler classifies query | `data_requirement: [RAG_CORPUS, SQL_DB]`<br/>`actionability: agentic` |
-| **Intake** | 3. Risk → Policy | Risk scored; policy tier set | `MEDIUM_RISK` — keeps RAG, SQL, AGENT in candidate set |
-| **Planning** | 4. Agent plan | Planner sees 2 servable requirements + an action, emits 3 agents | `agent_retriever` (RETRIEVER→RAG)<br/>`agent_analyst` (ANALYST→SQL)<br/>`agent_action` (NOTIFIER) |
-| **Execution** | 5. Parallel run | Two gatherers have `depends_on = []`; wave scheduler runs both concurrently | RAG: **578 ms** · 5 items<br/>SQL: **63 ms** · 20 rows |
-| **Governance** | 6. Handoff | Bus delivers evidence to `agent_action` *before* it proposes a tool | Sensitivity: PUBLIC + CONFIDENTIAL |
-| **Governance** | 7. Gate | Send evaluated with held evidence — risk escalates | `MEDIUM_RISK → HIGH_RISK`<br/>`AgentGate → HUMAN_REVIEW` (nothing sent) |
-| **Governance** | 8. Composition | `CompositionGovernor` evaluates the full agent chain | `ELEVATED` — data accessed, never exfiltrated |
-| **Governance** | 9. Contribution | Per-agent attribution computed | Both gatherers: `ESSENTIAL` / `downstream_influence: CHANGED_STEP_RISK`<br/>`agent_action`: `INERT` · `wasted_agent_rate: 0.333` |
-| **Outcome** | 10. Evaluation → Trust | 11 evaluators run; control loop terminates | `decision: HUMAN_REVIEW`<br/>`verification: REJECTED` · `trust: LOW` |
+1. **Reception**, `RequestContext` mints `request_id` / `trace_id` / `trajectory_id`; `QUERY_RECEIVED` is committed before anything else runs.
+2. **Profiling**, hybrid profiler returns `data_requirement: [RAG_CORPUS, SQL_DB]`, `actionability: agentic`.
+3. **Risk → policy**, `MEDIUM_RISK`; the policy tier keeps RAG, SQL and AGENT in the candidate set.
+4. **Planning**: the agent planner sees two *servable* requirements that both agree with the selected capability set, and an action. It emits `agent_retriever` (RETRIEVER→RAG), `agent_analyst` (ANALYST→SQL), and `agent_action` (NOTIFIER) depending on both.
+5. **Parallel execution**: the two gatherers have `depends_on = []`, so the wave scheduler runs them concurrently: **RAG 578 ms, SQL 63 ms**. Both go through MCP, returning 5 and 20 evidence items.
+6. **Handoff**, at the moment `agent_action` runs, the bus delivers both gatherers' evidence with sensitivity attached. The actor reads its inbox *before* proposing a tool.
+7. **Governance**: the send is `MEDIUM_RISK` on its own text. Because the actor holds `CONFIDENTIAL` evidence it becomes `HIGH_RISK`, and `AgentGate` returns `HUMAN_REVIEW` instead of `RESTRICT`. Nothing is sent.
+8. **Composition**, `CompositionGovernor` scores the chain `ELEVATED`: *"sensitive data was accessed but never reached an external destination"*; because the gate stopped it first.
+9. **Contribution**, both gatherers are `ESSENTIAL` with `downstream_influence: CHANGED_STEP_RISK`; the actor is `INERT` (it produced no evidence of its own). `wasted_agent_rate: 0.333`.
+10. **Evaluation → decision → trust**, 11 evaluators run; decision `HUMAN_REVIEW`; verification `REJECTED`; trust `LOW`, because a result awaiting human approval is not a trusted result.
 
 ---
-
 
 ## Core Technical Approach
 
