@@ -1,4 +1,4 @@
-# ControlPlane.ai
+﻿# ControlPlane.ai
 
 <p align="center">
   <img src="assets/logo/logo.png" alt="ControlPlane.ai Logo" width="320"/>
@@ -19,11 +19,11 @@ The system is measured, not asserted. On a frozen 62-case benchmark against the 
 
 ---
 
-## 📚 Table of Contents
+## Table of Contents
 
 - [Project Overview](#-project-overview)
 - [Key Features](#-key-features)
-- [System Architecture](#️-system-architecture)
+- [System Architecture](#-system-architecture)
 - [End-to-End Flow](#-end-to-end-flow)
 - [Core Technical Approach](#-core-technical-approach)
 - [Retrieval Pipeline](#-retrieval-pipeline)
@@ -31,16 +31,16 @@ The system is measured, not asserted. On a frozen 62-case benchmark against the 
 - [Model Routing & Failover](#-model-routing--failover)
 - [Evaluation & Decision Layer](#-evaluation--decision-layer)
 - [Engineering Decisions](#-engineering-decisions)
-- [Engineering Challenges & Solutions](#️-engineering-challenges--solutions)
+- [Engineering Challenges & Solutions](#-engineering-challenges--solutions)
 - [Measured Results](#-measured-results)
-- [The Dashboard](#️-the-dashboard)
+- [The Dashboard](#-the-dashboard)
 - [API Endpoints](#-api-endpoints)
 - [Project Structure](#-project-structure)
 - [Data & Datasets](#-data--datasets)
 - [Observability](#-observability)
 - [Security](#-security)
-- [Configuration](#️-configuration)
-- [Installation](#️-installation)
+- [Configuration](#-configuration)
+- [Installation](#-installation)
 - [Testing](#-testing)
 - [Limitations](#-limitations)
 - [Future Work](#-future-work)
@@ -48,7 +48,7 @@ The system is measured, not asserted. On a frozen 62-case benchmark against the 
 
 ---
 
-## 🚀 Project Overview
+## Project Overview
 
 ### The Problem
 
@@ -81,13 +81,13 @@ The control plane owns **what, why, whether, and when**. Capabilities (RAG, SQL,
 
 Three properties fall out of governing the trajectory rather than filtering the response:
 
-1. **Failures become localisable.** Because every stage records input, output and latency, "the answer was wrong" resolves to *which component* produced the wrong thing. The diagnostics layer attributes a failure to a named component with its recorded evidence.
-2. **Control becomes proportional.** A public-knowledge question takes the cheap path (19s, small model, no retrieval, no agents). A confidential-read-then-external-send takes a governed path ending in `HUMAN_REVIEW`. The decision is derived from measured query properties, not a keyword list.
-3. **Claims become checkable.** Every improvement in this repository was accepted or rejected against a held-out split, and rejected alternatives are recorded alongside adopted ones. `tests/test_result_integrity.py` runs 201 assertions across every result file asking a single question: *can this value physically be correct?*
+1. Failures become localisable. Because every stage records input, output and latency, "the answer was wrong" resolves to *which component* produced the wrong thing. The diagnostics layer attributes a failure to a named component with its recorded evidence.
+2. Control becomes proportional. A public-knowledge question takes the cheap path (19s, small model, no retrieval, no agents). A confidential-read-then-external-send takes a governed path ending in `HUMAN_REVIEW`. The decision is derived from measured query properties, not a keyword list.
+3. Claims become checkable. Every improvement in this repository was accepted or rejected against a held-out split, and rejected alternatives are recorded alongside adopted ones. `tests/test_result_integrity.py` runs 201 assertions across every result file asking a single question: *can this value physically be correct?*
 
 ---
 
-## ✨ Key Features
+## Key Features
 
 - **Query Intelligence**: a hybrid profiler (deterministic rules ∪ embedding k-NN over a labelled exemplar bank) producing intent, domain, complexity, sensitivity, ambiguity, impact, actionability, data requirements and capability hints. A Pydantic model validator enforces internal coherence: a fingerprint asserting an action *cannot* also decline the agent capability.
 - **Risk & Policy**: a multi-dimensional risk profile mapped to a policy tier that restricts which capabilities survive into the plan.
@@ -106,7 +106,7 @@ Three properties fall out of governing the trajectory rather than filtering the 
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```mermaid
 flowchart TD
@@ -182,7 +182,7 @@ flowchart TD
 
 ---
 
-## 🔄 End-to-End Flow
+## End-to-End Flow
 
 This is a **real recorded request**, `req_c0edde9d`, the flagship trace, reproduced from its stored events.
 
@@ -231,14 +231,14 @@ sequenceDiagram
 4. **Planning**: the agent planner sees two *servable* requirements that both agree with the selected capability set, and an action. It emits `agent_retriever` (RETRIEVER→RAG), `agent_analyst` (ANALYST→SQL), and `agent_action` (NOTIFIER) depending on both.
 5. **Parallel execution**: the two gatherers have `depends_on = []`, so the wave scheduler runs them concurrently: **RAG 578 ms, SQL 63 ms**. Both go through MCP, returning 5 and 20 evidence items.
 6. **Handoff**, at the moment `agent_action` runs, the bus delivers both gatherers' evidence with sensitivity attached. The actor reads its inbox *before* proposing a tool.
-7. **Governance**: the send is `MEDIUM_RISK` on its own text. Because the actor holds `CONFIDENTIAL` evidence it becomes `HIGH_RISK`, and `AgentGate` returns **`HUMAN_REVIEW`** instead of `RESTRICT`. Nothing is sent.
+7. **Governance**: the send is `MEDIUM_RISK` on its own text. Because the actor holds `CONFIDENTIAL` evidence it becomes `HIGH_RISK`, and `AgentGate` returns `HUMAN_REVIEW` instead of `RESTRICT`. Nothing is sent.
 8. **Composition**, `CompositionGovernor` scores the chain `ELEVATED`: *"sensitive data was accessed but never reached an external destination"*; because the gate stopped it first.
 9. **Contribution**, both gatherers are `ESSENTIAL` with `downstream_influence: CHANGED_STEP_RISK`; the actor is `INERT` (it produced no evidence of its own). `wasted_agent_rate: 0.333`.
 10. **Evaluation → decision → trust**, 11 evaluators run; decision `HUMAN_REVIEW`; verification `REJECTED`; trust `LOW`, because a result awaiting human approval is not a trusted result.
 
 ---
 
-## 🧠 Core Technical Approach
+## Core Technical Approach
 
 ### Query profiling: deterministic first, semantic fallback
 
@@ -249,7 +249,7 @@ Two independent profilers are merged rather than one being chosen:
 
 `HybridQueryProfiler` trusts a rule's value for a field **only when a specific trigger actually fired** for that field (`high_confidence_fields`), otherwise deferring to k-NN. List-valued fields are unioned. A third semantic layer, corpus affinity, is consulted only when neither earlier layer asked for retrieval.
 
-**The coherence invariant.** `capability_hints` and `actionability` come from two *independent* majority votes in the k-NN path, and nothing required them to agree. Measured on 135 held-out queries, five came out asserting an action while requesting no agent capability, including *"Initiate an automated batch payout of $150,000 to all approved affiliate partners"* with `hints: ['GENERAL']`, routed as plain generation with no gate. A `model_validator` on `QueryFingerprint` now makes that state unrepresentable: **5 → 0**.
+The coherence invariant. `capability_hints` and `actionability` come from two *independent* majority votes in the k-NN path, and nothing required them to agree. Measured on 135 held-out queries, five came out asserting an action while requesting no agent capability, including *"Initiate an automated batch payout of $150,000 to all approved affiliate partners"* with `hints: ['GENERAL']`, routed as plain generation with no gate. A `model_validator` on `QueryFingerprint` now makes that state unrepresentable: **5 → 0**.
 
 ### Adequacy: relevance is not sufficiency
 
@@ -285,7 +285,7 @@ The hybrid scored best on the new dataset and was **rejected**: it lost 17.6 poi
 
 ---
 
-## 🔍 Retrieval Pipeline
+## Retrieval Pipeline
 
 ```mermaid
 flowchart LR
@@ -301,7 +301,7 @@ flowchart LR
     AD -->|CONFLICTING| DE2[Decision Engine<br/>needs authoritative source]
 ```
 
-**Reciprocal Rank Fusion** combines two rankings without needing their scores to be comparable:
+Reciprocal Rank Fusion combines two rankings without needing their scores to be comparable:
 
 $$
 \text{RRF}(d) = \sum_{r \in \{\text{dense},\, \text{lexical}\}} \frac{1}{k + \text{rank}_r(d)}, \qquad k = 60
@@ -309,11 +309,11 @@ $$
 
 Rank-based fusion is used because a cosine similarity and a BM25 score have no shared scale; normalising them would introduce an arbitrary weighting. The cross-encoder then rescores the fused top candidates jointly on (query, passage) rather than through independent embeddings.
 
-**Conflicting is a distinct outcome from insufficient**, and the runtime treats it differently: conflicting evidence needs an *authoritative* source, so the replanner explicitly refuses to fetch an *additional* one.
+Conflicting is a distinct outcome from insufficient, and the runtime treats it differently: conflicting evidence needs an *authoritative* source, so the replanner explicitly refuses to fetch an *additional* one.
 
 ---
 
-## 🤝 Multi-Agent Subsystem
+## Multi-Agent Subsystem
 
 ### Decomposition
 
@@ -350,11 +350,11 @@ Per agent, kept deliberately separate rather than collapsed into one score: `uni
 
 > `answer_influence` is **lexical overlap**: a proxy. It is reported as its own dimension, never folded into a headline, and a verdict never rests on it alone.
 
-For conflicts, exactly one authority rule is encoded and stated: the enterprise database is authoritative for figures it stores; a document quoting one can hold a stale copy. Everything else resolves to **`UNRESOLVED`**, which is a result and not a failure: an invented source hierarchy applied confidently would be precisely the silent choosing the module exists to prevent.
+For conflicts, exactly one authority rule is encoded and stated: the enterprise database is authoritative for figures it stores; a document quoting one can hold a stale copy. Everything else resolves to `UNRESOLVED`, which is a result and not a failure: an invented source hierarchy applied confidently would be precisely the silent choosing the module exists to prevent.
 
 ---
 
-## 🔀 Model Routing & Failover
+## Model Routing & Failover
 
 Two roles, resolved differently:
 
@@ -366,15 +366,15 @@ flowchart LR
     G2 -->|unavailable or failed| G3[Local Qwen3-4B<br/>always works offline]
 ```
 
-Only STRONG gets a **failover chain**. FAST keeps single-provider resolution, Groq when a key is set, local otherwise; so with keys configured both roles are remote; FAST was measured at **764 ms** on `openai/gpt-oss-20b`. The difference is what happens when the first choice is unavailable: STRONG falls over, FAST does not. **Local is always last in the chain and never removed**: it is the floor that keeps the system runnable offline with no keys at all.
+Only STRONG gets a failover chain. FAST keeps single-provider resolution, Groq when a key is set, local otherwise; so with keys configured both roles are remote; FAST was measured at **764 ms** on `openai/gpt-oss-20b`. The difference is what happens when the first choice is unavailable: STRONG falls over, FAST does not. Local is always last in the chain and never removed: it is the floor that keeps the system runnable offline with no keys at all.
 
 Failover happens at **call time**, not only at construction. A key that is set but rejected, a wrong model name or a rate limit are invisible when a provider object is built. Every candidate's outcome is recorded (`USED` / `UNAVAILABLE` / `FAILED` with detail) so an operator can see which provider answered and why the others did not: a silent fallback that looked identical to a first-choice success would hide exactly what needs to be seen.
 
-**Escalation is evidence-gated.** `AdaptiveCompute` consults recorded per-model performance before escalating; on this project's own tier comparison the larger local model scored *lower* at ~2.5× the cost, so escalating by default would reliably spend more to get less.
+Escalation is evidence-gated. `AdaptiveCompute` consults recorded per-model performance before escalating; on this project's own tier comparison the larger local model scored *lower* at ~2.5× the cost, so escalating by default would reliably spend more to get less.
 
 ---
 
-## 📊 Evaluation & Decision Layer
+## Evaluation & Decision Layer
 
 Nine evaluators run over the answer and its evidence:
 
@@ -393,7 +393,7 @@ Intervention must change behaviour to count: `RESTRICT` runs a genuinely constra
 
 ---
 
-## 🧩 Engineering Decisions
+## Engineering Decisions
 
 ### Deterministic tool selection, never LLM-chosen
 
@@ -428,7 +428,7 @@ Intervention must change behaviour to count: `RESTRICT` runs a genuinely constra
 
 ---
 
-## 🛠️ Engineering Challenges & Solutions
+## Engineering Challenges & Solutions
 
 Each of these was found by reading recorded output and asking whether the number could physically be correct: not by a failing test.
 
@@ -470,7 +470,7 @@ The Prometheus judge run crashed with SIGSEGV, initially attributed to memory pr
 
 ---
 
-## 📈 Measured Results
+## Measured Results
 
 All figures below come from committed result files under `docs/EVALUATION/RESULTS/` and are asserted by `tests/test_report_claims.py`.
 
@@ -529,7 +529,7 @@ All figures below come from committed result files under `docs/EVALUATION/RESULT
 
 ---
 
-## 🖥️ The Dashboard
+## The Dashboard
 
 Six routes, all reading committed state:
 
@@ -544,11 +544,11 @@ Six routes, all reading committed state:
 
 The live graph distinguishes **ControlPlane** nodes (square mark, accent bar, *decides*) from **capability** nodes (round mark, muted bar, *executes*), because that separation is the architectural claim. Recorded agent communication is drawn as a distinct dashed edge so it can never be confused with a dependency.
 
-**Honesty rules are in the builder, not the template:** a stage that did not fire renders `NOT_TRIGGERED` with an explanation rather than an empty box that reads like a pass; a missing measurement renders `NOT_RECORDED`, never `0`; unknown event types map to no stage and appear in the feed without moving the spine, so an unexpected event cannot corrupt the view.
+Honesty rules are in the builder, not the template: a stage that did not fire renders `NOT_TRIGGERED` with an explanation rather than an empty box that reads like a pass; a missing measurement renders `NOT_RECORDED`, never `0`; unknown event types map to no stage and appear in the feed without moving the spine, so an unexpected event cannot corrupt the view.
 
 ---
 
-## 🔌 API Endpoints
+## API Endpoints
 
 ### Submit a request (synchronous)
 
@@ -598,7 +598,7 @@ Returns `{ run, console }` where `console` carries the governance stages, graph 
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 ControlPlane/
@@ -637,7 +637,7 @@ ControlPlane/
 
 ---
 
-## 📦 Data & Datasets
+## Data & Datasets
 
 Datasets are versioned with explicit train / validation / test / challenge splits. `data/evaluation/train/query_profiles_train.json` (135 records) doubles as the k-NN exemplar bank, which is stated wherever it is tuned on.
 
@@ -658,7 +658,7 @@ Datasets are versioned with explicit train / validation / test / challenge split
 
 ---
 
-## 📡 Observability
+## Observability
 
 Every stage emits a structured event committed as it happens:
 
@@ -675,7 +675,7 @@ Component diagnostics report status, latency, error and downstream impact per co
 
 ---
 
-## 🔐 Security
+## Security
 
 **Implemented:**
 
@@ -692,7 +692,7 @@ Component diagnostics report status, latency, error and downstream impact per co
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 | Variable | Required | Purpose |
 |---|---|---|
@@ -722,7 +722,7 @@ DATABASE_URL=postgresql+psycopg2://controlplane:controlplane@localhost:5433/cont
 
 ---
 
-## 🛠️ Installation
+## Installation
 
 ### Requirements
 
@@ -763,7 +763,7 @@ Then open **<http://127.0.0.1:8141/dashboard/live>**, type a query, and press **
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ```bash
 .venv/Scripts/python -m pytest -q                    # 760 tests across 59 files
@@ -781,7 +781,7 @@ Experiments live in `controlplane/experiments/` (43 harnesses) and write version
 
 ---
 
-## ⚠️ Limitations
+## Limitations
 
 **Unmeasured claims**, stated as unmeasured rather than implied:
 
@@ -803,7 +803,7 @@ Experiments live in `controlplane/experiments/` (43 harnesses) and write version
 
 ---
 
-## 🚀 Future Work
+## Future Work
 
 Each item is tied to a specific limitation above:
 
@@ -818,7 +818,7 @@ Each item is tied to a specific limitation above:
 
 ---
 
-## 🧰 Tech Stack
+## Tech Stack
 
 | Layer | Technology | Purpose |
 |---|---|---|

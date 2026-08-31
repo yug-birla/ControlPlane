@@ -1,8 +1,8 @@
-# docs/EVALUATION/
+﻿# docs/EVALUATION/
 
 Human-written summaries of experiments that are actually run, per the Milestone 2 requirement that every test/matrix/benchmark/evaluation result be documented, not just printed to a terminal.
 
-**Source of truth:** `controlplane/experiments/tracking.py` persists every experiment/run/result to Postgres (`experiments`, `experiment_runs`, `evaluation_results`, `model_benchmarks`). The files in this folder and in `RESULTS/` are generated from those runs — if a number appears here, it was measured by running the corresponding script in `controlplane/experiments/`, not typed in by hand.
+**Source of truth:** `controlplane/experiments/tracking.py` persists every experiment/run/result to Postgres (`experiments`, `experiment_runs`, `evaluation_results`, `model_benchmarks`). The files in this folder and in `RESULTS/` are generated from those runs  -  if a number appears here, it was measured by running the corresponding script in `controlplane/experiments/`, not typed in by hand.
 
 | File | What it covers |
 |---|---|
@@ -18,7 +18,7 @@ Human-written summaries of experiments that are actually run, per the Milestone 
 | `AGENT_GOVERNANCE_RESULTS.md` | Agent/Tool Governance gate accuracy against real trajectory labels (Milestone 6); now live-wired with real end-to-end traces (Milestone 7, see `docs/ALGORITHMS/AGENT_GOVERNANCE.md`) |
 | `TRUST_RESULTS.md` | Why the Trust Layer has no accuracy benchmark, and what was unit-tested instead (Milestone 6) |
 | `BEHAVIORAL_DRIFT_RESULTS.md` | Behavioral Drift detector demonstration against a synthetic baseline history (Milestone 7) |
-| `RESULTS/` | Raw JSON exports, named `<experiment>_<date>.json`, one file per experiment per day (a same-day re-run overwrites that day's file — a real limitation of the current date-only naming, not yet fixed). |
+| `RESULTS/` | Raw JSON exports, named `<experiment>_<date>.json`, one file per experiment per day (a same-day re-run overwrites that day's file  -  a real limitation of the current date-only naming, not yet fixed). |
 
 **Reproduce any result:**
 ```

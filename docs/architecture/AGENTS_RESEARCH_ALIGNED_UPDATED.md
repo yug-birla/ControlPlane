@@ -1,4 +1,4 @@
-# AGENTS.md — ControlPlane.ai Agent Operating Instructions
+﻿# AGENTS.md — ControlPlane.ai Agent Operating Instructions
 
 ## 0. READ THIS FIRST
 
@@ -628,13 +628,13 @@ Prefer structured trust:
 TRUST: HIGH
 
 Why:
-✓ Supported by authorized sources
-✓ Verification passed
-✓ No significant disagreement
-✓ Data is sufficiently current
+ Supported by authorized sources
+ Verification passed
+ No significant disagreement
+ Data is sufficiently current
 
 Limitations:
-⚠ Q4 data unavailable
+ Q4 data unavailable
 ```
 
 Low trust:
@@ -643,8 +643,8 @@ Low trust:
 TRUST: LOW
 
 Why:
-⚠ Evidence insufficient
-⚠ Models disagree
+ Evidence insufficient
+ Models disagree
 
 Action:
 Unsupported information was not presented as fact.

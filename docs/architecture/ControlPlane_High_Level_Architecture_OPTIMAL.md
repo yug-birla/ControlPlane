@@ -1,4 +1,4 @@
-# ControlPlane.ai — High-Level Architecture
+﻿# ControlPlane.ai — High-Level Architecture
 ## Research-Aligned, Scale-Aware, Dynamic AI Control Plane
 
 **Status:** Architecture Specification  
@@ -1225,13 +1225,13 @@ Example:
 TRUST: HIGH
 
 Why:
-✓ Evidence supports the primary claims
-✓ Authorized enterprise source
-✓ Verification passed
-✓ No major disagreement
+ Evidence supports the primary claims
+ Authorized enterprise source
+ Verification passed
+ No major disagreement
 
 Limitations:
-⚠ Q4 data unavailable
+ Q4 data unavailable
 ```
 
 Low-trust case:
@@ -1240,9 +1240,9 @@ Low-trust case:
 TRUST: LOW
 
 Why:
-⚠ Evidence insufficient
-⚠ Conflicting sources
-⚠ Model disagreement
+ Evidence insufficient
+ Conflicting sources
+ Model disagreement
 
 ControlPlane:
 Did not present unsupported information as fact.

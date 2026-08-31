@@ -1,4 +1,4 @@
-# ControlPlane.ai — Trajectory Store + Execution Ledger
+﻿# ControlPlane.ai — Trajectory Store + Execution Ledger
 
 **Document:** `docs/ARCHITECTURE/TRAJECTORY_AND_LEDGER.md`  
 **Status:** PARTIAL — baseline implemented (Milestone 1, 2026-08-27); the rest of this document remains a forward-looking architecture/contract specification, not an implementation claim  
@@ -1269,13 +1269,13 @@ Example:
 
 ```text
 READ customer record
-   ✓ completed
+    completed
 
 PREPARE external email
-   ✓ completed
+    completed
 
 SEND email
-   ✗ blocked by policy
+    blocked by policy
 ```
 
 The trajectory must show:

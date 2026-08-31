@@ -1,4 +1,4 @@
-# ControlPlane.ai — Failure and Recovery Model
+﻿# ControlPlane.ai — Failure and Recovery Model
 
 **Status:** Architecture Contract
 
@@ -1001,19 +1001,19 @@ Example:
 
 ```text
 READ record
-  ✓ completed
+   completed
 
 PREPARE action
-  ✓ completed
+   completed
 
 EXTERNAL ACTION
-  ✓ accepted by external system
+   accepted by external system
 
 POST-ACTION VERIFICATION
-  ✗ failed
+   failed
 
 LATER ACTION
-  ✗ blocked
+   blocked
 ```
 
 The final record must distinguish:

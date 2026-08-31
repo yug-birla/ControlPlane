@@ -1,1 +1,5 @@
-Generic single-database configuration.
+Alembic handles schema migrations for ControlPlane's PostgreSQL database.
+
+Run `alembic upgrade head` after cloning to apply all migrations.
+Migration files live in `alembic/versions/`.
+The database URL is read from the `DATABASE_URL` environment variable (see `.env.example`).

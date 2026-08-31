@@ -1,19 +1,7 @@
 # controlplane/ledger/
 
-**Purpose:** the Execution Ledger — "append-only record of consequential execution facts" (`docs/architecture/TRAJECTORY_AND_LEDGER.md`). Rows are never updated or deleted by application code (`docs/DATA/POSTGRES_SCHEMA.md` §10.1: "If a correction is required, append a compensating record.").
+The execution ledger is an append-only record of consequential facts — tool calls, data reads, external actions, human approvals, interventions. Rows are never updated; if a correction is needed, a compensating record is appended. See `docs/architecture/TRAJECTORY_AND_LEDGER.md` and `docs/DATA/POSTGRES_SCHEMA.md` §10.
 
-## Interface
+Sequence numbers are computed at append time as `MAX(sequence_number)+1` within one transaction. This works correctly at current single-writer-per-trajectory scale; it would need rethinking if multiple writers could touch the same trajectory concurrently.
 
-`ExecutionLedger.append(...)` (per-trajectory monotonic `sequence_number`, computed from `MAX(sequence_number)+1` at append time), `ExecutionLedger.get_by_trajectory(...)` (chronological). `ConsequenceClass` enum (`READ_ONLY`/`REVERSIBLE_WRITE`/`IRREVERSIBLE_WRITE`/`HIGH_IMPACT_ACTION`, from `docs/architecture/CONTROLPLANE_CROSS_CUTTING_SYSTEM_SPEC.md` §30).
-
-## Dependencies
-
-`controlplane/db/` (Postgres).
-
-## Limitations
-
-Sequence-number assignment is a read-then-write within one transaction, not a DB sequence/trigger — correct at current single-writer-per-trajectory scale, would need revisiting under concurrent writers to the same trajectory.
-
-## Extension points
-
-Every consequential fact a future layer introduces (tool calls, data access, human approvals, interventions) appends here using the `action_type` examples already listed in `docs/DATA/POSTGRES_SCHEMA.md` §10.1 — don't invent a second ledger.
+Every consequential fact a future capability introduces (additional tool calls, approvals, interventions) uses the `action_type` values already in `docs/DATA/POSTGRES_SCHEMA.md` §10.1. There should be exactly one ledger.

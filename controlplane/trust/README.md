@@ -1,19 +1,7 @@
 # controlplane/trust/
 
-**Purpose:** the final control-loop output — a structured `HIGH`/`MEDIUM`/`LOW` trust verdict with a stated reason, computed from already-validated signals (never an invented number). See `docs/ALGORITHMS/TRUST_LAYER.md`.
+`TrustEngine` is the last step before the response leaves the control loop. It takes the verification result, decision action, and risk profile and produces a `HIGH`/`MEDIUM`/`LOW` verdict with a stated reason. There is no invented confidence score here — the verdict follows deterministically from those three signals.
 
-## Interface
+The engine is not persisted to its own table. Trust is a pure function of data that is already committed elsewhere, so storing it separately would just create a second copy that could drift. It is recomputed on read in `controlplane.runtime` and `controlplane.dashboard.queries`.
 
-- `engine.py`: `TrustLevel` (`HIGH`/`MEDIUM`/`LOW`), `TrustAssessment` (`level`, `reason`, `contributing_factors`), `TrustEngine.assess(verification, decision, risk) -> TrustAssessment`.
-
-## Dependencies
-
-`controlplane.verification.engine`, `controlplane.decision.engine`, `controlplane.risk.profile`.
-
-## Limitations
-
-Only 3 input signals (verification, decision, risk) — bootstrap SS36 also suggests evaluator agreement/data quality/model reliability, none of which have a metric yet to feed this.
-
-## Extension points
-
-Not persisted to its own table by design (pure function of already-persisted data, see `docs/PROJECT_STATE/DECISIONS.md`) — recomputed wherever needed (`controlplane.runtime`, `controlplane.dashboard.queries`).
+Currently only three signals feed into it. The architecture notes that evaluator agreement and model reliability could also contribute, but neither has a reliable metric yet. See `docs/ALGORITHMS/TRUST_LAYER.md`.

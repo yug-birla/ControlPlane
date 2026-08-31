@@ -1,6 +1,6 @@
-# controlplane/trajectory/
+﻿# controlplane/trajectory/
 
-**Purpose:** the Trajectory Store — "reconstructable execution state/history" (`docs/architecture/TRAJECTORY_AND_LEDGER.md`). Distinct from the Execution Ledger (`controlplane/ledger/`), which is append-only consequential facts.
+**Purpose:** the Trajectory Store  -  "reconstructable execution state/history" (`docs/architecture/TRAJECTORY_AND_LEDGER.md`). Distinct from the Execution Ledger (`controlplane/ledger/`), which is append-only consequential facts.
 
 ## Interface
 
@@ -8,7 +8,7 @@
 
 ## Dependencies
 
-`controlplane/db/` (Postgres). No in-memory caching — every read goes to the database, which is what makes "persistence across restart" true rather than assumed.
+`controlplane/db/` (Postgres). No in-memory caching  -  every read goes to the database, which is what makes "persistence across restart" true rather than assumed.
 
 ## Limitations
 
@@ -16,4 +16,4 @@ Single-request trajectories only (`trajectory_type="SINGLE_REQUEST"`); no plan/p
 
 ## Extension points
 
-Future layers (RAG, evaluation, intervention, replanning) append more `trajectory_steps` rows via `append_step`/`update_step_status` — they don't need a new store.
+Future layers (RAG, evaluation, intervention, replanning) append more `trajectory_steps` rows via `append_step`/`update_step_status`  -  they don't need a new store.

@@ -1,6 +1,6 @@
-# controlplane/decision/
+﻿# controlplane/decision/
 
-**Purpose:** the Decision Engine — the control-loop stage that decides whether to continue, intervene, or stop, given the Evaluation layer's results. See `docs/ALGORITHMS/CONTROL_LOOP.md`.
+**Purpose:** the Decision Engine  -  the control-loop stage that decides whether to continue, intervene, or stop, given the Evaluation layer's results. See `docs/ALGORITHMS/CONTROL_LOOP.md`.
 
 ## Interface
 
@@ -8,7 +8,7 @@
 
 ## Dependencies
 
-`controlplane.evaluation.evaluators`, `controlplane.risk.profile`, `controlplane.routing.model_router`. Pure function — no DB, no model call (persistence happens in `controlplane.runtime`).
+`controlplane.evaluation.evaluators`, `controlplane.risk.profile`, `controlplane.routing.model_router`. Pure function  -  no DB, no model call (persistence happens in `controlplane.runtime`).
 
 ## Limitations
 

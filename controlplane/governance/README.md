@@ -1,6 +1,6 @@
-# controlplane/governance/
+﻿# controlplane/governance/
 
-**Purpose:** a standalone Agent/Tool Governance gate — a pre-execution proposed-action risk check (`ALLOW`/`RESTRICT`/`HUMAN_REVIEW`/`BLOCK`). See `docs/ALGORITHMS/AGENT_GOVERNANCE.md`.
+**Purpose:** a standalone Agent/Tool Governance gate  -  a pre-execution proposed-action risk check (`ALLOW`/`RESTRICT`/`HUMAN_REVIEW`/`BLOCK`). See `docs/ALGORITHMS/AGENT_GOVERNANCE.md`.
 
 ## Interface
 
@@ -8,11 +8,11 @@
 
 ## Dependencies
 
-None beyond the standard library — deterministic keyword/risk-label checks only.
+None beyond the standard library  -  deterministic keyword/risk-label checks only.
 
 ## Limitations
 
-**Not wired into any live execution path** — this repo's `AGENT` capability still executes via the `GraphExecutor`'s `MOCKED` handler, so there is no real agent proposing tool calls yet for this to gate. Evaluated against `data/raw/generated/agent_trajectories.json` (see `docs/EVALUATION/AGENT_GOVERNANCE_RESULTS.md`) as a standalone, measured decision function.
+**Not wired into any live execution path**  -  this repo's `AGENT` capability still executes via the `GraphExecutor`'s `MOCKED` handler, so there is no real agent proposing tool calls yet for this to gate. Evaluated against `data/raw/generated/agent_trajectories.json` (see `docs/EVALUATION/AGENT_GOVERNANCE_RESULTS.md`) as a standalone, measured decision function.
 
 ## Extension points
 

@@ -1,4 +1,4 @@
-# ControlPlane.ai — Product Thesis
+﻿# ControlPlane.ai — Product Thesis
 
 ## Product Identity
 
@@ -1474,13 +1474,13 @@ Instead:
 TRUST: HIGH
 
 Why:
-✓ Supported by 3 authorized sources
-✓ Verification passed
-✓ No major model disagreement
-✓ Source data is available and current
+ Supported by 3 authorized sources
+ Verification passed
+ No major model disagreement
+ Source data is available and current
 
 Limitations:
-⚠ Data available only through Q3
+ Data available only through Q3
 ```
 
 Or:
@@ -1489,9 +1489,9 @@ Or:
 TRUST: LOW
 
 Why:
-⚠ Required evidence unavailable
-⚠ Retrieved context incomplete
-⚠ Models disagree
+ Required evidence unavailable
+ Retrieved context incomplete
+ Models disagree
 
 ControlPlane action:
 Did not present the unsupported claim as fact.

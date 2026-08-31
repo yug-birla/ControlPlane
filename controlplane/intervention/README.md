@@ -1,19 +1,5 @@
 # controlplane/intervention/
 
-**Purpose:** the Intervention Engine — translates a `ControlDecision` into an executable spec. See `docs/ALGORITHMS/CONTROL_LOOP.md`.
+`InterventionEngine` converts a `ControlDecision` into a concrete `InterventionSpec` that the runtime can act on — re-retrieving with a wider `k`, changing the model role, generating a constrained response, or routing to human review. The engine just plans; `controlplane.runtime` actually executes the spec.
 
-## Interface
-
-- `engine.py`: `InterventionType` (enum), `InterventionSpec`, `InterventionEngine.plan(decision, current_model_role) -> InterventionSpec`.
-
-## Dependencies
-
-`controlplane.decision.engine`. Pure planning step — `controlplane.runtime` actually executes the spec (re-retrieval, re-invocation).
-
-## Limitations
-
-`RETRIEVE_MORE` widens `k`, not LLM-based query reformulation (deferred, see `docs/PROJECT_STATE/DECISIONS.md`).
-
-## Extension points
-
-A `RERANK`/`CHANGE_DATA_SOURCE` intervention type would add one `InterventionType` member and one branch in `.plan(...)`.
+`RETRIEVE_MORE` widens retrieval `k` rather than reformulating the query with an LLM. That was a deliberate trade: query reformulation would require an extra model call, and widening `k` is fast and sufficient for the cases this prototype encounters. It is noted as a future improvement in `docs/PROJECT_STATE/DECISIONS.md`.

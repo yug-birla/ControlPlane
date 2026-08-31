@@ -1,6 +1,6 @@
-# ControlPlane Data Changelog
+﻿# ControlPlane Data Changelog
 
-## v0.4 — 2026-08-27 (Documentation Audit)
+## [0.4] - 2026-08-27
 
 ### Corrections (accuracy)
 - `query_profiles_large.json` and `annotation_cases.json` record counts corrected from 250 to their actual count, 270, in `DATASET_REGISTRY.md` and `README.md`.
@@ -20,7 +20,7 @@
 - Added `docs/architecture/CONTROLPLANE_FINAL_ARCHITECTURE_IMPLEMENTATION_MASTER_SPEC.md` §64 "Terminology Alignment," declaring canonical spellings for the intervention vocabulary, top-level decision outcomes, severity scale, and model identifiers that had multiple non-identical versions across the architecture/specs doc set.
 - Flagged (not silently resolved) the mismatch between `SOURCES_AND_CAPABILITIES.md`'s canonical `required_data_sources`/`required_capabilities` values and the more granular values actually used in generated data — see `DATASET_GAPS.md`.
 
-## v0.3 — 2026-08-27
+## [0.3] - 2026-08-27
 
 ### Documentation Reorganization
 
@@ -40,7 +40,7 @@ All root-level MD files moved into structured `docs/` subdirectories. Root now c
 
 ---
 
-## v0.2 — 2026-08-27
+## [0.2] - 2026-08-27
 
 ### Repository Cleanup and Reorganization
 
@@ -68,7 +68,7 @@ From `smriti-data/DATA_STRUCTURE/`: `DATA_STORAGE_ARCHITECTURE.md`, `POSTGRES_SC
 - Query Profile schema v0.1 unchanged. See `data/schemas/query_profile.schema.json`.
 - Evaluation query format (Person A's work) is a distinct dataset type — not unified with query profiles.
 
-## v0.1 — 2026-08-26
+## [0.1] - 2026-08-26
 
 ### Created
 - `docs/DATA/SCHEMA.md` — Query profile schema and taxonomy

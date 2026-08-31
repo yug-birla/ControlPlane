@@ -1,8 +1,8 @@
-# ControlPlane.ai — Final Completion Report
+# ControlPlane.ai — Completion Report
 
-**Date:** 2026-08-30 · **Tests:** 496 passing · **Scale of the primary benchmark:** `DEVELOPMENT_TEST` (62 cases)
+Written 30 August 2026. 496 tests passing at time of writing. The primary benchmark is a frozen 62-case set — small enough that the confidence intervals are wide, and the report says so.
 
-Every number in this report comes from a committed result file under `docs/EVALUATION/RESULTS/`. Where something was not measured, it says `NOT_MEASURED` rather than being estimated.
+Every number below comes from a committed result file under `docs/EVALUATION/RESULTS/`. Anything not measured says `NOT_MEASURED` rather than carrying an estimate.
 
 ---
 
