@@ -203,7 +203,7 @@ sequenceDiagram
     participant EV as Evaluation Suite
     participant DE as Decision Engine
 
-    rect rgb(230, 240, 255)
+    
         note over U,CR: Phase 1 — Intake & Planning
         U  ->> RT : POST /v1/requests
         activate RT
@@ -217,7 +217,7 @@ sequenceDiagram
         deactivate CR
     end
 
-    rect rgb(230, 255, 235)
+    
         note over RT,A2: Phase 2 — Parallel Execution (wave scheduler)
         par RAG path — 578 ms
             RT ->> A1 : execute(RAG via MCP)
@@ -232,7 +232,7 @@ sequenceDiagram
         end
     end
 
-    rect rgb(255, 245, 220)
+    
         note over A1,A3: Phase 3 — Handoff & Governance
         A1  ->> BUS : HANDOFF · 5 items · sensitivity=PUBLIC
         A2  ->> BUS : HANDOFF · 20 items · sensitivity=CONFIDENTIAL
@@ -244,7 +244,7 @@ sequenceDiagram
         deactivate A3
     end
 
-    rect rgb(255, 230, 230)
+    
         note over RT,U: Phase 4 — Evaluation & Outcome
         RT ->> EV : evaluate(answer + evidence)
         activate EV
