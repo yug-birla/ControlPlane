@@ -842,6 +842,5 @@ Each item is tied to a specific limitation above:
 
 **ControlPlane.ai** governs AI execution, and measures whether the governance helped.
 
-*Accenture Innovation Challenge 2026 · Round 2 · Problem Track 1*
 
 </div>
